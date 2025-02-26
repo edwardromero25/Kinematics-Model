@@ -85,10 +85,14 @@ class MagnitudeAnalysisGUI:
 
         # Create frames for the magnitude plot and the path plot
         self.magnitude_frame = tk.Frame(plot_frame, borderwidth=1, relief=tk.SOLID)
-        self.magnitude_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.magnitude_frame.grid(row=0, column=0, sticky="nsew")
 
         self.path_frame = tk.Frame(plot_frame, borderwidth=1, relief=tk.SOLID)
-        self.path_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.path_frame.grid(row=0, column=1, sticky="nsew")
+
+        plot_frame.grid_columnconfigure(0, weight=1)
+        plot_frame.grid_columnconfigure(1, weight=1)
+        plot_frame.grid_rowconfigure(0, weight=1)
 
         # Initialize empty plots
         self.figure = plt.Figure()
