@@ -4,6 +4,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from dataCompile import MagnitudeAnalysis
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
+import numpy as np
 
 class MagnitudeAnalysisGUI:
     def __init__(self, master):
@@ -41,12 +42,12 @@ class MagnitudeAnalysisGUI:
         operating_label = tk.Label(operating_frame, text="Operating Condition", font=category_font_style)
         operating_label.pack()
 
-        self.innerV_label = tk.Label(operating_frame, text="Inner Frame Velocity:", font=font_style)
+        self.innerV_label = tk.Label(operating_frame, text="Inner Frame Velocity (rpm):", font=font_style)
         self.innerV_label.pack(anchor=tk.W)
         self.innerV_entry = tk.Entry(operating_frame, font=font_style)
         self.innerV_entry.pack()
 
-        self.outerV_label = tk.Label(operating_frame, text="Outer Frame Velocity:", font=font_style)
+        self.outerV_label = tk.Label(operating_frame, text="Outer Frame Velocity (rpm):", font=font_style)
         self.outerV_label.pack(anchor=tk.W)
         self.outerV_entry = tk.Entry(operating_frame, font=font_style)
         self.outerV_entry.pack()
@@ -54,7 +55,7 @@ class MagnitudeAnalysisGUI:
         duration_frame = tk.Frame(center_frame, padx=10, pady=10)
         duration_frame.grid(row=0, column=1, padx=10)
 
-        duration_label = tk.Label(duration_frame, text="Simulation Duration", font=category_font_style)
+        duration_label = tk.Label(duration_frame, text="Simulation Duration (hours)", font=category_font_style)
         duration_label.pack()
 
         self.maxSeg_entry = tk.Entry(duration_frame, font=font_style)
@@ -63,7 +64,7 @@ class MagnitudeAnalysisGUI:
         analysis_frame = tk.Frame(center_frame, padx=10, pady=10)
         analysis_frame.grid(row=0, column=2, padx=10)
 
-        analysis_label = tk.Label(analysis_frame, text="Time Period of Analysis", font=category_font_style)
+        analysis_label = tk.Label(analysis_frame, text="Time Period of Analysis (hours)", font=category_font_style)
         analysis_label.pack()
 
         analysis_period_frame = tk.Frame(analysis_frame)
@@ -82,14 +83,31 @@ class MagnitudeAnalysisGUI:
         plot_frame = tk.Frame(master, padx=10, pady=10)
         plot_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
 
+        # Create frames for the magnitude plot and the path plot
+        self.magnitude_frame = tk.Frame(plot_frame, borderwidth=1, relief=tk.SOLID)
+        self.magnitude_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.path_frame = tk.Frame(plot_frame, borderwidth=1, relief=tk.SOLID)
+        self.path_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Initialize empty plots
         self.figure = plt.Figure()
         self.ax = self.figure.add_subplot(1, 1, 1)
-        self.canvas = FigureCanvasTkAgg(self.figure, plot_frame)
+        self.canvas = FigureCanvasTkAgg(self.figure, self.magnitude_frame)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        self.toolbar = NavigationToolbar2Tk(self.canvas, plot_frame)
+        self.toolbar = NavigationToolbar2Tk(self.canvas, self.magnitude_frame)
         self.toolbar.update()
-        self.canvas.get_tk_widget().pack()
+        self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+        self.path_figure = plt.Figure()
+        self.path_ax = self.path_figure.add_subplot(1, 1, 1, projection='3d')
+        self.path_canvas = FigureCanvasTkAgg(self.path_figure, self.path_frame)
+        self.path_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+        self.path_toolbar = NavigationToolbar2Tk(self.path_canvas, self.path_frame)
+        self.path_toolbar.update()
+        self.path_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
     def submit(self):
         try:
@@ -141,6 +159,20 @@ class MagnitudeAnalysisGUI:
         self.ax.set_ylabel('Magnitude (g)')
 
         self.canvas.draw()
+
+        # Create and display the path figure
+        self.path_ax.clear()
+        self.path_ax.plot(analysis.x, analysis.y, analysis.z, color='blue', linewidth=1)
+        self.path_ax.set_xlabel('X')
+        self.path_ax.set_ylabel('Y')
+        self.path_ax.set_zlabel('Z')
+        ticks = np.arange(-1.0, 1.5, 0.5)
+        self.path_ax.set_xticks(ticks)
+        self.path_ax.set_yticks(ticks)
+        self.path_ax.set_zticks(ticks)
+        self.path_ax.set_title(f"Acceleration Vector Path (I={innerV}, O={outerV})")
+
+        self.path_canvas.draw()
 
 if __name__ == "__main__":
     root = tk.Tk()

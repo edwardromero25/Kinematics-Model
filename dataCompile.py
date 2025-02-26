@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import sys
+from mpl_toolkits.mplot3d import Axes3D
 
 class Sim:
     def gVectorX(self, timeInSeconds, localInnerInRadSec, localOuterInRadSec):
@@ -142,4 +143,30 @@ class MagnitudeAnalysis:
             plt.show()
         else:
             plt.savefig('timeMagFig.png')
+            plt.show()
+
+    def createPathFig(self, innerV, outerV, mode='save', title=True):
+        fig = plt.figure(figsize=plt.figaspect(0.85))
+
+        if title:
+            fig.suptitle(f"Acceleration Vector Path (I={innerV}, O={outerV})")
+
+        ax = fig.add_subplot(1, 1, 1, projection='3d')
+        ax.plot(self.x, self.y, self.z, color='blue', linewidth=1)  # Plots Path
+
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+
+        ticks = np.arange(-1.0, 1.5, 0.5)
+        ax.set_xticks(ticks)
+        ax.set_yticks(ticks)
+        ax.set_zticks(ticks)
+
+        if mode == 'save':
+            plt.savefig('pathFig.png')
+        elif mode == 'show':
+            plt.show()
+        else:
+            plt.savefig('pathFig.png')
             plt.show()
