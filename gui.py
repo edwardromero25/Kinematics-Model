@@ -15,29 +15,29 @@ class GUI:
         title_font_style = ("Calibri", 20, "bold")
         category_font_style = ("Calibri", 14, "bold")
 
-        input_frame = tk.Frame(master, padx=10, pady=10)
+        input_frame = tk.Frame(master, padx=1, pady=1)
         input_frame.pack(side=tk.TOP, anchor=tk.CENTER)
 
         self.nasa_logo = tk.PhotoImage(file="images/nasa_logo.png")
         self.mssf_logo = tk.PhotoImage(file="images/mssf_logo.png")
 
         title_frame = tk.Frame(input_frame)
-        title_frame.pack(pady=(0, 10))
+        title_frame.pack(pady=(0, 1))
 
         nasa_label = tk.Label(title_frame, image=self.nasa_logo)
-        nasa_label.pack(side=tk.LEFT, padx=5)
+        nasa_label.pack(side=tk.LEFT, padx=1)
 
         title_label = tk.Label(title_frame, text="Computer Model", font=title_font_style)
-        title_label.pack(side=tk.LEFT, padx=5)
+        title_label.pack(side=tk.LEFT, padx=1)
 
         mssf_label = tk.Label(title_frame, image=self.mssf_logo)
-        mssf_label.pack(side=tk.LEFT, padx=5)
+        mssf_label.pack(side=tk.LEFT, padx=1)
 
         center_frame = tk.Frame(input_frame)
         center_frame.pack()
 
-        operating_frame = tk.Frame(center_frame, padx=10, pady=10)
-        operating_frame.grid(row=0, column=0, padx=10)
+        operating_frame = tk.Frame(center_frame, padx=1, pady=1)
+        operating_frame.grid(row=0, column=0, padx=1)
 
         operating_label = tk.Label(operating_frame, text="Operating Condition", font=category_font_style)
         operating_label.pack()
@@ -52,8 +52,8 @@ class GUI:
         self.outerV_entry = tk.Entry(operating_frame, font=font_style)
         self.outerV_entry.pack()
 
-        duration_frame = tk.Frame(center_frame, padx=10, pady=10)
-        duration_frame.grid(row=0, column=1, padx=10)
+        duration_frame = tk.Frame(center_frame, padx=1, pady=1)
+        duration_frame.grid(row=0, column=1, padx=1)
 
         duration_label = tk.Label(duration_frame, text="Simulation Duration (hours)", font=category_font_style)
         duration_label.pack()
@@ -61,8 +61,8 @@ class GUI:
         self.maxSeg_entry = tk.Entry(duration_frame, font=font_style)
         self.maxSeg_entry.pack()
 
-        analysis_frame = tk.Frame(center_frame, padx=10, pady=10)
-        analysis_frame.grid(row=0, column=2, padx=10)
+        analysis_frame = tk.Frame(center_frame, padx=1, pady=1)
+        analysis_frame.grid(row=0, column=2, padx=1)
 
         analysis_label = tk.Label(analysis_frame, text="Time Period of Analysis (hours)", font=category_font_style)
         analysis_label.pack()
@@ -78,9 +78,9 @@ class GUI:
         self.endAnalysis_entry.pack(side=tk.LEFT)
 
         self.submit_button = tk.Button(center_frame, text="Start", command=self.submit, font=font_style, bg="lightgray")
-        self.submit_button.grid(row=1, column=0, columnspan=3, pady=10)
+        self.submit_button.grid(row=1, column=0, columnspan=3, pady=1)
 
-        plot_frame = tk.Frame(master, padx=10, pady=10)
+        plot_frame = tk.Frame(master, padx=1, pady=1)
         plot_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
 
         self.magnitude_frame = tk.Frame(plot_frame, borderwidth=1, relief=tk.SOLID)
