@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from dataCompile import MagnitudeAnalysis
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
@@ -12,6 +12,7 @@ class MagnitudeAnalysisGUI:
 
         font_style = ("Calibri", 12)
         title_font_style = ("Calibri", 20, "bold")
+        category_font_style = ("Calibri", 14, "bold")
 
         input_frame = tk.Frame(master, padx=10, pady=10)
         input_frame.pack(side=tk.TOP, anchor=tk.CENTER)
@@ -34,33 +35,49 @@ class MagnitudeAnalysisGUI:
         center_frame = tk.Frame(input_frame)
         center_frame.pack()
 
-        self.innerV_label = tk.Label(center_frame, text="Inner Frame Velocity (rpm):", font=font_style)
-        self.innerV_label.grid(row=0, column=0, sticky=tk.E, pady=5, padx=5)
-        self.innerV_entry = tk.Entry(center_frame, font=font_style)
-        self.innerV_entry.grid(row=0, column=1, pady=5, padx=5)
+        operating_frame = tk.Frame(center_frame, padx=10, pady=10)
+        operating_frame.grid(row=0, column=0, padx=10)
 
-        self.outerV_label = tk.Label(center_frame, text="Outer Frame Velocity (rpm):", font=font_style)
-        self.outerV_label.grid(row=1, column=0, sticky=tk.E, pady=5, padx=5)
-        self.outerV_entry = tk.Entry(center_frame, font=font_style)
-        self.outerV_entry.grid(row=1, column=1, pady=5, padx=5)
+        operating_label = tk.Label(operating_frame, text="Operating Condition", font=category_font_style)
+        operating_label.pack()
 
-        self.maxSeg_label = tk.Label(center_frame, text="Simulation Duration (hours):", font=font_style)
-        self.maxSeg_label.grid(row=2, column=0, sticky=tk.E, pady=5, padx=5)
-        self.maxSeg_entry = tk.Entry(center_frame, font=font_style)
-        self.maxSeg_entry.grid(row=2, column=1, pady=5, padx=5)
+        self.innerV_label = tk.Label(operating_frame, text="Inner Frame Velocity:", font=font_style)
+        self.innerV_label.pack(anchor=tk.W)
+        self.innerV_entry = tk.Entry(operating_frame, font=font_style)
+        self.innerV_entry.pack()
 
-        self.startAnalysis_label = tk.Label(center_frame, text="Lower Bound for Analysis Period (hours):", font=font_style)
-        self.startAnalysis_label.grid(row=3, column=0, sticky=tk.E, pady=5, padx=5)
-        self.startAnalysis_entry = tk.Entry(center_frame, font=font_style)
-        self.startAnalysis_entry.grid(row=3, column=1, pady=5, padx=5)
+        self.outerV_label = tk.Label(operating_frame, text="Outer Frame Velocity:", font=font_style)
+        self.outerV_label.pack(anchor=tk.W)
+        self.outerV_entry = tk.Entry(operating_frame, font=font_style)
+        self.outerV_entry.pack()
 
-        self.endAnalysis_label = tk.Label(center_frame, text="Upper Bound for Analysis Period (hours):", font=font_style)
-        self.endAnalysis_label.grid(row=4, column=0, sticky=tk.E, pady=5, padx=5)
-        self.endAnalysis_entry = tk.Entry(center_frame, font=font_style)
-        self.endAnalysis_entry.grid(row=4, column=1, pady=5, padx=5)
+        duration_frame = tk.Frame(center_frame, padx=10, pady=10)
+        duration_frame.grid(row=0, column=1, padx=10)
+
+        duration_label = tk.Label(duration_frame, text="Simulation Duration", font=category_font_style)
+        duration_label.pack()
+
+        self.maxSeg_entry = tk.Entry(duration_frame, font=font_style)
+        self.maxSeg_entry.pack()
+
+        analysis_frame = tk.Frame(center_frame, padx=10, pady=10)
+        analysis_frame.grid(row=0, column=2, padx=10)
+
+        analysis_label = tk.Label(analysis_frame, text="Time Period of Analysis", font=category_font_style)
+        analysis_label.pack()
+
+        analysis_period_frame = tk.Frame(analysis_frame)
+        analysis_period_frame.pack()
+
+        self.startAnalysis_entry = tk.Entry(analysis_period_frame, font=font_style, width=10)
+        self.startAnalysis_entry.pack(side=tk.LEFT)
+        hyphen_label = tk.Label(analysis_period_frame, text="-", font=font_style)
+        hyphen_label.pack(side=tk.LEFT)
+        self.endAnalysis_entry = tk.Entry(analysis_period_frame, font=font_style, width=10)
+        self.endAnalysis_entry.pack(side=tk.LEFT)
 
         self.submit_button = tk.Button(center_frame, text="Start", command=self.submit, font=font_style, bg="lightgray")
-        self.submit_button.grid(row=5, column=0, columnspan=2, pady=10)
+        self.submit_button.grid(row=1, column=0, columnspan=3, pady=10)
 
         plot_frame = tk.Frame(master, padx=10, pady=10)
         plot_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
@@ -69,6 +86,10 @@ class MagnitudeAnalysisGUI:
         self.ax = self.figure.add_subplot(1, 1, 1)
         self.canvas = FigureCanvasTkAgg(self.figure, plot_frame)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+        self.toolbar = NavigationToolbar2Tk(self.canvas, plot_frame)
+        self.toolbar.update()
+        self.canvas.get_tk_widget().pack()
 
     def submit(self):
         try:
