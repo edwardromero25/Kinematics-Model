@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import sys
-from mpl_toolkits.mplot3d import Axes3D
 
 class Sim:
     def gVectorX(self, timeInSeconds, localInnerInRadSec, localOuterInRadSec):
@@ -33,17 +32,17 @@ class Sim:
         data = timeArray, xArray, yArray, zArray
         return data
 
-class MagnitudeAnalysis:
+class DataProcessor:
     def __init__(self, innerV, outerV, maxSeg, startAnalysis, endAnalysis):
         self.innerV = innerV
         self.outerV = outerV
+        self.minSeg = 0
         self.maxSeg = maxSeg
         self.endTime = int(self.maxSeg * 3600)
         self.startAnalysis = startAnalysis
         self.endAnalysis = endAnalysis
         self.startSeg = int(self.startAnalysis * 3600)
         self.endSeg = int(self.endAnalysis * 3600)
-        self.minSeg = 0
         self.time, self.x, self.y, self.z = self._getSimAccelData()
 
     def _getSimAccelData(self):
@@ -152,7 +151,7 @@ class MagnitudeAnalysis:
             fig.suptitle(f"Acceleration Vector Path (I={innerV}, O={outerV})")
 
         ax = fig.add_subplot(1, 1, 1, projection='3d')
-        ax.plot(self.x, self.y, self.z, color='blue', linewidth=1)  # Plots Path
+        ax.plot(self.x, self.y, self.z, color='blue', linewidth=1) 
 
         ax.set_xlabel('X')
         ax.set_ylabel('Y')

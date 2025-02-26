@@ -1,12 +1,12 @@
 import tkinter as tk
 from tkinter import messagebox
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-from dataCompile import MagnitudeAnalysis
+from dataCompile import DataProcessor
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import numpy as np
 
-class MagnitudeAnalysisGUI:
+class GUI:
     def __init__(self, master):
         self.master = master
         master.title("Computer Model")
@@ -83,7 +83,6 @@ class MagnitudeAnalysisGUI:
         plot_frame = tk.Frame(master, padx=10, pady=10)
         plot_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
 
-        # Create frames for the magnitude plot and the path plot
         self.magnitude_frame = tk.Frame(plot_frame, borderwidth=1, relief=tk.SOLID)
         self.magnitude_frame.grid(row=0, column=0, sticky="nsew")
 
@@ -94,9 +93,14 @@ class MagnitudeAnalysisGUI:
         plot_frame.grid_columnconfigure(1, weight=1)
         plot_frame.grid_rowconfigure(0, weight=1)
 
-        # Initialize empty plots
+        rcParams['font.family'] = 'Calibri'
+
         self.figure = plt.Figure()
         self.ax = self.figure.add_subplot(1, 1, 1)
+        self.ax.set_yscale('log')
+        self.ax.set_title("Magnitude vs. Time")
+        self.ax.set_xlabel('Time (hours)')
+        self.ax.set_ylabel('Magnitude (g)')
         self.canvas = FigureCanvasTkAgg(self.figure, self.magnitude_frame)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
@@ -106,6 +110,14 @@ class MagnitudeAnalysisGUI:
 
         self.path_figure = plt.Figure()
         self.path_ax = self.path_figure.add_subplot(1, 1, 1, projection='3d')
+        self.path_ax.set_xlabel('X')
+        self.path_ax.set_ylabel('Y')
+        self.path_ax.set_zlabel('Z')
+        ticks = np.arange(-1.0, 1.5, 0.5)
+        self.path_ax.set_xticks(ticks)
+        self.path_ax.set_yticks(ticks)
+        self.path_ax.set_zticks(ticks)
+        self.path_ax.set_title("Acceleration Vector Path")
         self.path_canvas = FigureCanvasTkAgg(self.path_figure, self.path_frame)
         self.path_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
@@ -117,7 +129,7 @@ class MagnitudeAnalysisGUI:
         try:
             innerV = float(self.innerV_entry.get())
             outerV = float(self.outerV_entry.get())
-            maxSeg = int(float(self.maxSeg_entry.get()))
+            maxSeg = int(self.maxSeg_entry.get())
             startAnalysis = float(self.startAnalysis_entry.get())
             endAnalysis = float(self.endAnalysis_entry.get())
 
@@ -132,7 +144,7 @@ class MagnitudeAnalysisGUI:
             if startAnalysis == endAnalysis:
                 raise ValueError("Upper and lower bounds must not be equal.")
 
-            analysis = MagnitudeAnalysis(innerV, outerV, maxSeg, startAnalysis, endAnalysis)
+            analysis = DataProcessor(innerV, outerV, maxSeg, startAnalysis, endAnalysis)
             xTimeAvg, yTimeAvg, zTimeAvg = analysis._getTimeAvg()
             magnitude = analysis._getMagnitude(xTimeAvg, yTimeAvg, zTimeAvg)
             avgMagSeg, avgMagAnalysis = analysis._getMagSeg(magnitude)
@@ -164,7 +176,6 @@ class MagnitudeAnalysisGUI:
 
         self.canvas.draw()
 
-        # Create and display the path figure
         self.path_ax.clear()
         self.path_ax.plot(analysis.x, analysis.y, analysis.z, color='blue', linewidth=1)
         self.path_ax.set_xlabel('X')
@@ -180,5 +191,5 @@ class MagnitudeAnalysisGUI:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    gui = MagnitudeAnalysisGUI(root)
+    gui = GUI(root)
     root.mainloop()
