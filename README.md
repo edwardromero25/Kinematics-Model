@@ -12,7 +12,7 @@
   <img src="images/example.png" alt="example" style="max-width: 100%; height: auto;">
 </div>
 
-This is a computer model that determines the optimal combination of inner and outer frame velocities to produce an effective microgravity simulation.
+This is a computer model that evaluates the efficacy of a 3D clinostat's microgravity simulation.
 
 ## Built With
 
