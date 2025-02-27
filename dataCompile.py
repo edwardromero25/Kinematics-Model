@@ -87,11 +87,11 @@ class DataProcessor:
         return magList
 
     def _getMagSeg(self, magList):
-        magSegList = magList[self.minSeg:self.maxSeg]
+        magSegList = magList[self.minSeg:self.endTime]
         if len(magList) < self.minSeg:
             print("\nERROR: Segment begins after data ends - " + str(len(magList)) + " sec\n")
             sys.exit()
-        elif len(magSegList) < (self.maxSeg - self.minSeg):
+        elif len(magSegList) < (self.endTime - self.minSeg):
             print("\nWARNING: Not enough data for segment - " + str(len(magList)) + " sec\n")
         avgMagFull = np.mean(magList[self.minSeg:self.endTime])
     

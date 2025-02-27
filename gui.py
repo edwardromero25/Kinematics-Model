@@ -130,7 +130,7 @@ class GUI:
         try:
             innerV = float(self.innerV_entry.get())
             outerV = float(self.outerV_entry.get())
-            maxSeg = int(self.maxSeg_entry.get())
+            maxSeg = float(self.maxSeg_entry.get())
             startAnalysis = float(self.startAnalysis_entry.get())
             endAnalysis = float(self.endAnalysis_entry.get())
 
