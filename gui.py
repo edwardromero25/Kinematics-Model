@@ -37,7 +37,7 @@ class GUI:
         center_frame.pack()
 
         operating_frame = tk.Frame(center_frame, padx=1, pady=1)
-        operating_frame.grid(row=0, column=0, padx=1)
+        operating_frame.grid(row=0, column=0, padx=30)
 
         operating_label = tk.Label(operating_frame, text="Operating Condition", font=category_font_style)
         operating_label.pack()
@@ -53,7 +53,7 @@ class GUI:
         self.outerV_entry.pack()
 
         duration_frame = tk.Frame(center_frame, padx=1, pady=1)
-        duration_frame.grid(row=0, column=1, padx=1)
+        duration_frame.grid(row=0, column=1, padx=30) 
 
         duration_label = tk.Label(duration_frame, text="Simulation Duration (hours)", font=category_font_style)
         duration_label.pack()
@@ -62,7 +62,7 @@ class GUI:
         self.maxSeg_entry.pack()
 
         analysis_frame = tk.Frame(center_frame, padx=1, pady=1)
-        analysis_frame.grid(row=0, column=2, padx=1)
+        analysis_frame.grid(row=0, column=2, padx=30) 
 
         analysis_label = tk.Label(analysis_frame, text="Time Period of Analysis (hours)", font=category_font_style)
         analysis_label.pack()
@@ -166,10 +166,10 @@ class GUI:
 
         self.ax.set_yscale('log')
         self.ax.set_title(f"Magnitude vs. Time (I={innerV}, O={outerV})")
-        self.ax.plot(fTime, magnitude, color='dimgray', label="Average Magnitude: " + f"{avgMagSeg:.4g}")
-        self.ax.axvline(x=startAnalysis, color='blue', linestyle='--')
-        self.ax.axvline(x=endAnalysis, color='blue', linestyle='--')
-        self.ax.plot(fTime[startIndex:endIndex], magnitude[startIndex:endIndex], color='blue', label="Average Magnitude: " + f"{avgMagAnalysis:.4g}")
+        self.ax.plot(fTime, magnitude, color='#0032A0', label="Average Magnitude: " + f"{avgMagSeg:.4g}")
+        self.ax.axvline(x=startAnalysis, color='#E4002B', linestyle='--')
+        self.ax.axvline(x=endAnalysis, color='#E4002B', linestyle='--')
+        self.ax.plot(fTime[startIndex:endIndex], magnitude[startIndex:endIndex], color='#E4002B', label="Average Magnitude: " + f"{avgMagAnalysis:.4g}")
         self.ax.legend()
         self.ax.set_xlabel('Time (hours)')
         self.ax.set_ylabel('Magnitude (g)')
@@ -177,7 +177,7 @@ class GUI:
         self.canvas.draw()
 
         self.path_ax.clear()
-        self.path_ax.plot(analysis.x, analysis.y, analysis.z, color='blue', linewidth=1)
+        self.path_ax.plot(analysis.x, analysis.y, analysis.z, color='#0032A0', linewidth=1)
         self.path_ax.set_xlabel('X')
         self.path_ax.set_ylabel('Y')
         self.path_ax.set_zlabel('Z')

@@ -2,7 +2,7 @@
 <br />
 <div align="center">
   <a href="https://public.ksc.nasa.gov/partnerships/capabilities-and-testing/testing-and-labs/microgravity-simulation-support-facility/">
-    <img src="images/NASA_logo.png" alt="Logo" style="max-width: 100%; height: auto;">
+    <img src="images/NASA_logo.svg" alt="Logo" style="max-width: 100%; height: auto;">
   </a>
 </div>
 
