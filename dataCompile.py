@@ -105,6 +105,162 @@ class DataProcessor:
 
         return avgMagFull, avgMagAnalysis
 
+    def getDistribution(self):
+        path = PathVisualization(self.innerV, self.x, self.y, self.z)
+        disScore = path.getDistribution()
+        return disScore
+
+class PathVisualization:
+    def __init__(self, ID, x, y, z, saveFile=''):
+        self.ID = ID
+
+        self.x = x
+        self.y = y
+        self.z = z
+
+        self.pathCoords = list(zip(self.x, self.y, self.z))
+        self.num_points = 1000
+
+        self.saveFile = saveFile
+
+    def __createSphere(self):
+        golden_r = (np.sqrt(5.0) + 1.0) / 2.0            
+        golden_a = (2.0 - golden_r) * (2.0 * np.pi)     
+
+        Xs, Ys, Zs = [], [], []
+        
+        for i in range(self.num_points):
+            ys = 1 - (i / float(self.num_points - 1)) * 2
+            radius = np.sqrt(1 - ys * ys)
+
+            theta = golden_a * i
+
+            xs = np.cos(theta) * radius
+            zs = np.sin(theta) * radius
+
+            Xs.append(xs)
+            Ys.append(ys)
+            Zs.append(zs)
+
+        return(Xs, Ys, Zs)
+
+    def __splitSphere(self, sphereCoords):
+        octants = {'posI':[], 'posII':[], 'posIII':[], 'posIV':[], 'negI':[], 'negII':[], 'negIII':[], 'negIV':[]}
+        
+        for row in sphereCoords:
+            if (row[2] > 0):
+                if (row[1] > 0):
+                    if (row[0] > 0):
+                        octants['posI'].append(row)
+                    else:
+                        octants['posII'].append(row)
+                elif (row[0] > 0):
+                    octants['posIV'].append(row)
+                else: 
+                    octants['posIII'].append(row)
+            else:
+                if (row[1] > 0):
+                    if (row[0] > 0):
+                        octants['negI'].append(row)
+                    else:
+                        octants['negII'].append(row)
+                elif (row[0] > 0):
+                    octants['negIV'].append(row)
+                else:
+                    octants['negIII'].append(row)
+        
+        return(octants)
+
+    def __getPathOctant(self, pathRow):
+        if (pathRow[2] > 0):
+            if (pathRow[1] > 0):
+                if (pathRow[0] > 0):
+                    return 'posI'
+                else:
+                    return 'posII'
+            elif (pathRow[0] > 0):
+                return 'posIV'
+            else: 
+                return 'posIII'
+        else:
+            if (pathRow[1] > 0):
+                if (pathRow[0] > 0):
+                    return 'negI'
+                else:
+                    return 'negII'
+            elif (pathRow[0] > 0):
+                return 'negIV'
+            else:
+                return 'negIII'
+
+    def __getDistanceBetween(self, pathTupleCoords, sphereTupleCoords):
+        pathX, pathY, pathZ = pathTupleCoords
+        sphereX, sphereY, sphereZ = sphereTupleCoords
+
+        diffX = pathX - sphereX
+        diffY = pathY - sphereY
+        diffZ = pathZ - sphereZ
+
+        sumSquares = diffX ** 2 + diffY ** 2 + diffZ ** 2
+        dist = np.sqrt(sumSquares)
+
+        return dist
+
+    def __getDistributionNum(self, sphereCoords):
+        octants = self.__splitSphere(sphereCoords)
+        
+        pathMap = {} 
+        repeatTime = -1
+
+        for pathRow in self.pathCoords:
+            pathOctant = self.__getPathOctant(pathRow)
+            sphereCoordsSplit = octants[pathOctant]
+            distDict = {}
+            repeatTime += 1
+
+            for sphereRow in sphereCoordsSplit:
+                dist = self.__getDistanceBetween(pathRow, sphereRow) 
+                distDict[sphereRow] = dist 
+                    
+            rankedDist = sorted(distDict.items(), key=lambda x:x[1]) 
+            segmentVertices = (rankedDist[0][0], rankedDist[1][0], rankedDist[2][0]) 
+            
+            pathMap[segmentVertices] = pathMap.get(segmentVertices, []) + [repeatTime] 
+        
+        return(len(pathMap))
+
+    def getDistribution(self):
+        Xsphere, Ysphere, Zsphere = self.__createSphere()
+        sphereCoords = list(zip(Xsphere, Ysphere, Zsphere))
+        score = self.__getDistributionNum(sphereCoords)
+        return score
+    
+    def createPathFig(self, innerV, outerV, mode='save', title=True):
+        fig = plt.figure(figsize=plt.figaspect(0.85))
+
+        if title:
+            fig.suptitle(f"Acceleration Vector Path (I={innerV}, O={outerV})")
+
+        ax = fig.add_subplot(1, 1, 1, projection='3d')
+        ax.plot(self.x, self.y, self.z, color='blue', linewidth=1) 
+
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+
+        ticks = np.arange(-1.0, 1.5, 0.5)
+        ax.set_xticks(ticks)
+        ax.set_yticks(ticks)
+        ax.set_zticks(ticks)
+
+        if mode == 'save':
+            plt.savefig('pathFig.png')
+        elif mode == 'show':
+            plt.show()
+        else:
+            plt.savefig('pathFig.png')
+            plt.show()
+    
     def formatTime(self, time):
         startTime = time[0]
         fTime = []
@@ -142,30 +298,4 @@ class DataProcessor:
             plt.show()
         else:
             plt.savefig('timeMagFig.png')
-            plt.show()
-
-    def createPathFig(self, innerV, outerV, mode='save', title=True):
-        fig = plt.figure(figsize=plt.figaspect(0.85))
-
-        if title:
-            fig.suptitle(f"Acceleration Vector Path (I={innerV}, O={outerV})")
-
-        ax = fig.add_subplot(1, 1, 1, projection='3d')
-        ax.plot(self.x, self.y, self.z, color='blue', linewidth=1) 
-
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
-
-        ticks = np.arange(-1.0, 1.5, 0.5)
-        ax.set_xticks(ticks)
-        ax.set_yticks(ticks)
-        ax.set_zticks(ticks)
-
-        if mode == 'save':
-            plt.savefig('pathFig.png')
-        elif mode == 'show':
-            plt.show()
-        else:
-            plt.savefig('pathFig.png')
             plt.show()

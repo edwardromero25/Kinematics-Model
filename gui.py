@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from dataCompile import DataProcessor
+from dataCompile import PathVisualization
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import numpy as np
@@ -80,7 +81,7 @@ class GUI:
         self.submit_button = tk.Button(center_frame, text="Start", command=self.submit, font=font_style, bg="lightgray")
         self.submit_button.grid(row=1, column=0, columnspan=3, pady=1)
 
-        plot_frame = tk.Frame(master, padx=1, pady=1)
+        plot_frame = tk.Frame(master, padx=10, pady=10)
         plot_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
 
         self.magnitude_frame = tk.Frame(plot_frame, borderwidth=1, relief=tk.SOLID)
@@ -145,31 +146,33 @@ class GUI:
                 raise ValueError("Upper and lower bounds must not be equal.")
 
             analysis = DataProcessor(innerV, outerV, maxSeg, startAnalysis, endAnalysis)
+            path_visualization = PathVisualization(innerV, analysis.x, analysis.y, analysis.z)
             xTimeAvg, yTimeAvg, zTimeAvg = analysis._getTimeAvg()
             magnitude = analysis._getMagnitude(xTimeAvg, yTimeAvg, zTimeAvg)
             avgMagSeg, avgMagAnalysis = analysis._getMagSeg(magnitude)
-            self.update_plot(analysis, magnitude, startAnalysis, endAnalysis, avgMagSeg, avgMagAnalysis, innerV, outerV)
+            disScore = analysis.getDistribution()
+            self.update_plot(analysis, magnitude, startAnalysis, endAnalysis, avgMagSeg, avgMagAnalysis, innerV, outerV, disScore, path_visualization)
 
         except ValueError as ve:
             messagebox.showerror("Input Error", str(ve))
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
-    def update_plot(self, analysis, magnitude, startAnalysis, endAnalysis, avgMagSeg, avgMagAnalysis, innerV, outerV):
+    def update_plot(self, analysis, magnitude, startAnalysis, endAnalysis, avgMagSeg, avgMagAnalysis, innerV, outerV, disScore, path_visualization):
         rcParams['font.family'] = 'Calibri' 
 
         self.ax.clear()
-        fTime = analysis.formatTime(analysis.time)
+        fTime = path_visualization.formatTime(analysis.time) 
         
         startIndex = next(i for i, t in enumerate(fTime) if t >= startAnalysis)
         endIndex = next(i for i, t in enumerate(fTime) if t >= endAnalysis)
 
         self.ax.set_yscale('log')
-        self.ax.set_title(f"Magnitude vs. Time (I={innerV}, O={outerV})")
-        self.ax.plot(fTime, magnitude, color='#0032A0', label="Average Magnitude: " + f"{avgMagSeg:.4g}")
+        self.ax.set_title("Magnitude vs. Time")
+        self.ax.plot(fTime, magnitude, color='#0032A0', label="Average Magnitude: " + f"{avgMagSeg:.3g}")
         self.ax.axvline(x=startAnalysis, color='#E4002B', linestyle='--')
         self.ax.axvline(x=endAnalysis, color='#E4002B', linestyle='--')
-        self.ax.plot(fTime[startIndex:endIndex], magnitude[startIndex:endIndex], color='#E4002B', label="Average Magnitude: " + f"{avgMagAnalysis:.4g}")
+        self.ax.plot(fTime[startIndex:endIndex], magnitude[startIndex:endIndex], color='#E4002B', label="Average Magnitude: " + f"{avgMagAnalysis:.3g}")
         self.ax.legend()
         self.ax.set_xlabel('Time (hours)')
         self.ax.set_ylabel('Magnitude (g)')
@@ -185,7 +188,8 @@ class GUI:
         self.path_ax.set_xticks(ticks)
         self.path_ax.set_yticks(ticks)
         self.path_ax.set_zticks(ticks)
-        self.path_ax.set_title(f"Acceleration Vector Path (I={innerV}, O={outerV})")
+        self.path_ax.set_title("Acceleration Vector Path")
+        self.path_ax.legend([f"Distribution: {disScore}"])
 
         self.path_canvas.draw()
 
