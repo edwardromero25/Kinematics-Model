@@ -235,67 +235,9 @@ class PathVisualization:
         score = self.__getDistributionNum(sphereCoords)
         return score
     
-    def createPathFig(self, innerV, outerV, mode='save', title=True):
-        fig = plt.figure(figsize=plt.figaspect(0.85))
-
-        if title:
-            fig.suptitle(f"Acceleration Vector Path (I={innerV}, O={outerV})")
-
-        ax = fig.add_subplot(1, 1, 1, projection='3d')
-        ax.plot(self.x, self.y, self.z, color='blue', linewidth=1) 
-
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
-
-        ticks = np.arange(-1.0, 1.5, 0.5)
-        ax.set_xticks(ticks)
-        ax.set_yticks(ticks)
-        ax.set_zticks(ticks)
-
-        if mode == 'save':
-            plt.savefig('pathFig.png')
-        elif mode == 'show':
-            plt.show()
-        else:
-            plt.savefig('pathFig.png')
-            plt.show()
-    
     def formatTime(self, time):
         startTime = time[0]
         fTime = []
         for t in time:
             fTime.append((t - startTime) / 3600)
         return fTime
-
-    def createMagFig(self, magnitude, time, startAnalysis, endAnalysis, avgMagSeg, avgMagAnalysis, innerV, outerV, mode='save', title=True):
-        fTime = self.formatTime(time)
-        
-        startIndex = next(i for i, t in enumerate(fTime) if t >= startAnalysis)
-        endIndex = next(i for i, t in enumerate(fTime) if t >= endAnalysis)
-
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)
-        plt.yscale('log')
-
-        if title:
-            fig.suptitle(f"Magnitude vs. Time (I={innerV}, O={outerV})")
-
-        ax.plot(fTime, magnitude, color='dimgray', label="Average Magnitude: " + f"{avgMagSeg:.4g}")
-
-        ax.axvline(x=startAnalysis, color='blue', linestyle='--')
-        ax.axvline(x=endAnalysis, color='blue', linestyle='--')
-
-        ax.plot(fTime[startIndex:endIndex], magnitude[startIndex:endIndex], color='blue', label="Average Magnitude: " + f"{avgMagAnalysis:.4g}")
-
-        ax.legend()
-        ax.set_xlabel('Time (hours)')
-        ax.set_ylabel('Magnitude (g)')
-
-        if mode == 'save': 
-            plt.savefig('timeMagFig.png')
-        elif mode == 'show':
-            plt.show()
-        else:
-            plt.savefig('timeMagFig.png')
-            plt.show()
