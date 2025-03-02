@@ -120,7 +120,7 @@ class GUI:
         self.endAnalysis_entry_exp.pack(side=tk.LEFT)
 
         self.submit_button = tk.Button(center_frame, text="Start", command=self.submit, font=font_style, bg="#E4002B", fg="white")
-        self.submit_button.grid(row=1, column=0, columnspan=4, pady=(15, 5))  # Adjust the top padding here
+        self.submit_button.grid(row=1, column=0, columnspan=4, pady=(10, 5))
 
         self.accelerometer_frame = tk.Frame(center_frame, padx=1, pady=1)
         accelerometer_label = tk.Label(self.accelerometer_frame, text="Accelerometer Data", font=category_font_style)
@@ -188,7 +188,7 @@ class GUI:
         self.analysis_frame.grid()
         self.analysis_frame_exp.grid_remove()
         self.accelerometer_frame.grid_remove()
-        self.submit_button.grid(row=1, column=0, columnspan=4, pady=(15, 5))
+        self.submit_button.grid(row=1, column=0, columnspan=4, pady=(10, 5))
         self.clear_plots()
 
     def show_experimental_inputs(self):
@@ -197,7 +197,7 @@ class GUI:
         self.analysis_frame.grid_remove()
         self.analysis_frame_exp.grid(row=0, column=2, padx=30)
         self.accelerometer_frame.grid(row=0, column=1, padx=30)
-        self.submit_button.grid(row=1, column=0, columnspan=4, pady=(15, 5)) 
+        self.submit_button.grid(row=1, column=0, columnspan=4, pady=(10, 5)) 
         self.clear_plots()
 
     def clear_plots(self):
