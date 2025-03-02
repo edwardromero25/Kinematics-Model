@@ -1,3 +1,6 @@
+# Author: Edward Romero, OSTEM Intern, Spring 2025, NASA Kennedy Space Center
+# This is a computer model that evaluates the efficacy of a 3D clinostat's microgravity simulation.
+
 import tkinter as tk
 from tkinter import messagebox, filedialog
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
@@ -33,7 +36,7 @@ class GUI:
         input_frame.pack(side=tk.TOP, anchor=tk.CENTER)
 
         title_frame = tk.Frame(input_frame)
-        title_frame.pack(pady=(0, 1))
+        title_frame.pack(pady=(5, 5))
 
         nasa_label = tk.Label(title_frame, image=self.nasa_logo)
         nasa_label.pack(side=tk.LEFT, padx=1)
@@ -61,15 +64,15 @@ class GUI:
         self.operating_frame = tk.Frame(center_frame, padx=1, pady=1)
         self.operating_frame.grid(row=0, column=1, padx=30)
 
-        operating_label = tk.Label(self.operating_frame, text="Operating Condition", font=category_font_style)
+        operating_label = tk.Label(self.operating_frame, text="Frame Velocities (rpm)", font=category_font_style)
         operating_label.pack()
 
-        self.innerV_label = tk.Label(self.operating_frame, text="Inner Frame Velocity (rpm):", font=font_style)
+        self.innerV_label = tk.Label(self.operating_frame, text="Inner:", font=font_style)
         self.innerV_label.pack(anchor=tk.W)
         self.innerV_entry = tk.Entry(self.operating_frame, font=font_style)
         self.innerV_entry.pack()
 
-        self.outerV_label = tk.Label(self.operating_frame, text="Outer Frame Velocity (rpm):", font=font_style)
+        self.outerV_label = tk.Label(self.operating_frame, text="Outer:", font=font_style)
         self.outerV_label.pack(anchor=tk.W)
         self.outerV_entry = tk.Entry(self.operating_frame, font=font_style)
         self.outerV_entry.pack()
@@ -116,8 +119,8 @@ class GUI:
         self.endAnalysis_entry_exp = tk.Entry(analysis_period_frame_exp, font=font_style, width=10)
         self.endAnalysis_entry_exp.pack(side=tk.LEFT)
 
-        self.submit_button = tk.Button(center_frame, text="Start", command=self.submit, font=font_style, bg="#0032A0", fg="white")
-        self.submit_button.grid(row=1, column=0, columnspan=4, pady=5)
+        self.submit_button = tk.Button(center_frame, text="Start", command=self.submit, font=font_style, bg="#E4002B", fg="white")
+        self.submit_button.grid(row=1, column=0, columnspan=4, pady=(15, 5))  # Adjust the top padding here
 
         self.accelerometer_frame = tk.Frame(center_frame, padx=1, pady=1)
         accelerometer_label = tk.Label(self.accelerometer_frame, text="Accelerometer Data", font=category_font_style)
@@ -127,7 +130,7 @@ class GUI:
         self.import_button.pack()
 
         plot_frame = tk.Frame(master, padx=5, pady=5)
-        plot_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+        plot_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True, padx=(5, 5), pady=(0, 5))
 
         self.magnitude_frame = tk.Frame(plot_frame, borderwidth=1, relief=tk.SOLID)
         self.magnitude_frame.grid(row=0, column=0, sticky="nsew")
@@ -145,8 +148,8 @@ class GUI:
         self.ax = self.figure.add_subplot(1, 1, 1)
         self.ax.set_yscale('log')
         self.ax.set_title("Magnitude vs. Time")
-        self.ax.set_xlabel('Time (hours)', labelpad=2)
-        self.ax.set_ylabel('Magnitude (g)', labelpad=2)
+        self.ax.set_xlabel('Time (hours)')
+        self.ax.set_ylabel('Magnitude (g)')
         self.canvas = FigureCanvasTkAgg(self.figure, self.magnitude_frame)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
@@ -171,6 +174,8 @@ class GUI:
         self.path_toolbar.update()
         self.path_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
+        self.clear_plots()
+
     def switch_mode(self, mode):
         if mode == "Theoretical":
             self.show_theoretical_inputs()
@@ -183,7 +188,7 @@ class GUI:
         self.analysis_frame.grid()
         self.analysis_frame_exp.grid_remove()
         self.accelerometer_frame.grid_remove()
-        self.submit_button.grid(row=1, column=0, columnspan=4, pady=5)
+        self.submit_button.grid(row=1, column=0, columnspan=4, pady=(15, 5))
         self.clear_plots()
 
     def show_experimental_inputs(self):
@@ -192,15 +197,17 @@ class GUI:
         self.analysis_frame.grid_remove()
         self.analysis_frame_exp.grid(row=0, column=2, padx=30)
         self.accelerometer_frame.grid(row=0, column=1, padx=30)
-        self.submit_button.grid(row=1, column=0, columnspan=4, pady=5)
+        self.submit_button.grid(row=1, column=0, columnspan=4, pady=(15, 5)) 
         self.clear_plots()
 
     def clear_plots(self):
         self.ax.clear()
         self.ax.set_yscale('log')
         self.ax.set_title("Magnitude vs. Time")
-        self.ax.set_xlabel('Time (hours)', labelpad=2)
-        self.ax.set_ylabel('Magnitude (g)', labelpad=2)
+        self.ax.set_xlabel('Time (hours)')
+        self.ax.set_ylabel('Magnitude (g)')
+        self.ax.set_yticks([10**(-i) for i in range(0, 17, 2)])
+        self.ax.set_ylim(10**-17, 10**0) 
         self.canvas.draw()
 
         self.path_ax.clear()
@@ -271,8 +278,8 @@ class GUI:
         self.ax.plot(time_in_hours[startSeg:endSeg], magnitude[startSeg:endSeg], color='#E4002B', label="Average Magnitude: " + f"{avgMagAnalysis:.3g}")
 
         self.ax.legend()
-        self.ax.set_xlabel('Time (hours)', labelpad=2)
-        self.ax.set_ylabel('Magnitude (g)', labelpad=2)
+        self.ax.set_xlabel('Time (hours)')
+        self.ax.set_ylabel('Magnitude (g)')
         self.canvas.draw()
 
         self.path_ax.clear()
@@ -354,8 +361,8 @@ class GUI:
         self.ax.axvline(x=endAnalysis, color='#E4002B', linestyle='--')
         self.ax.plot(fTime[startIndex:endIndex], magnitude[startIndex:endIndex], color='#E4002B', label="Average Magnitude: " + f"{avgMagAnalysis:.3g}")
         self.ax.legend()
-        self.ax.set_xlabel('Time (hours)', labelpad=2)
-        self.ax.set_ylabel('Magnitude (g)', labelpad=2)
+        self.ax.set_xlabel('Time (hours)')
+        self.ax.set_ylabel('Magnitude (g)')
 
         self.canvas.draw()
 
