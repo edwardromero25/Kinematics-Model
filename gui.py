@@ -18,11 +18,11 @@ class GUI:
         master.title("National Aeronautics and Space Administration")
 
         nasa_image = Image.open("images/NASA_logo.png")
-        nasa_image = nasa_image.resize((61, 50), Image.LANCZOS)
+        nasa_image = nasa_image.resize((70, 58), Image.LANCZOS)
         self.nasa_logo = ImageTk.PhotoImage(nasa_image)
 
         mssf_image = Image.open("images/MSSF_logo.png")
-        mssf_image = mssf_image.resize((56, 50), Image.LANCZOS)
+        mssf_image = mssf_image.resize((65, 58), Image.LANCZOS)
         self.mssf_logo = ImageTk.PhotoImage(mssf_image)
 
         self.favicon = ImageTk.PhotoImage(file="images/favicon.ico")
