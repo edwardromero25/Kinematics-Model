@@ -11,11 +11,12 @@ from matplotlib import rcParams
 import numpy as np
 from datetime import datetime
 from PIL import Image, ImageTk
+import webbrowser
 
 class GUI:
     def __init__(self, master):
         self.master = master
-        master.title("National Aeronautics and Space Administration")
+        master.title("Computer Model for Microgravity Simulators - NASA")
 
         nasa_image = Image.open("images/NASA_logo.png")
         nasa_image = nasa_image.resize((70, 58), Image.LANCZOS)
@@ -40,12 +41,14 @@ class GUI:
 
         nasa_label = tk.Label(title_frame, image=self.nasa_logo)
         nasa_label.pack(side=tk.LEFT, padx=1)
+        nasa_label.bind("<Button-1>", lambda e: self.open_url("https://www.nasa.gov/"))
 
         title_label = tk.Label(title_frame, text="Computer Model", font=title_font_style)
         title_label.pack(side=tk.LEFT, padx=1)
 
         mssf_label = tk.Label(title_frame, image=self.mssf_logo)
         mssf_label.pack(side=tk.LEFT, padx=1)
+        mssf_label.bind("<Button-1>", lambda e: self.open_url("https://public.ksc.nasa.gov/partnerships/capabilities-and-testing/testing-and-labs/microgravity-simulation-support-facility/"))
 
         center_frame = tk.Frame(input_frame)
         center_frame.pack()
@@ -379,6 +382,9 @@ class GUI:
         self.path_ax.legend([f"Distribution: {disScore}"])
 
         self.path_canvas.draw()
+
+    def open_url(self, url):
+        webbrowser.open_new(url)
 
 if __name__ == "__main__":
     root = tk.Tk()
