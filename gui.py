@@ -254,9 +254,12 @@ class GUI:
         time_in_seconds = [(dt - datetime_obj[0]).total_seconds() for dt in datetime_obj]
         time_in_hours = [t / 3600 for t in time_in_seconds]
 
-        self.update_experimental_plots(x, y, z, time_in_hours, startAnalysis, endAnalysis)
+        path_visualization = PathVisualization("experimental", x, y, z)
+        distribution_score = path_visualization.getDistribution()
 
-    def update_experimental_plots(self, x, y, z, time_in_hours, startAnalysis, endAnalysis):
+        self.update_experimental_plots(x, y, z, time_in_hours, startAnalysis, endAnalysis, distribution_score)
+
+    def update_experimental_plots(self, x, y, z, time_in_hours, startAnalysis, endAnalysis, distribution_score):
         rcParams['font.family'] = 'Calibri'
 
         self.ax.clear()
@@ -295,6 +298,8 @@ class GUI:
         self.path_ax.set_yticks(ticks)
         self.path_ax.set_zticks(ticks)
         self.path_ax.set_title("Acceleration Vector Path")
+        self.path_ax.legend([f"Distribution: {distribution_score}"])
+
         self.path_canvas.draw()
 
     def submit(self):
