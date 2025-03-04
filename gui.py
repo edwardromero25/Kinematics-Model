@@ -364,14 +364,15 @@ class GUI:
 
         self.ax.plot(time_in_hours, magnitude, color='#0032A0', label="Average Magnitude: " + f"{avgMagFull:.3g}")
 
-        startSeg = next(i for i, t in enumerate(time_in_hours) if t >= startAnalysis)
-        endSeg = next(i for i, t in enumerate(time_in_hours) if t >= endAnalysis)
+        if startAnalysis is not None and endAnalysis is not None:
+            startSeg = next(i for i, t in enumerate(time_in_hours) if t >= startAnalysis)
+            endSeg = next(i for i, t in enumerate(time_in_hours) if t >= endAnalysis)
 
-        self.ax.axvline(x=startAnalysis, color='#E4002B', linestyle='--')
-        self.ax.axvline(x=endAnalysis, color='#E4002B', linestyle='--')
+            self.ax.axvline(x=startAnalysis, color='#E4002B', linestyle='--')
+            self.ax.axvline(x=endAnalysis, color='#E4002B', linestyle='--')
 
-        avgMagAnalysis = np.mean(magnitude[startSeg:endSeg])
-        self.ax.plot(time_in_hours[startSeg:endSeg], magnitude[startSeg:endSeg], color='#E4002B', label="Average Magnitude: " + f"{avgMagAnalysis:.3g}")
+            avgMagAnalysis = np.mean(magnitude[startSeg:endSeg])
+            self.ax.plot(time_in_hours[startSeg:endSeg], magnitude[startSeg:endSeg], color='#E4002B', label="Average Magnitude: " + f"{avgMagAnalysis:.3g}")
 
         self.ax.legend()
         self.ax.set_xlabel('Time (hours)')
@@ -395,43 +396,59 @@ class GUI:
         self.create_time_avg_fig(xTimeAvg, yTimeAvg, zTimeAvg, time_in_hours, mode='show')
 
         self.path_ax_analysis.clear()
-        self.path_ax_analysis.plot(x[startSeg:endSeg], y[startSeg:endSeg], z[startSeg:endSeg], color='#E4002B', linewidth=1)
-        self.path_ax_analysis.set_xlabel('X')
-        self.path_ax_analysis.set_ylabel('Y')
-        self.path_ax_analysis.set_zlabel('Z')
-        self.path_ax_analysis.set_xticks(ticks)
-        self.path_ax_analysis.set_yticks(ticks)
-        self.path_ax_analysis.set_zticks(ticks)
-        self.path_ax_analysis.set_title("Acceleration Vector Path (Analysis Period)")
+        if startAnalysis is not None and endAnalysis is not None:
+            self.path_ax_analysis.plot(x[startSeg:endSeg], y[startSeg:endSeg], z[startSeg:endSeg], color='#E4002B', linewidth=1)
+            self.path_ax_analysis.set_xlabel('X')
+            self.path_ax_analysis.set_ylabel('Y')
+            self.path_ax_analysis.set_zlabel('Z')
+            self.path_ax_analysis.set_xticks(ticks)
+            self.path_ax_analysis.set_yticks(ticks)
+            self.path_ax_analysis.set_zticks(ticks)
+            self.path_ax_analysis.set_title("Acceleration Vector Path (Analysis Period)")
 
-        path_visualization_analysis = PathVisualization("experimental", x[startSeg:endSeg], y[startSeg:endSeg], z[startSeg:endSeg])
-        distribution_score_analysis = path_visualization_analysis.getDistribution()
-        self.path_ax_analysis.legend([f"Distribution: {distribution_score_analysis}"])
+            path_visualization_analysis = PathVisualization("experimental", x[startSeg:endSeg], y[startSeg:endSeg], z[startSeg:endSeg])
+            distribution_score_analysis = path_visualization_analysis.getDistribution()
+            self.path_ax_analysis.legend([f"Distribution: {distribution_score_analysis}"])
+        else:
+            self.path_ax_analysis.set_xlabel('X')
+            self.path_ax_analysis.set_ylabel('Y')
+            self.path_ax_analysis.set_zlabel('Z')
+            self.path_ax_analysis.set_xticks(ticks)
+            self.path_ax_analysis.set_yticks(ticks)
+            self.path_ax_analysis.set_zticks(ticks)
+            self.path_ax_analysis.set_title("Acceleration Vector Path (Analysis Period)")
 
         self.path_canvas_analysis.draw()
 
     def submit(self):
         try:
             if self.mode_var.get() == "Theoretical":
-                if not self.innerV_entry.get() or not self.outerV_entry.get() or not self.maxSeg_entry.get() or not self.startAnalysis_entry.get() or not self.endAnalysis_entry.get():
-                    raise ValueError("All input fields must be filled.")
+                if not self.innerV_entry.get() or not self.outerV_entry.get() or not self.maxSeg_entry.get():
+                    raise ValueError("Set frame velocities and simulation duration.")
 
                 innerV = float(self.innerV_entry.get())
                 outerV = float(self.outerV_entry.get())
                 maxSeg = float(self.maxSeg_entry.get())
-                startAnalysis = float(self.startAnalysis_entry.get())
-                endAnalysis = float(self.endAnalysis_entry.get())
+                startAnalysis = self.startAnalysis_entry.get()
+                endAnalysis = self.endAnalysis_entry.get()
 
                 if innerV <= 0 or outerV <= 0:
                     raise ValueError("Frame velocities must be positive.")
-                if startAnalysis < 0 or endAnalysis < 0 or maxSeg <= 0:
-                    raise ValueError("Time values must be positive.")
-                if endAnalysis <= startAnalysis:
-                    raise ValueError("Upper bound for analysis period must be greater than the lower bound.")
-                if endAnalysis > maxSeg:
-                    raise ValueError("Upper bound must be less than or equal to the simulation duration.")
-                if startAnalysis == endAnalysis:
-                    raise ValueError("Upper and lower bounds must not be equal.")
+                if maxSeg <= 0:
+                    raise ValueError("Simulation duration must be positive.")
+
+                if startAnalysis and endAnalysis:
+                    startAnalysis = float(startAnalysis)
+                    endAnalysis = float(endAnalysis)
+                    if startAnalysis < 0 or endAnalysis < 0:
+                        raise ValueError("Time values must be positive.")
+                    if endAnalysis <= startAnalysis:
+                        raise ValueError("Upper bound for analysis period must be greater than the lower bound.")
+                    if endAnalysis > maxSeg:
+                        raise ValueError("Upper bound for analysis period must be less than or equal to the simulation duration.")
+                else:
+                    startAnalysis = None
+                    endAnalysis = None
 
                 analysis = DataProcessor(innerV, outerV, maxSeg, startAnalysis, endAnalysis)
                 path_visualization = PathVisualization(innerV, analysis.x, analysis.y, analysis.z)
@@ -441,18 +458,36 @@ class GUI:
                 disScore = analysis.getDistribution()
                 self.update_plot(analysis, magnitude, startAnalysis, endAnalysis, avgMagSeg, avgMagAnalysis, innerV, outerV, disScore, path_visualization)
             else:
-                if not self.startAnalysis_entry_exp.get() or not self.endAnalysis_entry_exp.get():
-                    raise ValueError("All input fields must be filled.")
                 if not hasattr(self, 'experimental_data') or not self.experimental_data:
                     raise ValueError("Upload a CSV file.")
 
-                startAnalysis = float(self.startAnalysis_entry_exp.get())
-                endAnalysis = float(self.endAnalysis_entry_exp.get())
+                startAnalysis = self.startAnalysis_entry_exp.get()
+                endAnalysis = self.endAnalysis_entry_exp.get()
 
-                if startAnalysis < 0 or endAnalysis < 0:
-                    raise ValueError("Time values must be positive.")
-                if endAnalysis <= startAnalysis:
-                    raise ValueError("Upper bound for analysis period must be greater than the lower bound.")
+                if startAnalysis and endAnalysis:
+                    startAnalysis = float(startAnalysis)
+                    endAnalysis = float(endAnalysis)
+                    if startAnalysis < 0 or endAnalysis < 0:
+                        raise ValueError("Time values must be positive.")
+                    if endAnalysis <= startAnalysis:
+                        raise ValueError("Upper bound for analysis period must be greater than the lower bound.")
+
+                    datetime_str = []
+                    for k in range(0, len(self.experimental_data) - 4, 5):
+                        try:
+                            dt = parser.parse(self.experimental_data[k] + " " + self.experimental_data[k + 1])
+                        except ValueError:
+                            dt = parser.parse(self.experimental_data[k + 1] + " " + self.experimental_data[k])
+                        datetime_str.append(dt)
+                    time_in_seconds = [(dt - datetime_str[0]).total_seconds() for dt in datetime_str]
+                    time_in_hours = [t / 3600 for t in time_in_seconds]
+                    max_time = max(time_in_hours)
+
+                    if endAnalysis > max_time:
+                        raise ValueError("Upper bound for analysis period exceeds the final timestamp in the CSV.")
+                else:
+                    startAnalysis = None
+                    endAnalysis = None
 
                 self.process_experimental_data(self.experimental_data, startAnalysis, endAnalysis)
 
@@ -467,19 +502,20 @@ class GUI:
         self.ax.clear()
         fTime = path_visualization.formatTime(analysis.time) 
         
-        startIndex = next(i for i, t in enumerate(fTime) if t >= startAnalysis)
-        endIndex = next(i for i, t in enumerate(fTime) if t >= endAnalysis)
-
         self.ax.set_yscale('log')
         self.ax.set_title("Resultant Acceleration Vector")
         self.ax.plot(fTime, magnitude, color='#0032A0', label="Average Magnitude: " + f"{avgMagSeg:.3g}")
-        self.ax.axvline(x=startAnalysis, color='#E4002B', linestyle='--')
-        self.ax.axvline(x=endAnalysis, color='#E4002B', linestyle='--')
-        self.ax.plot(fTime[startIndex:endIndex], magnitude[startIndex:endIndex], color='#E4002B', label="Average Magnitude: " + f"{avgMagAnalysis:.3g}")
+        
+        if startAnalysis is not None and endAnalysis is not None:
+            startIndex = next(i for i, t in enumerate(fTime) if t >= startAnalysis)
+            endIndex = next(i for i, t in enumerate(fTime) if t >= endAnalysis)
+            self.ax.axvline(x=startAnalysis, color='#E4002B', linestyle='--')
+            self.ax.axvline(x=endAnalysis, color='#E4002B', linestyle='--')
+            self.ax.plot(fTime[startIndex:endIndex], magnitude[startIndex:endIndex], color='#E4002B', label="Average Magnitude: " + f"{avgMagAnalysis:.3g}")
+        
         self.ax.legend()
         self.ax.set_xlabel('Time (hours)')
         self.ax.set_ylabel('Magnitude (g)')
-
         self.canvas.draw()
 
         self.path_ax.clear()
@@ -500,18 +536,29 @@ class GUI:
         self.create_time_avg_fig_theoretical(xTimeAvg, yTimeAvg, zTimeAvg, analysis.time, mode='show')
 
         self.path_ax_analysis.clear()
-        self.path_ax_analysis.plot(analysis.x[startIndex:endIndex], analysis.y[startIndex:endIndex], analysis.z[startIndex:endIndex], color='#E4002B', linewidth=1)
-        self.path_ax_analysis.set_xlabel('X')
-        self.path_ax_analysis.set_ylabel('Y')
-        self.path_ax_analysis.set_zlabel('Z')
-        self.path_ax_analysis.set_xticks(ticks)
-        self.path_ax_analysis.set_yticks(ticks)
-        self.path_ax_analysis.set_zticks(ticks)
-        self.path_ax_analysis.set_title("Acceleration Vector Path (Analysis Period)")
+        if startAnalysis is not None and endAnalysis is not None:
+            startIndex = next(i for i, t in enumerate(fTime) if t >= startAnalysis)
+            endIndex = next(i for i, t in enumerate(fTime) if t >= endAnalysis)
+            self.path_ax_analysis.plot(analysis.x[startIndex:endIndex], analysis.y[startIndex:endIndex], analysis.z[startIndex:endIndex], color='#E4002B', linewidth=1)
+            self.path_ax_analysis.set_xlabel('X')
+            self.path_ax_analysis.set_ylabel('Y')
+            self.path_ax_analysis.set_zlabel('Z')
+            self.path_ax_analysis.set_xticks(ticks)
+            self.path_ax_analysis.set_yticks(ticks)
+            self.path_ax_analysis.set_zticks(ticks)
+            self.path_ax_analysis.set_title("Acceleration Vector Path (Analysis Period)")
 
-        path_visualization_analysis = PathVisualization("experimental", analysis.x[startIndex:endIndex], analysis.y[startIndex:endIndex], analysis.z[startIndex:endIndex])
-        distribution_score_analysis = path_visualization_analysis.getDistribution()
-        self.path_ax_analysis.legend([f"Distribution: {distribution_score_analysis}"])
+            path_visualization_analysis = PathVisualization("experimental", analysis.x[startIndex:endIndex], analysis.y[startIndex:endIndex], analysis.z[startIndex:endIndex])
+            distribution_score_analysis = path_visualization_analysis.getDistribution()
+            self.path_ax_analysis.legend([f"Distribution: {distribution_score_analysis}"])
+        else:
+            self.path_ax_analysis.set_xlabel('X')
+            self.path_ax_analysis.set_ylabel('Y')
+            self.path_ax_analysis.set_zlabel('Z')
+            self.path_ax_analysis.set_xticks(ticks)
+            self.path_ax_analysis.set_yticks(ticks)
+            self.path_ax_analysis.set_zticks(ticks)
+            self.path_ax_analysis.set_title("Acceleration Vector Path (Analysis Period)")
 
         self.path_canvas_analysis.draw()
 

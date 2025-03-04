@@ -40,8 +40,8 @@ class DataProcessor:
         self.endTime = int(self.maxSeg * 3600)
         self.startAnalysis = startAnalysis
         self.endAnalysis = endAnalysis
-        self.startSeg = int(self.startAnalysis * 3600)
-        self.endSeg = int(self.endAnalysis * 3600)
+        self.startSeg = int(self.startAnalysis * 3600) if self.startAnalysis is not None else None
+        self.endSeg = int(self.endAnalysis * 3600) if self.endAnalysis is not None else None
         self.time, self.x, self.y, self.z = self._getSimAccelData()
 
     def _getSimAccelData(self):
@@ -94,13 +94,16 @@ class DataProcessor:
             print("\nWARNING: Not enough data for segment - " + str(len(magList)) + " sec\n")
         avgMagFull = np.mean(magList[self.minSeg:self.endTime])
     
-        magSegListAnalysis = magList[self.startSeg:self.endSeg]
-        if len(magList) < self.startSeg:
-            print("\nERROR: Segment begins after data ends - " + str(len(magList)) + " sec\n")
-            sys.exit()
-        elif len(magSegListAnalysis) < (self.endSeg - self.startSeg):
-            print("\nWARNING: Not enough data for analysis segment - " + str(len(magList)) + " sec\n")
-        avgMagAnalysis = np.mean(magList[self.startSeg:self.endSeg])
+        if self.startSeg is not None and self.endSeg is not None:
+            magSegListAnalysis = magList[self.startSeg:self.endSeg]
+            if len(magList) < self.startSeg:
+                print("\nERROR: Segment begins after data ends - " + str(len(magList)) + " sec\n")
+                sys.exit()
+            elif len(magSegListAnalysis) < (self.endSeg - self.startSeg):
+                print("\nWARNING: Not enough data for analysis segment - " + str(len(magList)) + " sec\n")
+            avgMagAnalysis = np.mean(magList[self.startSeg:self.endSeg])
+        else:
+            avgMagAnalysis = None
 
         return avgMagFull, avgMagAnalysis
 
