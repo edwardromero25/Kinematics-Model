@@ -14,6 +14,7 @@ from PIL import Image, ImageTk
 import webbrowser
 import tkinter.ttk as ttk
 import os
+from dateutil import parser
 
 script_dir = os.path.abspath(os.path.dirname(__file__))
 
@@ -328,16 +329,19 @@ class GUI:
         x = []
         y = []
         z = []
-        timestamp = []
 
         for k in range(0, len(mainarray) - 4, 5):
-            datetime_str.append(mainarray[k] + " " + mainarray[k + 1])
+            try:
+                dt = parser.parse(mainarray[k] + " " + mainarray[k + 1])
+            except ValueError:
+                dt = parser.parse(mainarray[k + 1] + " " + mainarray[k])
+            
+            datetime_str.append(dt)
             x.append(float(mainarray[k + 2]))
             y.append(float(mainarray[k + 3]))
             z.append(float(mainarray[k + 4]))
 
-        datetime_obj = [datetime.strptime(dt, '%Y/%m/%d %H:%M:%S.%f') for dt in datetime_str]
-        time_in_seconds = [(dt - datetime_obj[0]).total_seconds() for dt in datetime_obj]
+        time_in_seconds = [(dt - datetime_str[0]).total_seconds() for dt in datetime_str]
         time_in_hours = [t / 3600 for t in time_in_seconds]
 
         path_visualization = PathVisualization("experimental", x, y, z)
