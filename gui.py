@@ -70,7 +70,7 @@ class GUI:
 
         self.mode_var = tk.StringVar(value="Theoretical")
         self.mode_menu = tk.OptionMenu(mode_frame, self.mode_var, "Theoretical", "Experimental", command=self.switch_mode)
-        self.mode_menu.config(font=font_style, bg="lightgray")
+        self.mode_menu.config(font=font_style, bg="lightgray", activebackground="gainsboro")
         self.mode_menu.pack()
 
         self.operating_frame = tk.Frame(center_frame, padx=1, pady=1)
@@ -134,14 +134,14 @@ class GUI:
         self.endAnalysis_entry_exp = tk.Entry(analysis_period_frame_exp, font=font_style, width=10)
         self.endAnalysis_entry_exp.pack(side=tk.LEFT)
 
-        self.submit_button = tk.Button(center_frame, text="Start", command=self.submit, font=font_style, bg="#E4002B", fg="white")
+        self.submit_button = tk.Button(center_frame, text="Start", command=self.submit, font=font_style, bg="#E4002B", fg="white", activebackground="#F26C7C", activeforeground="white")
         self.submit_button.grid(row=1, column=0, columnspan=4, pady=(10, 5))
 
         self.accelerometer_frame = tk.Frame(center_frame, padx=1, pady=1)
         accelerometer_label = tk.Label(self.accelerometer_frame, text="Accelerometer Data", font=category_font_style)
         accelerometer_label.pack()
 
-        self.import_button = tk.Button(self.accelerometer_frame, text="Upload CSV", command=self.import_data, font=font_style, bg="lightgray")
+        self.import_button = tk.Button(self.accelerometer_frame, text="Upload CSV", command=self.import_data, font=font_style, bg="lightgray", activebackground="gainsboro")
         self.import_button.pack()
 
         plot_frame = tk.Frame(master, padx=5, pady=5)
@@ -163,7 +163,7 @@ class GUI:
         self.figure = plt.Figure()
         self.ax = self.figure.add_subplot(1, 1, 1)
         self.ax.set_yscale('log')
-        self.ax.set_title("Time-Averaged Resultant Acceleration Vector")
+        self.ax.set_title("Resultant Acceleration Vector")
         self.ax.set_xlabel('Time (hours)')
         self.ax.set_ylabel('Magnitude (g)')
         self.canvas = FigureCanvasTkAgg(self.figure, self.magnitude_frame)
@@ -192,7 +192,7 @@ class GUI:
 
         self.components_figure = plt.Figure()
         self.components_ax = self.components_figure.add_subplot(1, 1, 1)
-        self.components_ax.set_title("Time-Averaged Acceleration Vector Components")
+        self.components_ax.set_title("Acceleration Vector Components")
         self.components_ax.set_xlabel('Time (hours)')
         self.components_ax.set_ylabel('Magnitude (g)')
         self.components_canvas = FigureCanvasTkAgg(self.components_figure, self.vector_components_frame)
@@ -203,8 +203,6 @@ class GUI:
         self.components_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
         self.clear_plots()
-
-        messagebox.showinfo("Welcome!", "This is a computer model that evaluates the efficacy of a 3D clinostat's microgravity simulation.")
 
     def create_custom_theme(self):
         style = ttk.Style()
@@ -245,7 +243,7 @@ class GUI:
     def clear_plots(self):
         self.ax.clear()
         self.ax.set_yscale('log')
-        self.ax.set_title("Time-Averaged Resultant Acceleration Vector")
+        self.ax.set_title("Resultant Acceleration Vector")
         self.ax.set_xlabel('Time (hours)')
         self.ax.set_ylabel('Magnitude (g)')
         self.ax.set_yticks([10**(-i) for i in range(0, 17, 2)])
@@ -264,7 +262,7 @@ class GUI:
         self.path_canvas.draw()
 
         self.components_ax.clear()
-        self.components_ax.set_title("Time-Averaged Acceleration Vector Components")
+        self.components_ax.set_title("Acceleration Vector Components")
         self.components_ax.set_xlabel('Time (hours)')
         self.components_ax.set_ylabel('Magnitude (g)')
         self.components_canvas.draw()
@@ -309,7 +307,7 @@ class GUI:
 
         self.ax.clear()
         self.ax.set_yscale('log')
-        self.ax.set_title("Time-Averaged Resultant Acceleration Vector")
+        self.ax.set_title("Resultant Acceleration Vector")
 
         xTimeAvg = np.cumsum(x) / np.arange(1, len(x) + 1)
         yTimeAvg = np.cumsum(y) / np.arange(1, len(y) + 1)
@@ -410,7 +408,7 @@ class GUI:
         endIndex = next(i for i, t in enumerate(fTime) if t >= endAnalysis)
 
         self.ax.set_yscale('log')
-        self.ax.set_title("Time-Averaged Resultant Acceleration Vector")
+        self.ax.set_title("Resultant Acceleration Vector")
         self.ax.plot(fTime, magnitude, color='#0032A0', label="Average Magnitude: " + f"{avgMagSeg:.3g}")
         self.ax.axvline(x=startAnalysis, color='#E4002B', linestyle='--')
         self.ax.axvline(x=endAnalysis, color='#E4002B', linestyle='--')
@@ -441,7 +439,7 @@ class GUI:
     def create_time_avg_fig(self, xTimeAvg, yTimeAvg, zTimeAvg, time_in_hours, mode='save', legend=True, title=True):
         self.components_ax.clear()
         if title:
-            self.components_ax.set_title('Time-Averaged Acceleration Vector Components')
+            self.components_ax.set_title('Acceleration Vector Components')
 
         self.components_ax.plot(time_in_hours, xTimeAvg, label='X-Component', color='#0032A0')
         self.components_ax.plot(time_in_hours, yTimeAvg, label='Y-Component', color='#E4002B')
@@ -459,7 +457,7 @@ class GUI:
 
         self.components_ax.clear()
         if title:
-            self.components_ax.set_title('Time-Averaged Acceleration Vector Components')
+            self.components_ax.set_title('Acceleration Vector Components')
 
         self.components_ax.plot(time_in_hours, xTimeAvg, label='X-Component', color='#0032A0')
         self.components_ax.plot(time_in_hours, yTimeAvg, label='Y-Component', color='#E4002B')
