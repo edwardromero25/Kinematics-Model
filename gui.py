@@ -141,7 +141,7 @@ class GUI:
         accelerometer_label = tk.Label(self.accelerometer_frame, text="Accelerometer Data", font=category_font_style)
         accelerometer_label.pack()
 
-        self.import_button = tk.Button(self.accelerometer_frame, text="Upload CSV", command=self.import_data, font=font_style, bg="lightgray", activebackground="gainsboro")
+        self.import_button = tk.Button(self.accelerometer_frame, text="Upload File (CSV)", command=self.import_data, font=font_style, bg="lightgray", activebackground="gainsboro")
         self.import_button.pack()
 
         plot_frame = tk.Frame(master, padx=5, pady=5)
@@ -182,13 +182,46 @@ class GUI:
         self.path_ax.set_xticks(ticks)
         self.path_ax.set_yticks(ticks)
         self.path_ax.set_zticks(ticks)
-        self.path_ax.set_title("Acceleration Vector Path")
-        self.path_canvas = FigureCanvasTkAgg(self.path_figure, self.path_frame)
-        self.path_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        self.path_ax.set_title("Acceleration Vector Path (Full Duration)")
 
-        self.path_toolbar = NavigationToolbar2Tk(self.path_canvas, self.path_frame)
+        self.path_figure_analysis = plt.Figure()
+        self.path_ax_analysis = self.path_figure_analysis.add_subplot(1, 1, 1, projection='3d')
+        self.path_ax_analysis.set_xlabel('X')
+        self.path_ax_analysis.set_ylabel('Y')
+        self.path_ax_analysis.set_zlabel('Z')
+        ticks = np.arange(-1.0, 1.5, 0.5)
+        self.path_ax_analysis.set_xticks(ticks)
+        self.path_ax_analysis.set_yticks(ticks)
+        self.path_ax_analysis.set_zticks(ticks)
+        self.path_ax_analysis.set_title("Acceleration Vector Path (Analysis Period)")
+
+        self.path_frame_left = tk.Frame(self.path_frame, borderwidth=1, relief=tk.SOLID)
+        self.path_frame_left.grid(row=0, column=0, sticky="nsew")
+
+        self.path_canvas = FigureCanvasTkAgg(self.path_figure, self.path_frame_left)
+        self.path_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+        self.path_toolbar = NavigationToolbar2Tk(self.path_canvas, self.path_frame_left)
         self.path_toolbar.update()
-        self.path_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        self.path_toolbar.pack(side=tk.BOTTOM, fill=tk.X)
+
+        self.divider_frame = tk.Frame(self.path_frame, borderwidth=1, relief=tk.SOLID)
+        self.divider_frame.grid(row=0, column=1, sticky="ns")
+
+        self.path_frame_right = tk.Frame(self.path_frame, borderwidth=1, relief=tk.SOLID)
+        self.path_frame_right.grid(row=0, column=2, sticky="nsew")
+
+        self.path_canvas_analysis = FigureCanvasTkAgg(self.path_figure_analysis, self.path_frame_right)
+        self.path_canvas_analysis.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+        self.path_toolbar_analysis = NavigationToolbar2Tk(self.path_canvas_analysis, self.path_frame_right)
+        self.path_toolbar_analysis.update()
+        self.path_toolbar_analysis.pack(side=tk.BOTTOM, fill=tk.X)
+
+        self.path_frame.grid_columnconfigure(0, weight=1)
+        self.path_frame.grid_columnconfigure(1, weight=0) 
+        self.path_frame.grid_columnconfigure(2, weight=1)
+        self.path_frame.grid_rowconfigure(0, weight=1)
 
         self.components_figure = plt.Figure()
         self.components_ax = self.components_figure.add_subplot(1, 1, 1)
@@ -258,8 +291,18 @@ class GUI:
         self.path_ax.set_xticks(ticks)
         self.path_ax.set_yticks(ticks)
         self.path_ax.set_zticks(ticks)
-        self.path_ax.set_title("Acceleration Vector Path")
+        self.path_ax.set_title("Acceleration Vector Path (Full Duration)")
         self.path_canvas.draw()
+
+        self.path_ax_analysis.clear()
+        self.path_ax_analysis.set_xlabel('X')
+        self.path_ax_analysis.set_ylabel('Y')
+        self.path_ax_analysis.set_zlabel('Z')
+        self.path_ax_analysis.set_xticks(ticks)
+        self.path_ax_analysis.set_yticks(ticks)
+        self.path_ax_analysis.set_zticks(ticks)
+        self.path_ax_analysis.set_title("Acceleration Vector Path (Analysis Period)")
+        self.path_canvas_analysis.draw()
 
         self.components_ax.clear()
         self.components_ax.set_title("Acceleration Vector Components")
@@ -293,7 +336,7 @@ class GUI:
             y.append(float(mainarray[k + 3]))
             z.append(float(mainarray[k + 4]))
 
-        datetime_obj = [datetime.strptime(dt, '%H:%M:%S %m/%d/%Y') for dt in datetime_str]
+        datetime_obj = [datetime.strptime(dt, '%Y/%m/%d %H:%M:%S.%f') for dt in datetime_str]
         time_in_seconds = [(dt - datetime_obj[0]).total_seconds() for dt in datetime_obj]
         time_in_hours = [t / 3600 for t in time_in_seconds]
 
@@ -340,12 +383,28 @@ class GUI:
         self.path_ax.set_xticks(ticks)
         self.path_ax.set_yticks(ticks)
         self.path_ax.set_zticks(ticks)
-        self.path_ax.set_title("Acceleration Vector Path")
+        self.path_ax.set_title("Acceleration Vector Path (Full Duration)")
         self.path_ax.legend([f"Distribution: {distribution_score}"])
 
         self.path_canvas.draw()
 
         self.create_time_avg_fig(xTimeAvg, yTimeAvg, zTimeAvg, time_in_hours, mode='show')
+
+        self.path_ax_analysis.clear()
+        self.path_ax_analysis.plot(x[startSeg:endSeg], y[startSeg:endSeg], z[startSeg:endSeg], color='#E4002B', linewidth=1)
+        self.path_ax_analysis.set_xlabel('X')
+        self.path_ax_analysis.set_ylabel('Y')
+        self.path_ax_analysis.set_zlabel('Z')
+        self.path_ax_analysis.set_xticks(ticks)
+        self.path_ax_analysis.set_yticks(ticks)
+        self.path_ax_analysis.set_zticks(ticks)
+        self.path_ax_analysis.set_title("Acceleration Vector Path (Analysis Period)")
+
+        path_visualization_analysis = PathVisualization("experimental", x[startSeg:endSeg], y[startSeg:endSeg], z[startSeg:endSeg])
+        distribution_score_analysis = path_visualization_analysis.getDistribution()
+        self.path_ax_analysis.legend([f"Distribution: {distribution_score_analysis}"])
+
+        self.path_canvas_analysis.draw()
 
     def submit(self):
         try:
@@ -428,13 +487,29 @@ class GUI:
         self.path_ax.set_xticks(ticks)
         self.path_ax.set_yticks(ticks)
         self.path_ax.set_zticks(ticks)
-        self.path_ax.set_title("Acceleration Vector Path")
+        self.path_ax.set_title("Acceleration Vector Path (Full Duration)")
         self.path_ax.legend([f"Distribution: {disScore}"])
 
         self.path_canvas.draw()
 
         xTimeAvg, yTimeAvg, zTimeAvg = analysis._getTimeAvg()
         self.create_time_avg_fig_theoretical(xTimeAvg, yTimeAvg, zTimeAvg, analysis.time, mode='show')
+
+        self.path_ax_analysis.clear()
+        self.path_ax_analysis.plot(analysis.x[startIndex:endIndex], analysis.y[startIndex:endIndex], analysis.z[startIndex:endIndex], color='#E4002B', linewidth=1)
+        self.path_ax_analysis.set_xlabel('X')
+        self.path_ax_analysis.set_ylabel('Y')
+        self.path_ax_analysis.set_zlabel('Z')
+        self.path_ax_analysis.set_xticks(ticks)
+        self.path_ax_analysis.set_yticks(ticks)
+        self.path_ax_analysis.set_zticks(ticks)
+        self.path_ax_analysis.set_title("Acceleration Vector Path (Analysis Period)")
+
+        path_visualization_analysis = PathVisualization("experimental", analysis.x[startIndex:endIndex], analysis.y[startIndex:endIndex], analysis.z[startIndex:endIndex])
+        distribution_score_analysis = path_visualization_analysis.getDistribution()
+        self.path_ax_analysis.legend([f"Distribution: {distribution_score_analysis}"])
+
+        self.path_canvas_analysis.draw()
 
     def create_time_avg_fig(self, xTimeAvg, yTimeAvg, zTimeAvg, time_in_hours, mode='save', legend=True, title=True):
         self.components_ax.clear()
