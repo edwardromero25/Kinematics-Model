@@ -24,21 +24,23 @@ This is a computer model that evaluates the efficacy of a 3D clinostat's microgr
 
 1. Install the necessary dependencies by running:
 
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 2. Open the graphical user interface (GUI) by running:
 
-```bash
-python3 gui.py
-```
+   ```bash
+   python gui.py
+   ```
 
-or by creating an executable file by running:
+   or, if you prefer to create an executable file, you can do so by running:
 
-```bash
-python -m PyInstaller executable.spec
-```
+   ```bash
+   python -m PyInstaller executable.spec
+   ```
+
+   After creating the executable file, you can run it directly from the output directory (usually `dist/`).
 
 ## Acknowledgments
 
