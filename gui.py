@@ -70,7 +70,7 @@ class GUI:
 
         self.mode_var = tk.StringVar(value="Theoretical")
         self.mode_menu = tk.OptionMenu(mode_frame, self.mode_var, "Theoretical", "Experimental", command=self.switch_mode)
-        self.mode_menu.config(font=font_style, bg="gainsboro")
+        self.mode_menu.config(font=font_style, bg="lightgray")
         self.mode_menu.pack()
 
         self.operating_frame = tk.Frame(center_frame, padx=1, pady=1)
@@ -141,7 +141,7 @@ class GUI:
         accelerometer_label = tk.Label(self.accelerometer_frame, text="Accelerometer Data", font=category_font_style)
         accelerometer_label.pack()
 
-        self.import_button = tk.Button(self.accelerometer_frame, text="Upload CSV", command=self.import_data, font=font_style, bg="gainsboro")
+        self.import_button = tk.Button(self.accelerometer_frame, text="Upload CSV", command=self.import_data, font=font_style, bg="lightgray")
         self.import_button.pack()
 
         plot_frame = tk.Frame(master, padx=5, pady=5)
@@ -207,15 +207,13 @@ class GUI:
         messagebox.showinfo("Welcome!", "This is a computer model that evaluates the efficacy of a 3D clinostat's microgravity simulation.")
 
     def create_custom_theme(self):
-        myred = "#E4002B"
         style = ttk.Style()
         style.theme_create("yummy", parent="alt", settings={
             "TNotebook": {"configure": {"tabmargins": [2, 0, 2, 0], "background": "SystemButtonFace"}},
             "TNotebook.Tab": {
-                "configure": {"padding": [5, 1], "background": "gainsboro"},
-                "map": {"background": [("selected", myred)],
-                        "expand": [("selected", [1, 1, 1, 0])],
-                        "foreground": [("selected", "white")]}
+                "configure": {"padding": [5, 1], "background": "lightgray"},
+                "map": {"background": [("selected", "gainsboro")],
+                        "expand": [("selected", [1, 1, 1, 0])]}
             }
         })
         style.theme_use("yummy")
