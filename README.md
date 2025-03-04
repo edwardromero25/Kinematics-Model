@@ -20,20 +20,24 @@ This is a computer model that evaluates the efficacy of a 3D clinostat's microgr
 
 [python-logo]: https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white
 
-## Installation
+## Usage
 
-To install the necessary dependencies, run:
+1. Install the necessary dependencies by running:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Usage
-
-To open the graphical user interface (GUI), run:
+2. Open the graphical user interface (GUI) by running:
 
 ```bash
 python3 gui.py
+```
+
+or by creating an executable file by running:
+
+```bash
+python -m PyInstaller executable.spec
 ```
 
 ## Acknowledgments

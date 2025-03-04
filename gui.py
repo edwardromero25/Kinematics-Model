@@ -12,21 +12,30 @@ import numpy as np
 from datetime import datetime
 from PIL import Image, ImageTk
 import webbrowser
+import tkinter.ttk as ttk
+import os
+
+script_dir = os.path.abspath(os.path.dirname(__file__))
 
 class GUI:
     def __init__(self, master):
         self.master = master
         master.title("Computer Model for Microgravity Simulators - NASA")
 
-        nasa_image = Image.open("images/NASA_logo.png")
+        self.create_custom_theme()
+
+        nasa_image_path = os.path.join(script_dir, 'images', 'NASA_logo.png')
+        nasa_image = Image.open(nasa_image_path)
         nasa_image = nasa_image.resize((70, 58), Image.LANCZOS)
         self.nasa_logo = ImageTk.PhotoImage(nasa_image)
 
-        mssf_image = Image.open("images/MSSF_logo.png")
+        mssf_image_path = os.path.join(script_dir, 'images', 'MSSF_logo.png')
+        mssf_image = Image.open(mssf_image_path)
         mssf_image = mssf_image.resize((65, 58), Image.LANCZOS)
         self.mssf_logo = ImageTk.PhotoImage(mssf_image)
 
-        self.favicon = ImageTk.PhotoImage(file="images/favicon.ico")
+        favicon_path = os.path.join(script_dir, 'images', 'favicon.ico')
+        self.favicon = ImageTk.PhotoImage(file=favicon_path)
         master.iconphoto(False, self.favicon)
 
         font_style = ("Calibri", 12)
@@ -138,22 +147,23 @@ class GUI:
         plot_frame = tk.Frame(master, padx=5, pady=5)
         plot_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True, padx=(5, 5), pady=(0, 5))
 
-        self.magnitude_frame = tk.Frame(plot_frame, borderwidth=1, relief=tk.SOLID)
-        self.magnitude_frame.grid(row=0, column=0, sticky="nsew")
+        notebook = ttk.Notebook(plot_frame)
+        notebook.pack(fill=tk.BOTH, expand=True)
 
-        self.path_frame = tk.Frame(plot_frame, borderwidth=1, relief=tk.SOLID)
-        self.path_frame.grid(row=0, column=1, sticky="nsew")
+        self.magnitude_frame = tk.Frame(notebook, borderwidth=1, relief=tk.SOLID)
+        self.vector_components_frame = tk.Frame(notebook, borderwidth=1, relief=tk.SOLID)
+        self.path_frame = tk.Frame(notebook, borderwidth=1, relief=tk.SOLID)
 
-        plot_frame.grid_columnconfigure(0, weight=1)
-        plot_frame.grid_columnconfigure(1, weight=1)
-        plot_frame.grid_rowconfigure(0, weight=1)
+        notebook.add(self.magnitude_frame, text="Resultant Vector")
+        notebook.add(self.vector_components_frame, text="Vector Components")
+        notebook.add(self.path_frame, text="Vector Path")
 
         rcParams['font.family'] = 'Calibri'
 
         self.figure = plt.Figure()
         self.ax = self.figure.add_subplot(1, 1, 1)
         self.ax.set_yscale('log')
-        self.ax.set_title("Magnitude vs. Time")
+        self.ax.set_title("Time-Averaged Resultant Acceleration Vector")
         self.ax.set_xlabel('Time (hours)')
         self.ax.set_ylabel('Magnitude (g)')
         self.canvas = FigureCanvasTkAgg(self.figure, self.magnitude_frame)
@@ -180,7 +190,35 @@ class GUI:
         self.path_toolbar.update()
         self.path_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
+        self.components_figure = plt.Figure()
+        self.components_ax = self.components_figure.add_subplot(1, 1, 1)
+        self.components_ax.set_title("Time-Averaged Acceleration Vector Components")
+        self.components_ax.set_xlabel('Time (hours)')
+        self.components_ax.set_ylabel('Magnitude (g)')
+        self.components_canvas = FigureCanvasTkAgg(self.components_figure, self.vector_components_frame)
+        self.components_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+        self.components_toolbar = NavigationToolbar2Tk(self.components_canvas, self.vector_components_frame)
+        self.components_toolbar.update()
+        self.components_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
         self.clear_plots()
+
+        messagebox.showinfo("Welcome!", "This is a computer model that evaluates the efficacy of a 3D clinostat's microgravity simulation.")
+
+    def create_custom_theme(self):
+        myred = "#E4002B"
+        style = ttk.Style()
+        style.theme_create("yummy", parent="alt", settings={
+            "TNotebook": {"configure": {"tabmargins": [2, 0, 2, 0], "background": "SystemButtonFace"}},
+            "TNotebook.Tab": {
+                "configure": {"padding": [5, 1], "background": "gainsboro"},
+                "map": {"background": [("selected", myred)],
+                        "expand": [("selected", [1, 1, 1, 0])],
+                        "foreground": [("selected", "white")]}
+            }
+        })
+        style.theme_use("yummy")
 
     def switch_mode(self, mode):
         if mode == "Theoretical":
@@ -209,7 +247,7 @@ class GUI:
     def clear_plots(self):
         self.ax.clear()
         self.ax.set_yscale('log')
-        self.ax.set_title("Magnitude vs. Time")
+        self.ax.set_title("Time-Averaged Resultant Acceleration Vector")
         self.ax.set_xlabel('Time (hours)')
         self.ax.set_ylabel('Magnitude (g)')
         self.ax.set_yticks([10**(-i) for i in range(0, 17, 2)])
@@ -226,6 +264,12 @@ class GUI:
         self.path_ax.set_zticks(ticks)
         self.path_ax.set_title("Acceleration Vector Path")
         self.path_canvas.draw()
+
+        self.components_ax.clear()
+        self.components_ax.set_title("Time-Averaged Acceleration Vector Components")
+        self.components_ax.set_xlabel('Time (hours)')
+        self.components_ax.set_ylabel('Magnitude (g)')
+        self.components_canvas.draw()
 
     def import_data(self):
         file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
@@ -267,7 +311,7 @@ class GUI:
 
         self.ax.clear()
         self.ax.set_yscale('log')
-        self.ax.set_title("Magnitude vs. Time")
+        self.ax.set_title("Time-Averaged Resultant Acceleration Vector")
 
         xTimeAvg = np.cumsum(x) / np.arange(1, len(x) + 1)
         yTimeAvg = np.cumsum(y) / np.arange(1, len(y) + 1)
@@ -304,6 +348,8 @@ class GUI:
         self.path_ax.legend([f"Distribution: {distribution_score}"])
 
         self.path_canvas.draw()
+
+        self.create_time_avg_fig(xTimeAvg, yTimeAvg, zTimeAvg, time_in_hours, mode='show')
 
     def submit(self):
         try:
@@ -366,7 +412,7 @@ class GUI:
         endIndex = next(i for i, t in enumerate(fTime) if t >= endAnalysis)
 
         self.ax.set_yscale('log')
-        self.ax.set_title("Magnitude vs. Time")
+        self.ax.set_title("Time-Averaged Resultant Acceleration Vector")
         self.ax.plot(fTime, magnitude, color='#0032A0', label="Average Magnitude: " + f"{avgMagSeg:.3g}")
         self.ax.axvline(x=startAnalysis, color='#E4002B', linestyle='--')
         self.ax.axvline(x=endAnalysis, color='#E4002B', linestyle='--')
@@ -390,6 +436,46 @@ class GUI:
         self.path_ax.legend([f"Distribution: {disScore}"])
 
         self.path_canvas.draw()
+
+        xTimeAvg, yTimeAvg, zTimeAvg = analysis._getTimeAvg()
+        self.create_time_avg_fig_theoretical(xTimeAvg, yTimeAvg, zTimeAvg, analysis.time, mode='show')
+
+    def create_time_avg_fig(self, xTimeAvg, yTimeAvg, zTimeAvg, time_in_hours, mode='save', legend=True, title=True):
+        self.components_ax.clear()
+        if title:
+            self.components_ax.set_title('Time-Averaged Acceleration Vector Components')
+
+        self.components_ax.plot(time_in_hours, xTimeAvg, label='X-Component', color='#0032A0')
+        self.components_ax.plot(time_in_hours, yTimeAvg, label='Y-Component', color='#E4002B')
+        self.components_ax.plot(time_in_hours, zTimeAvg, label='Z-Component', color='gray')
+        self.components_ax.set_xlabel('Time (hours)')
+        self.components_ax.set_ylabel('Magnitude (g)')
+
+        if legend:
+            self.components_ax.legend()
+
+        self.components_canvas.draw()
+
+    def create_time_avg_fig_theoretical(self, xTimeAvg, yTimeAvg, zTimeAvg, time_in_seconds, mode='save', legend=True, title=True):
+        time_in_hours = [t / 3600 for t in time_in_seconds]
+
+        self.components_ax.clear()
+        if title:
+            self.components_ax.set_title('Time-Averaged Acceleration Vector Components')
+
+        self.components_ax.plot(time_in_hours, xTimeAvg, label='X-Component', color='#0032A0')
+        self.components_ax.plot(time_in_hours, yTimeAvg, label='Y-Component', color='#E4002B')
+        self.components_ax.plot(time_in_hours, zTimeAvg, label='Z-Component', color='gray')
+        self.components_ax.set_xlabel('Time (hours)')
+        self.components_ax.set_ylabel('Magnitude (g)')
+
+        if legend:
+            self.components_ax.legend()
+
+        self.components_canvas.draw()
+
+    def format_time(self, time):
+        return time 
 
     def open_url(self, url):
         webbrowser.open_new(url)
