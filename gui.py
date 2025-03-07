@@ -72,6 +72,7 @@ class GUI:
         self.mode_var = tk.StringVar(value="Theoretical")
         self.mode_menu = tk.OptionMenu(mode_frame, self.mode_var, "Theoretical", "Experimental", command=self.switch_mode)
         self.mode_menu.config(font=font_style, bg="lightgray", activebackground="gainsboro")
+        self.mode_menu["menu"].config(font=("Calibri", 10), bg="gainsboro")
         self.mode_menu.pack()
 
         self.operating_frame = tk.Frame(center_frame, padx=1, pady=1)
@@ -160,6 +161,7 @@ class GUI:
         notebook.add(self.path_frame, text="Vector Path")
 
         rcParams['font.family'] = 'Calibri'
+        rcParams['font.size'] = 10
 
         self.figure = plt.Figure()
         self.ax = self.figure.add_subplot(1, 1, 1)
@@ -243,7 +245,7 @@ class GUI:
         style.theme_create("yummy", parent="alt", settings={
             "TNotebook": {"configure": {"tabmargins": [2, 0, 2, 0], "background": "SystemButtonFace"}},
             "TNotebook.Tab": {
-                "configure": {"padding": [5, 1], "background": "lightgray"},
+                "configure": {"padding": [5, 1], "background": "lightgray", "font": ("Calibri", 12)},
                 "map": {"background": [("selected", "gainsboro")],
                         "expand": [("selected", [1, 1, 1, 0])]}
             }
