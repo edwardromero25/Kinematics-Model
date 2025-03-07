@@ -140,7 +140,7 @@ class GUI:
         self.submit_button.grid(row=1, column=0, columnspan=4, pady=(10, 5))
 
         self.accelerometer_frame = tk.Frame(center_frame, padx=1, pady=1)
-        accelerometer_label = tk.Label(self.accelerometer_frame, text="Accelerometer Data", font=category_font_style)
+        accelerometer_label = tk.Label(self.accelerometer_frame, text="Acceleration Data", font=category_font_style)
         accelerometer_label.pack()
 
         self.import_button = tk.Button(self.accelerometer_frame, text="Upload File (CSV)", command=self.import_data, font=font_style, bg="lightgray", activebackground="gainsboro")

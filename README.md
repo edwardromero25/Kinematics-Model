@@ -6,13 +6,13 @@
   </a>
 </div>
 
-## Computer Model
+## Overview
 
 <div align="center">
   <img src="images/example.png" alt="example" style="max-width: 100%; height: auto;">
 </div>
 
-This is a computer model that evaluates the efficacy of a 3D clinostat's microgravity simulation.
+This is a computer model that evaluates the efficacy of microgravity simulation devices.
 
 ## Built With
 
