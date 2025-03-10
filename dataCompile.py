@@ -1,245 +1,160 @@
-import numpy as np
 import math
-import sys
+import numpy as np
+
 
 class Sim:
-    def gVectorX(self, timeInSeconds, localInnerInRadSec, localOuterInRadSec):
-        ret = math.sin(localOuterInRadSec*timeInSeconds)*math.cos(localInnerInRadSec*timeInSeconds)
-        return ret
+    def __init__(self):
+        self.pi_over_30 = math.pi / 30
 
-    def gVectorY(self, timeInSeconds, localOuterInRadSec):
-        ret = math.cos(localOuterInRadSec*timeInSeconds)
-        return ret
+    def g_vector_x(self, time_in_seconds, inner_rad_sec, outer_rad_sec):
+        """Calculate X component of gravity vector."""
+        return math.sin(outer_rad_sec * time_in_seconds) * math.cos(inner_rad_sec * time_in_seconds)
 
-    def gVectorZ(self, timeInSeconds, localInnerInRadSec, localOuterInRadSec):
-        ret = math.sin(localOuterInRadSec*timeInSeconds)*math.sin(localInnerInRadSec*timeInSeconds)
-        return ret
+    def g_vector_y(self, time_in_seconds, outer_rad_sec):
+        """Calculate Y component of gravity vector."""
+        return math.cos(outer_rad_sec * time_in_seconds)
 
-    def RPMtoRadSec(self, RPM):
-        ret = RPM * (math.pi / 30)
-        return ret
+    def g_vector_z(self, time_in_seconds, inner_rad_sec, outer_rad_sec):
+        """Calculate Z component of gravity vector."""
+        return math.sin(outer_rad_sec * time_in_seconds) * math.sin(inner_rad_sec * time_in_seconds)
 
-    def gVectorData(self, startTimeInSeconds, endTimeInSeconds, innerRPM, outerRPM):
-        innerInRadSec = self.RPMtoRadSec(innerRPM)
-        outerInRadSec = self.RPMtoRadSec(outerRPM)
-        timeArray, xArray, yArray, zArray = [], [], [], []
-        for t in range(startTimeInSeconds, endTimeInSeconds + 1):
-            timeArray.append(t)
-            xArray.append(self.gVectorX(t, innerInRadSec, outerInRadSec))
-            yArray.append(self.gVectorY(t, outerInRadSec))
-            zArray.append(self.gVectorZ(t, innerInRadSec, outerInRadSec))
-        data = timeArray, xArray, yArray, zArray
-        return data
+    def rpm_to_rad_sec(self, rpm):
+        """Convert RPM to radians per second."""
+        return rpm * self.pi_over_30
+
+    def g_vector_data(self, start_time_in_seconds, end_time_in_seconds, inner_rpm, outer_rpm):
+        """Generate gravity vector data over time."""
+        inner_rad_sec = self.rpm_to_rad_sec(inner_rpm)
+        outer_rad_sec = self.rpm_to_rad_sec(outer_rpm)
+        time_array = list(range(start_time_in_seconds, end_time_in_seconds + 1))
+        x_array = [self.g_vector_x(t, inner_rad_sec, outer_rad_sec) for t in time_array]
+        y_array = [self.g_vector_y(t, outer_rad_sec) for t in time_array]
+        z_array = [self.g_vector_z(t, inner_rad_sec, outer_rad_sec) for t in time_array]
+        return time_array, x_array, y_array, z_array
+
 
 class DataProcessor:
-    def __init__(self, innerV, outerV, maxSeg, startAnalysis, endAnalysis):
-        self.innerV = innerV
-        self.outerV = outerV
-        self.minSeg = 0
-        self.maxSeg = maxSeg
-        self.endTime = int(self.maxSeg * 3600)
-        self.startAnalysis = startAnalysis
-        self.endAnalysis = endAnalysis
-        self.startSeg = int(self.startAnalysis * 3600) if self.startAnalysis is not None else None
-        self.endSeg = int(self.endAnalysis * 3600) if self.endAnalysis is not None else None
-        self.time, self.x, self.y, self.z = self._getSimAccelData()
+    def __init__(self, inner_v, outer_v, max_seg, start_analysis, end_analysis):
+        self.inner_v = inner_v
+        self.outer_v = outer_v
+        self.min_seg = 0
+        self.max_seg = max_seg
+        self.end_time = int(max_seg * 3600)
+        self.start_analysis = start_analysis
+        self.end_analysis = end_analysis
+        self.start_seg = int(start_analysis * 3600) if start_analysis is not None else None
+        self.end_seg = int(end_analysis * 3600) if end_analysis is not None else None
+        self.time, self.x, self.y, self.z = self._get_sim_accel_data()
 
-    def _getSimAccelData(self):
-        simInnerV = float(self.innerV)
-        simOuterV = float(self.outerV)
-        vectorSim = Sim()
-        time, x, y, z = vectorSim.gVectorData(0, self.endTime, simInnerV, simOuterV)
-        return time, x, y, z
+    def _get_sim_accel_data(self):
+        """Generate simulated acceleration data."""
+        vector_sim = Sim()
+        return vector_sim.g_vector_data(0, self.end_time, self.inner_v, self.outer_v)
 
-    def _getTimeAvg(self):
-        xTimeAvg = []
-        xTempList = []
-        for xIter in self.x:
-            xTempList.append(xIter)
-            xTimeAvg.append(np.mean(xTempList))
-        
-        yTimeAvg = []
-        yTempList = []
-        for yIter in self.y:
-            yTempList.append(yIter)
-            yTimeAvg.append(np.mean(yTempList))
+    def _get_time_avg(self):
+        """Calculate time-averaged components."""
+        x_time_avg = np.cumsum(self.x) / np.arange(1, len(self.x) + 1)
+        y_time_avg = np.cumsum(self.y) / np.arange(1, len(self.y) + 1)
+        z_time_avg = np.cumsum(self.z) / np.arange(1, len(self.z) + 1)
+        return x_time_avg, y_time_avg, z_time_avg
 
-        zTimeAvg = []
-        zTempList = []
-        for zIter in self.z:
-            zTempList.append(zIter)
-            zTimeAvg.append(np.mean(zTempList))
-        
-        return xTimeAvg, yTimeAvg, zTimeAvg
+    def _get_magnitude(self, x_time_avg, y_time_avg, z_time_avg):
+        """Calculate magnitude of time-averaged vectors."""
+        return np.sqrt(x_time_avg**2 + y_time_avg**2 + z_time_avg**2)
 
-    def _getMagnitude(self, xTimeAvg, yTimeAvg, zTimeAvg):
-        magList = []
+    def _get_mag_seg(self, mag_list):
+        """Calculate average magnitude for segments."""
+        mag_seg_list = mag_list[self.min_seg:self.end_time]
+        avg_mag_full = np.mean(mag_seg_list)
+        avg_mag_analysis = np.mean(mag_list[self.start_seg:self.end_seg]) if self.start_seg is not None and self.end_seg is not None else None
+        return avg_mag_full, avg_mag_analysis
 
-        for i in range(len(self.x)):
-            xIter = xTimeAvg[i]
-            yIter = yTimeAvg[i]
-            zIter = zTimeAvg[i]
+    def get_distribution(self):
+        """Get distribution score from PathVisualization."""
+        path = PathVisualization(self.inner_v, self.x, self.y, self.z)
+        return path.get_distribution()
 
-            mag = (xIter ** 2 + yIter ** 2 + zIter ** 2) ** 0.5
-            magList.append(mag)
-
-        return magList
-
-    def _getMagSeg(self, magList):
-        magSegList = magList[self.minSeg:self.endTime]
-        if len(magList) < self.minSeg:
-            print("\nERROR: Segment begins after data ends - " + str(len(magList)) + " sec\n")
-            sys.exit()
-        elif len(magSegList) < (self.endTime - self.minSeg):
-            print("\nWARNING: Not enough data for segment - " + str(len(magList)) + " sec\n")
-        avgMagFull = np.mean(magList[self.minSeg:self.endTime])
-    
-        if self.startSeg is not None and self.endSeg is not None:
-            magSegListAnalysis = magList[self.startSeg:self.endSeg]
-            if len(magList) < self.startSeg:
-                print("\nERROR: Segment begins after data ends - " + str(len(magList)) + " sec\n")
-                sys.exit()
-            elif len(magSegListAnalysis) < (self.endSeg - self.startSeg):
-                print("\nWARNING: Not enough data for analysis segment - " + str(len(magList)) + " sec\n")
-            avgMagAnalysis = np.mean(magList[self.startSeg:self.endSeg])
-        else:
-            avgMagAnalysis = None
-
-        return avgMagFull, avgMagAnalysis
-
-    def getDistribution(self):
-        path = PathVisualization(self.innerV, self.x, self.y, self.z)
-        disScore = path.getDistribution()
-        return disScore
 
 class PathVisualization:
-    def __init__(self, ID, x, y, z, saveFile=''):
-        self.ID = ID
-
+    def __init__(self, id_, x, y, z):
+        self.id_ = id_
         self.x = x
         self.y = y
         self.z = z
-
-        self.pathCoords = list(zip(self.x, self.y, self.z))
+        self.path_coords = list(zip(x, y, z))
         self.num_points = 1000
 
-        self.saveFile = saveFile
+    def _create_sphere(self):
+        """Create a sphere of points using golden spiral method."""
+        golden_r = (np.sqrt(5.0) + 1.0) / 2.0
+        golden_a = (2.0 - golden_r) * (2.0 * np.pi)
+        xs, ys, zs = [], [], []
 
-    def __createSphere(self):
-        golden_r = (np.sqrt(5.0) + 1.0) / 2.0            
-        golden_a = (2.0 - golden_r) * (2.0 * np.pi)     
-
-        Xs, Ys, Zs = [], [], []
-        
         for i in range(self.num_points):
-            ys = 1 - (i / float(self.num_points - 1)) * 2
-            radius = np.sqrt(1 - ys * ys)
-
+            y = 1 - (i / (self.num_points - 1)) * 2
+            radius = np.sqrt(1 - y * y)
             theta = golden_a * i
+            xs.append(np.cos(theta) * radius)
+            ys.append(y)
+            zs.append(np.sin(theta) * radius)
 
-            xs = np.cos(theta) * radius
-            zs = np.sin(theta) * radius
+        return list(zip(xs, ys, zs))
 
-            Xs.append(xs)
-            Ys.append(ys)
-            Zs.append(zs)
-
-        return(Xs, Ys, Zs)
-
-    def __splitSphere(self, sphereCoords):
-        octants = {'posI':[], 'posII':[], 'posIII':[], 'posIV':[], 'negI':[], 'negII':[], 'negIII':[], 'negIV':[]}
-        
-        for row in sphereCoords:
-            if (row[2] > 0):
-                if (row[1] > 0):
-                    if (row[0] > 0):
-                        octants['posI'].append(row)
-                    else:
-                        octants['posII'].append(row)
-                elif (row[0] > 0):
-                    octants['posIV'].append(row)
-                else: 
-                    octants['posIII'].append(row)
+    def _split_sphere(self, sphere_coords):
+        """Split sphere points into octants."""
+        octants = {'posI': [], 'posII': [], 'posIII': [], 'posIV': [], 'negI': [], 'negII': [], 'negIII': [], 'negIV': []}
+        for x, y, z in sphere_coords:
+            if z > 0:
+                if y > 0:
+                    octants['posI' if x > 0 else 'posII'].append((x, y, z))
+                else:
+                    octants['posIV' if x > 0 else 'posIII'].append((x, y, z))
             else:
-                if (row[1] > 0):
-                    if (row[0] > 0):
-                        octants['negI'].append(row)
-                    else:
-                        octants['negII'].append(row)
-                elif (row[0] > 0):
-                    octants['negIV'].append(row)
+                if y > 0:
+                    octants['negI' if x > 0 else 'negII'].append((x, y, z))
                 else:
-                    octants['negIII'].append(row)
-        
-        return(octants)
+                    octants['negIV' if x > 0 else 'negIII'].append((x, y, z))
+        return octants
 
-    def __getPathOctant(self, pathRow):
-        if (pathRow[2] > 0):
-            if (pathRow[1] > 0):
-                if (pathRow[0] > 0):
-                    return 'posI'
-                else:
-                    return 'posII'
-            elif (pathRow[0] > 0):
-                return 'posIV'
-            else: 
-                return 'posIII'
-        else:
-            if (pathRow[1] > 0):
-                if (pathRow[0] > 0):
-                    return 'negI'
-                else:
-                    return 'negII'
-            elif (pathRow[0] > 0):
-                return 'negIV'
-            else:
-                return 'negIII'
+    def _get_path_octant(self, path_row):
+        """Determine octant of a path point."""
+        x, y, z = path_row
+        if z > 0:
+            if y > 0:
+                return 'posI' if x > 0 else 'posII'
+            return 'posIV' if x > 0 else 'posIII'
+        if y > 0:
+            return 'negI' if x > 0 else 'negII'
+        return 'negIV' if x > 0 else 'negIII'
 
-    def __getDistanceBetween(self, pathTupleCoords, sphereTupleCoords):
-        pathX, pathY, pathZ = pathTupleCoords
-        sphereX, sphereY, sphereZ = sphereTupleCoords
+    def _get_distance_between(self, path_coords, sphere_coords):
+        """Calculate Euclidean distance between two points."""
+        px, py, pz = path_coords
+        sx, sy, sz = sphere_coords
+        return np.sqrt((px - sx)**2 + (py - sy)**2 + (pz - sz)**2)
 
-        diffX = pathX - sphereX
-        diffY = pathY - sphereY
-        diffZ = pathZ - sphereZ
+    def _get_distribution_num(self, sphere_coords):
+        """Calculate distribution number based on path coverage."""
+        octants = self._split_sphere(sphere_coords)
+        path_map = {}
+        repeat_time = -1
 
-        sumSquares = diffX ** 2 + diffY ** 2 + diffZ ** 2
-        dist = np.sqrt(sumSquares)
+        for path_row in self.path_coords:
+            repeat_time += 1
+            path_octant = self._get_path_octant(path_row)
+            sphere_coords_split = octants[path_octant]
+            dist_dict = {sphere_row: self._get_distance_between(path_row, sphere_row) for sphere_row in sphere_coords_split}
+            ranked_dist = sorted(dist_dict.items(), key=lambda x: x[1])[:3]
+            segment_vertices = tuple(r[0] for r in ranked_dist)
+            path_map[segment_vertices] = path_map.get(segment_vertices, []) + [repeat_time]
 
-        return dist
+        return len(path_map)
 
-    def __getDistributionNum(self, sphereCoords):
-        octants = self.__splitSphere(sphereCoords)
-        
-        pathMap = {} 
-        repeatTime = -1
+    def get_distribution(self):
+        """Get the distribution score."""
+        sphere_coords = self._create_sphere()
+        return self._get_distribution_num(sphere_coords)
 
-        for pathRow in self.pathCoords:
-            pathOctant = self.__getPathOctant(pathRow)
-            sphereCoordsSplit = octants[pathOctant]
-            distDict = {}
-            repeatTime += 1
-
-            for sphereRow in sphereCoordsSplit:
-                dist = self.__getDistanceBetween(pathRow, sphereRow) 
-                distDict[sphereRow] = dist 
-                    
-            rankedDist = sorted(distDict.items(), key=lambda x:x[1]) 
-            segmentVertices = (rankedDist[0][0], rankedDist[1][0], rankedDist[2][0]) 
-            
-            pathMap[segmentVertices] = pathMap.get(segmentVertices, []) + [repeatTime] 
-        
-        return(len(pathMap))
-
-    def getDistribution(self):
-        Xsphere, Ysphere, Zsphere = self.__createSphere()
-        sphereCoords = list(zip(Xsphere, Ysphere, Zsphere))
-        score = self.__getDistributionNum(sphereCoords)
-        return score
-    
-    def formatTime(self, time):
-        startTime = time[0]
-        fTime = []
-        for t in time:
-            fTime.append((t - startTime) / 3600)
-        return fTime
+    def format_time(self, time):
+        """Format time from seconds to hours."""
+        return [t / 3600 for t in time]

@@ -11,11 +11,9 @@ a = Analysis(
     pathex=[project_dir],
     binaries=[],
     datas=[
-        (os.path.join(project_dir, 'images/example.png'), 'images'),
         (os.path.join(project_dir, 'images/favicon.ico'), 'images'),
         (os.path.join(project_dir, 'images/MSSF_logo.png'), 'images'),
         (os.path.join(project_dir, 'images/NASA_logo.png'), 'images'),
-        (os.path.join(project_dir, 'images/NASA_logo.svg'), 'images'),
         (os.path.join(project_dir, 'dataCompile.py'), '.')
     ],
     hiddenimports=[],
