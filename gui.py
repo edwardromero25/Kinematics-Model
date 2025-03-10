@@ -137,7 +137,7 @@ class GUI:
         self.endAnalysis_entry_exp = tk.Entry(analysis_period_frame_exp, font=font_style, width=10)
         self.endAnalysis_entry_exp.pack(side=tk.LEFT)
 
-        self.submit_button = tk.Button(center_frame, text="Start", command=self.submit, font=font_style, bg="#105bd8", fg="#ffffff", activebackground="#007bff", activeforeground="#ffffff")
+        self.submit_button = tk.Button(center_frame, text="Start", command=self.submit, font=font_style, bg="#0066b2", fg="#ffffff", activebackground="#00a6d2", activeforeground="#ffffff")
         self.submit_button.grid(row=1, column=0, columnspan=4, pady=(10, 5))
 
         self.accelerometer_frame = tk.Frame(center_frame, padx=1, pady=1)
@@ -243,8 +243,8 @@ class GUI:
             "TNotebook": {"configure": {"tabmargins": [1, 0, 0, 0], "background": "#f1f1f1"}},
             "TNotebook.Tab": {
                 "configure": {"padding": [5, 1], "background": "#aeb0b5", "foreground": "#212121", "font": ("Calibri", 12), "focuscolor": ""},
-                "map": {"background": [("selected", "#105bd8")],
-                        "foreground": [("selected", "#ffffff")],
+                "map": {"background": [("selected", "#d6d7d9")],
+                        "foreground": [("selected", "#212121")],
                         "expand": [("selected", [1, 1, 1, 0])]}
             }
         })
@@ -369,18 +369,18 @@ class GUI:
         magnitude = np.sqrt(xTimeAvg**2 + yTimeAvg**2 + zTimeAvg**2)
         avgMagFull = np.mean(magnitude)
 
-        self.ax.plot(time_in_hours, magnitude, color='#105bd8', label="Time-Averaged Magnitude: " + f"{avgMagFull:.3g}")
+        self.ax.plot(time_in_hours, magnitude, color='#0066b2', label="Time-Averaged Magnitude: " + f"{avgMagFull:.3g}")
         self.ax.legend(edgecolor="#212121", labelcolor="#212121")
 
         if startAnalysis is not None and endAnalysis is not None:
             startSeg = next(i for i, t in enumerate(time_in_hours) if t >= startAnalysis)
             endSeg = next(i for i, t in enumerate(time_in_hours) if t >= endAnalysis)
 
-            self.ax.axvline(x=startAnalysis, color='#dd361c', linestyle='--')
-            self.ax.axvline(x=endAnalysis, color='#dd361c', linestyle='--')
+            self.ax.axvline(x=startAnalysis, color='#ec1c24', linestyle='--')
+            self.ax.axvline(x=endAnalysis, color='#ec1c24', linestyle='--')
 
             avgMagAnalysis = np.mean(magnitude[startSeg:endSeg])
-            self.ax.plot(time_in_hours[startSeg:endSeg], magnitude[startSeg:endSeg], color='#dd361c', label="Time-Averaged Magnitude: " + f"{avgMagAnalysis:.3g}")
+            self.ax.plot(time_in_hours[startSeg:endSeg], magnitude[startSeg:endSeg], color='#ec1c24', label="Time-Averaged Magnitude: " + f"{avgMagAnalysis:.3g}")
 
         self.ax.legend(edgecolor="#212121", labelcolor="#212121")
         self.ax.set_xlabel('Time (hours)', color="#212121")
@@ -388,7 +388,7 @@ class GUI:
         self.canvas.draw()
 
         self.path_ax.clear()
-        self.path_ax.plot(x, y, z, color='#105bd8', linewidth=1)
+        self.path_ax.plot(x, y, z, color='#0066b2', linewidth=1)
         self.path_ax.set_xlabel('X', color="#212121")
         self.path_ax.set_ylabel('Y', color="#212121")
         self.path_ax.set_zlabel('Z', color="#212121")
@@ -405,7 +405,7 @@ class GUI:
 
         self.path_ax_analysis.clear()
         if startAnalysis is not None and endAnalysis is not None:
-            self.path_ax_analysis.plot(x[startSeg:endSeg], y[startSeg:endSeg], z[startSeg:endSeg], color='#dd361c', linewidth=1)
+            self.path_ax_analysis.plot(x[startSeg:endSeg], y[startSeg:endSeg], z[startSeg:endSeg], color='#ec1c24', linewidth=1)
             self.path_ax_analysis.set_xlabel('X', color="#212121")
             self.path_ax_analysis.set_ylabel('Y', color="#212121")
             self.path_ax_analysis.set_zlabel('Z', color="#212121")
@@ -512,14 +512,14 @@ class GUI:
         
         self.ax.set_yscale('log')
         self.ax.set_title("Resultant Acceleration Vector", color="#212121")
-        self.ax.plot(fTime, magnitude, color='#105bd8', label="Time-Averaged Magnitude: " + f"{avgMagSeg:.3g}")
+        self.ax.plot(fTime, magnitude, color='#0066b2', label="Time-Averaged Magnitude: " + f"{avgMagSeg:.3g}")
         
         if startAnalysis is not None and endAnalysis is not None:
             startIndex = next(i for i, t in enumerate(fTime) if t >= startAnalysis)
             endIndex = next(i for i, t in enumerate(fTime) if t >= endAnalysis)
-            self.ax.axvline(x=startAnalysis, color='#dd361c', linestyle='--')
-            self.ax.axvline(x=endAnalysis, color='#dd361c', linestyle='--')
-            self.ax.plot(fTime[startIndex:endIndex], magnitude[startIndex:endIndex], color='#dd361c', label="Time-Averaged Magnitude: " + f"{avgMagAnalysis:.3g}")
+            self.ax.axvline(x=startAnalysis, color='#ec1c24', linestyle='--')
+            self.ax.axvline(x=endAnalysis, color='#ec1c24', linestyle='--')
+            self.ax.plot(fTime[startIndex:endIndex], magnitude[startIndex:endIndex], color='#ec1c24', label="Time-Averaged Magnitude: " + f"{avgMagAnalysis:.3g}")
         
         self.ax.legend(edgecolor="#212121", labelcolor="#212121")
         self.ax.set_xlabel('Time (hours)', color="#212121")
@@ -527,7 +527,7 @@ class GUI:
         self.canvas.draw()
 
         self.path_ax.clear()
-        self.path_ax.plot(analysis.x, analysis.y, analysis.z, color='#105bd8', linewidth=1)
+        self.path_ax.plot(analysis.x, analysis.y, analysis.z, color='#0066b2', linewidth=1)
         self.path_ax.set_xlabel('X', color="#212121")
         self.path_ax.set_ylabel('Y', color="#212121")
         self.path_ax.set_zlabel('Z', color="#212121")
@@ -547,7 +547,7 @@ class GUI:
         if startAnalysis is not None and endAnalysis is not None:
             startIndex = next(i for i, t in enumerate(fTime) if t >= startAnalysis)
             endIndex = next(i for i, t in enumerate(fTime) if t >= endAnalysis)
-            self.path_ax_analysis.plot(analysis.x[startIndex:endIndex], analysis.y[startIndex:endIndex], analysis.z[startIndex:endIndex], color='#dd361c', linewidth=1)
+            self.path_ax_analysis.plot(analysis.x[startIndex:endIndex], analysis.y[startIndex:endIndex], analysis.z[startIndex:endIndex], color='#ec1c24', linewidth=1)
             self.path_ax_analysis.set_xlabel('X', color="#212121")
             self.path_ax_analysis.set_ylabel('Y', color="#212121")
             self.path_ax_analysis.set_zlabel('Z', color="#212121")
@@ -575,8 +575,8 @@ class GUI:
         if title:
             self.components_ax.set_title('Acceleration Vector Components', color="#212121")
 
-        self.components_ax.plot(time_in_hours, xTimeAvg, label='X-Component', color='#105bd8')
-        self.components_ax.plot(time_in_hours, yTimeAvg, label='Y-Component', color='#dd361c')
+        self.components_ax.plot(time_in_hours, xTimeAvg, label='X-Component', color='#0066b2')
+        self.components_ax.plot(time_in_hours, yTimeAvg, label='Y-Component', color='#ec1c24')
         self.components_ax.plot(time_in_hours, zTimeAvg, label='Z-Component', color='#aeb0b5')
         self.components_ax.set_xlabel('Time (hours)', color="#212121")
         self.components_ax.set_ylabel('Magnitude (g)', color="#212121")
@@ -593,8 +593,8 @@ class GUI:
         if title:
             self.components_ax.set_title('Acceleration Vector Components', color="#212121")
 
-        self.components_ax.plot(time_in_hours, xTimeAvg, label='X-Component', color='#105bd8')
-        self.components_ax.plot(time_in_hours, yTimeAvg, label='Y-Component', color='#dd361c')
+        self.components_ax.plot(time_in_hours, xTimeAvg, label='X-Component', color='#0066b2')
+        self.components_ax.plot(time_in_hours, yTimeAvg, label='Y-Component', color='#ec1c24')
         self.components_ax.plot(time_in_hours, zTimeAvg, label='Z-Component', color='#aeb0b5')
         self.components_ax.set_xlabel('Time (hours)', color="#212121")
         self.components_ax.set_ylabel('Magnitude (g)', color="#212121")
