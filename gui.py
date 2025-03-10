@@ -137,7 +137,7 @@ class GUI:
         self.endAnalysis_entry_exp = tk.Entry(analysis_period_frame_exp, font=font_style, width=10)
         self.endAnalysis_entry_exp.pack(side=tk.LEFT)
 
-        self.submit_button = tk.Button(center_frame, text="Start", command=self.submit, font=font_style, bg="#0066b2", fg="#ffffff", activebackground="#00a6d2", activeforeground="#ffffff")
+        self.submit_button = tk.Button(center_frame, text="Start", command=self.submit, font=font_style, bg="#0066b2", fg="#ffffff", activebackground="#3380cc", activeforeground="#ffffff")
         self.submit_button.grid(row=1, column=0, columnspan=4, pady=(10, 5))
 
         self.accelerometer_frame = tk.Frame(center_frame, padx=1, pady=1)
