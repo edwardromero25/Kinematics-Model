@@ -242,7 +242,7 @@ class GUI:
         style.theme_create("yummy", parent="alt", settings={
             "TNotebook": {"configure": {"tabmargins": [1, 0, 0, 0], "background": "#f1f1f1"}},
             "TNotebook.Tab": {
-                "configure": {"padding": [5, 1], "background": "#aeb0b5", "font": ("Calibri", 12), "focuscolor": ""},
+                "configure": {"padding": [5, 1], "background": "#aeb0b5", "foreground": "#212121", "font": ("Calibri", 12), "focuscolor": ""},
                 "map": {"background": [("selected", "#105bd8")],
                         "foreground": [("selected", "#ffffff")],
                         "expand": [("selected", [1, 1, 1, 0])]}
