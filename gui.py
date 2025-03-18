@@ -12,9 +12,30 @@ from matplotlib import rcParams
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from PIL import Image, ImageTk
 from dateutil import parser
-from dataCompile import DataProcessor, PathVisualization  
+from dataCompile import DataProcessor, PathVisualization
+import csv
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
+
+
+class CustomToolbar(NavigationToolbar2Tk):
+    def __init__(self, canvas, parent, export_callback=None, export_components_callback=None):
+        self.toolitems = list(NavigationToolbar2Tk.toolitems)
+        if export_callback:
+            self.toolitems.append(("ExportData", "Export data to CSV", "filesave", "export_data"))
+        if export_components_callback:
+            self.toolitems.append(("ExportComponents", "Export data to CSV", "filesave", "export_components_data"))
+        super().__init__(canvas, parent)
+        self.export_callback = export_callback
+        self.export_components_callback = export_components_callback
+
+    def export_data(self):
+        if self.export_callback:
+            self.export_callback()
+
+    def export_components_data(self):
+        if self.export_components_callback:
+            self.export_components_callback()
 
 
 class GUI:
@@ -23,6 +44,7 @@ class GUI:
         self.master.title("Computer Model - NASA")
         self.master.configure(bg="#f1f1f1")
 
+        self._current_mode = "Theoretical v1"  
         self._setup_gui_elements()
         self._setup_plot_frames()
 
@@ -82,8 +104,8 @@ class GUI:
         mode_frame.grid(row=0, column=0, padx=30)
 
         tk.Label(mode_frame, text="Mode", font=category_font_style).pack()
-        self.mode_var = tk.StringVar(value="Theoretical")
-        self.mode_menu = tk.OptionMenu(mode_frame, self.mode_var, "Theoretical", "Experimental", command=self._switch_mode)
+        self.mode_var = tk.StringVar(value="Theoretical v1")
+        self.mode_menu = tk.OptionMenu(mode_frame, self.mode_var, "Theoretical v1", "Experimental", command=self._switch_mode)
         self.mode_menu.config(font=font_style, bg="#aeb0b5", activebackground="#d6d7d9")
         self.mode_menu["menu"].config(font=("Calibri", 10), bg="#d6d7d9")
         self.mode_menu.pack()
@@ -182,16 +204,31 @@ class GUI:
         self.ax.set_yscale('log')
         self.ax.set_title("Resultant Acceleration Vector")
         self.ax.set_xlabel('Time (hours)')
-        self.ax.set_ylabel('Magnitude (g)')
+        self.ax.set_ylabel('Acceleration (g)')
         self.canvas = FigureCanvasTkAgg(self.figure, self.magnitude_frame)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-        self.toolbar = NavigationToolbar2Tk(self.canvas, self.magnitude_frame)
+        self.toolbar = CustomToolbar(self.canvas, self.magnitude_frame, self._export_magnitude_data)
         self.toolbar.update()
+
+    def _export_magnitude_data(self):
+        file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+        if file_path:
+            try:
+                if not self.ax.lines:
+                    raise ValueError("No data available to export.")
+                with open(file_path, mode='w', newline='') as file:
+                    writer = csv.writer(file)
+                    writer.writerow(["Time (hours)", "Acceleration (g)"])
+                    for time, mag in zip(self.ax.lines[0].get_xdata(), self.ax.lines[0].get_ydata()):
+                        writer.writerow([time, mag])
+                messagebox.showinfo("Success", "Data exported successfully.")
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
 
     def _setup_path_plots(self):
         self.path_figure = plt.Figure()
         self.path_ax = self.path_figure.add_subplot(1, 1, 1, projection='3d')
-        self._configure_3d_axes(self.path_ax, "Acceleration Vector Path (Full Duration)")
+        self._configure_3d_axes(self.path_ax, "Acceleration Vector Path")
         self.path_frame_left = tk.Frame(self.path_frame, borderwidth=1, relief=tk.SOLID)
         self.path_canvas = FigureCanvasTkAgg(self.path_figure, self.path_frame_left)
         self.path_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
@@ -201,7 +238,7 @@ class GUI:
 
         self.path_figure_analysis = plt.Figure()
         self.path_ax_analysis = self.path_figure_analysis.add_subplot(1, 1, 1, projection='3d')
-        self._configure_3d_axes(self.path_ax_analysis, "Acceleration Vector Path (Analysis Period)")
+        self._configure_3d_axes(self.path_ax_analysis, "Acceleration Vector Path")
         self.path_frame_right = tk.Frame(self.path_frame, borderwidth=1, relief=tk.SOLID)
         self.path_canvas_analysis = FigureCanvasTkAgg(self.path_figure_analysis, self.path_frame_right)
         self.path_canvas_analysis.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
@@ -218,11 +255,30 @@ class GUI:
         self.components_ax = self.components_figure.add_subplot(1, 1, 1)
         self.components_ax.set_title("Acceleration Vector Components")
         self.components_ax.set_xlabel('Time (hours)')
-        self.components_ax.set_ylabel('Magnitude (g)')
+        self.components_ax.set_ylabel('Acceleration (g)')
         self.components_canvas = FigureCanvasTkAgg(self.components_figure, self.vector_components_frame)
         self.components_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-        self.components_toolbar = NavigationToolbar2Tk(self.components_canvas, self.vector_components_frame)
+        self.components_toolbar = CustomToolbar(self.components_canvas, self.vector_components_frame, export_components_callback=self._export_components_data)
         self.components_toolbar.update()
+
+    def _export_components_data(self):
+        file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+        if file_path:
+            try:
+                if not self.components_ax.lines:
+                    raise ValueError("No data available to export.")
+                with open(file_path, mode='w', newline='') as file:
+                    writer = csv.writer(file)
+                    writer.writerow(["Time (hours)", "X (g)", "Y (g)", "Z (g)"])
+                    time_data = self.components_ax.lines[0].get_xdata()
+                    x_data = self.components_ax.lines[0].get_ydata()
+                    y_data = self.components_ax.lines[1].get_ydata()
+                    z_data = self.components_ax.lines[2].get_ydata()
+                    for time, x, y, z in zip(time_data, x_data, y_data, z_data):
+                        writer.writerow([time, x, y, z])
+                messagebox.showinfo("Success", "Data exported successfully.")
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
 
     def _configure_3d_axes(self, ax, title):
         ax.set_xlabel('X')
@@ -246,7 +302,12 @@ class GUI:
         style.theme_use("yummy")
 
     def _switch_mode(self, mode):
-        if mode == "Theoretical":
+        if hasattr(self, '_current_mode') and self._current_mode == mode:
+            return 
+
+        self._current_mode = mode
+
+        if mode == "Theoretical v1":
             self._show_theoretical_inputs()
         else:
             self._show_experimental_inputs()
@@ -274,23 +335,24 @@ class GUI:
         self.ax.set_yscale('log')
         self.ax.set_title("Resultant Acceleration Vector")
         self.ax.set_xlabel('Time (hours)')
-        self.ax.set_ylabel('Magnitude (g)')
+        self.ax.set_ylabel('Acceleration (g)')
         self.ax.set_yticks([10**(-i) for i in range(0, 17, 2)])
-        self.ax.set_ylim(10**-17, 10**0)
+        self.ax.set_ylim(10**-17, 10**1)
         self.canvas.draw()
 
         self.path_ax.clear()
-        self._configure_3d_axes(self.path_ax, "Acceleration Vector Path (Full Duration)")
+        self._configure_3d_axes(self.path_ax, "Acceleration Vector Path")
         self.path_canvas.draw()
 
         self.path_ax_analysis.clear()
-        self._configure_3d_axes(self.path_ax_analysis, "Acceleration Vector Path (Analysis Period)")
+        self._configure_3d_axes(self.path_ax_analysis, "Acceleration Vector Path")
         self.path_canvas_analysis.draw()
 
         self.components_ax.clear()
         self.components_ax.set_title("Acceleration Vector Components")
+        self.components_ax.set_ylim(0, 1.1)
         self.components_ax.set_xlabel('Time (hours)')
-        self.components_ax.set_ylabel('Magnitude (g)')
+        self.components_ax.set_ylabel('Acceleration (g)')
         self.components_canvas.draw()
 
     def _import_data(self):
@@ -340,23 +402,24 @@ class GUI:
         magnitude = np.sqrt(x_time_avg**2 + y_time_avg**2 + z_time_avg**2)
         avg_mag_full = np.mean(magnitude)
 
-        self.ax.plot(time_in_hours, magnitude, color='#0066b2', label=f"Time-Averaged Magnitude: {avg_mag_full:.3g}")
+        self.ax.plot(time_in_hours, magnitude, color='#0066b2', label=f"Magnitude: {avg_mag_full:.3g}")
         if start_analysis is not None and end_analysis is not None:
             start_seg = next(i for i, t in enumerate(time_in_hours) if t >= start_analysis)
             end_seg = next(i for i, t in enumerate(time_in_hours) if t >= end_analysis)
             self.ax.axvline(x=start_analysis, color='#ec1c24', linestyle='--')
             self.ax.axvline(x=end_analysis, color='#ec1c24', linestyle='--')
             avg_mag_analysis = np.mean(magnitude[start_seg:end_seg])
-            self.ax.plot(time_in_hours[start_seg:end_seg], magnitude[start_seg:end_seg], color='#ec1c24', label=f"Time-Averaged Magnitude: {avg_mag_analysis:.3g}")
+            self.ax.plot(time_in_hours[start_seg:end_seg], magnitude[start_seg:end_seg], color='#ec1c24', label=f"Magnitude: {avg_mag_analysis:.3g}")
 
         self.ax.legend()
         self.ax.set_xlabel('Time (hours)')
-        self.ax.set_ylabel('Magnitude (g)')
+        self.ax.set_ylabel('Acceleration (g)')
+        self.ax.set_xlim(left=0, right=time_in_hours[-1])
         self.canvas.draw()
 
         self.path_ax.clear()
         self.path_ax.plot(x, y, z, color='#0066b2', linewidth=1)
-        self._configure_3d_axes(self.path_ax, "Acceleration Vector Path (Full Duration)")
+        self._configure_3d_axes(self.path_ax, "Acceleration Vector Path")
         self.path_ax.legend([f"Distribution: {distribution_score}"])
         self.path_canvas.draw()
 
@@ -365,22 +428,22 @@ class GUI:
         self.path_ax_analysis.clear()
         if start_analysis is not None and end_analysis is not None:
             self.path_ax_analysis.plot(x[start_seg:end_seg], y[start_seg:end_seg], z[start_seg:end_seg], color='#ec1c24', linewidth=1)
-            self._configure_3d_axes(self.path_ax_analysis, "Acceleration Vector Path (Analysis Period)")
+            self._configure_3d_axes(self.path_ax_analysis, "Acceleration Vector Path")
             path_vis_analysis = PathVisualization("experimental", x[start_seg:end_seg], y[start_seg:end_seg], z[start_seg:end_seg])
             distribution_score_analysis = path_vis_analysis.get_distribution()
             self.path_ax_analysis.legend([f"Distribution: {distribution_score_analysis}"])
         else:
-            self._configure_3d_axes(self.path_ax_analysis, "Acceleration Vector Path (Analysis Period)")
+            self._configure_3d_axes(self.path_ax_analysis, "Acceleration Vector Path")
         self.path_canvas_analysis.draw()
 
     def _submit(self):
         try:
-            if self.mode_var.get() == "Theoretical":
+            if self.mode_var.get() == "Theoretical v1":
                 self._process_theoretical_data()
             else:
                 self._process_experimental_data_submission()
         except ValueError as ve:
-            messagebox.showerror("Input Error", str(ve))
+            messagebox.showerror("Error", str(ve))
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
@@ -449,23 +512,24 @@ class GUI:
 
         self.ax.set_yscale('log')
         self.ax.set_title("Resultant Acceleration Vector")
-        self.ax.plot(f_time, magnitude, color='#0066b2', label=f"Time-Averaged Magnitude: {avg_mag_seg:.3g}")
+        self.ax.set_xlim(left=0, right=f_time[-1])
+        self.ax.plot(f_time, magnitude, color='#0066b2', label=f"Magnitude: {avg_mag_seg:.3g}")
 
         if start_analysis is not None and end_analysis is not None:
             start_index = next(i for i, t in enumerate(f_time) if t >= start_analysis)
             end_index = next(i for i, t in enumerate(f_time) if t >= end_analysis)
             self.ax.axvline(x=start_analysis, color='#ec1c24', linestyle='--')
             self.ax.axvline(x=end_analysis, color='#ec1c24', linestyle='--')
-            self.ax.plot(f_time[start_index:end_index], magnitude[start_index:end_index], color='#ec1c24', label=f"Time-Averaged Magnitude: {avg_mag_analysis:.3g}")
+            self.ax.plot(f_time[start_index:end_index], magnitude[start_index:end_index], color='#ec1c24', label=f"Magnitude: {avg_mag_analysis:.3g}")
 
         self.ax.legend()
         self.ax.set_xlabel('Time (hours)')
-        self.ax.set_ylabel('Magnitude (g)')
+        self.ax.set_ylabel('Acceleration (g)')
         self.canvas.draw()
 
         self.path_ax.clear()
         self.path_ax.plot(analysis.x, analysis.y, analysis.z, color='#0066b2', linewidth=1)
-        self._configure_3d_axes(self.path_ax, "Acceleration Vector Path (Full Duration)")
+        self._configure_3d_axes(self.path_ax, "Acceleration Vector Path")
         self.path_ax.legend([f"Distribution: {dis_score}"])
         self.path_canvas.draw()
 
@@ -475,16 +539,16 @@ class GUI:
         self.path_ax_analysis.clear()
         if start_analysis is not None and end_analysis is not None:
             self.path_ax_analysis.plot(analysis.x[start_index:end_index], analysis.y[start_index:end_index], analysis.z[start_index:end_index], color='#ec1c24', linewidth=1)
-            self._configure_3d_axes(self.path_ax_analysis, "Acceleration Vector Path (Analysis Period)")
+            self._configure_3d_axes(self.path_ax_analysis, "Acceleration Vector Path")
             path_vis_analysis = PathVisualization("experimental", analysis.x[start_index:end_index], analysis.y[start_index:end_index], analysis.z[start_index:end_index])
             distribution_score_analysis = path_vis_analysis.get_distribution()
             self.path_ax_analysis.legend([f"Distribution: {distribution_score_analysis}"])
         else:
-            self._configure_3d_axes(self.path_ax_analysis, "Acceleration Vector Path (Analysis Period)")
+            self._configure_3d_axes(self.path_ax_analysis, "Acceleration Vector Path")
         self.path_canvas_analysis.draw()
 
     def _create_time_avg_fig(self, x_time_avg, y_time_avg, z_time_avg, time_data, legend=True, title=True):
-        if self.mode_var.get() == "Theoretical":
+        if self.mode_var.get() == "Theoretical v1":
             time_in_hours = [t / 3600 for t in time_data]  
         else:
             time_in_hours = time_data 
@@ -493,11 +557,12 @@ class GUI:
         if title:
             self.components_ax.set_title('Acceleration Vector Components')
 
-        self.components_ax.plot(time_in_hours, x_time_avg, label='X-Component', color='#0066b2')
-        self.components_ax.plot(time_in_hours, y_time_avg, label='Y-Component', color='#ec1c24')
-        self.components_ax.plot(time_in_hours, z_time_avg, label='Z-Component', color='#aeb0b5')
+        self.components_ax.plot(time_in_hours, x_time_avg, label='X', color='#0066b2')
+        self.components_ax.plot(time_in_hours, y_time_avg, label='Y', color='#ec1c24')
+        self.components_ax.plot(time_in_hours, z_time_avg, label='Z', color='#aeb0b5')
+        self.components_ax.set_xlim(left=0, right=time_in_hours[-1])
         self.components_ax.set_xlabel('Time (hours)')
-        self.components_ax.set_ylabel('Magnitude (g)')
+        self.components_ax.set_ylabel('Acceleration (g)')
         if legend:
             self.components_ax.legend()
         self.components_canvas.draw()
