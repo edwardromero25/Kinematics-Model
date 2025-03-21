@@ -416,10 +416,24 @@ class GUI:
         self.notebook.forget(self.path_frame)
 
         if not hasattr(self, 'rigid_body_tabs_created') or not self.rigid_body_tabs_created:
-            self.rigid_body_resultant_g_frame = tk.Frame(self.notebook, borderwidth=1, relief=tk.SOLID)
-            self.rigid_body_g_components_frame = tk.Frame(self.notebook, borderwidth=1, relief=tk.SOLID)
-            self.rigid_body_resultant_non_g_frame = tk.Frame(self.notebook, borderwidth=1, relief=tk.SOLID)
-            self.rigid_body_non_g_components_frame = tk.Frame(self.notebook, borderwidth=1, relief=tk.SOLID)
+            self.rigid_body_resultant_g_frame = tk.Frame(self.notebook, borderwidth=0, relief=tk.SOLID)
+            self.rigid_body_resultant_g_frame_left = tk.Frame(self.rigid_body_resultant_g_frame, borderwidth=1, relief=tk.SOLID)
+            self.rigid_body_resultant_g_frame_left.grid(row=0, column=0, sticky="nsew")
+            self.rigid_body_resultant_g_frame_right = tk.Frame(self.rigid_body_resultant_g_frame, borderwidth=1, relief=tk.SOLID)
+            self.rigid_body_resultant_g_frame_right.grid(row=0, column=1, sticky="nsew")
+            self.rigid_body_resultant_g_frame.grid_columnconfigure(0, weight=1)
+            self.rigid_body_resultant_g_frame.grid_columnconfigure(1, weight=1)
+            self.rigid_body_resultant_g_frame.grid_rowconfigure(0, weight=1)
+
+            self.rigid_body_resultant_non_g_frame = tk.Frame(self.notebook, borderwidth=0, relief=tk.SOLID)
+            self.rigid_body_resultant_non_g_frame_left = tk.Frame(self.rigid_body_resultant_non_g_frame, borderwidth=1, relief=tk.SOLID)
+            self.rigid_body_resultant_non_g_frame_left.grid(row=0, column=0, sticky="nsew")
+            self.rigid_body_resultant_non_g_frame_right = tk.Frame(self.rigid_body_resultant_non_g_frame, borderwidth=1, relief=tk.SOLID)
+            self.rigid_body_resultant_non_g_frame_right.grid(row=0, column=1, sticky="nsew")
+            self.rigid_body_resultant_non_g_frame.grid_columnconfigure(0, weight=1)
+            self.rigid_body_resultant_non_g_frame.grid_columnconfigure(1, weight=1)
+            self.rigid_body_resultant_non_g_frame.grid_rowconfigure(0, weight=1)
+            
             self.rigid_body_path_frame = tk.Frame(self.notebook, borderwidth=0, relief=tk.SOLID)
 
             self.notebook.add(self.rigid_body_resultant_g_frame, text="Gravitational Acceleration")
@@ -430,22 +444,24 @@ class GUI:
 
             self.rigid_body_resultant_g_figure = plt.Figure()
             self.rigid_body_resultant_g_ax = self.rigid_body_resultant_g_figure.add_subplot(1, 1, 1)
-            self.rigid_body_resultant_g_canvas = FigureCanvasTkAgg(self.rigid_body_resultant_g_figure, self.rigid_body_resultant_g_frame)
+            self.rigid_body_resultant_g_canvas = FigureCanvasTkAgg(self.rigid_body_resultant_g_figure, self.rigid_body_resultant_g_frame_left)
             self.rigid_body_resultant_g_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
             self.rigid_body_g_components_figure = plt.Figure()
             self.rigid_body_g_components_ax = self.rigid_body_g_components_figure.add_subplot(1, 1, 1)
-            self.rigid_body_g_components_canvas = FigureCanvasTkAgg(self.rigid_body_g_components_figure, self.rigid_body_g_components_frame)
+            self.rigid_body_g_components_canvas = FigureCanvasTkAgg(self.rigid_body_g_components_figure, self.rigid_body_resultant_g_frame_right)
             self.rigid_body_g_components_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+            self.rigid_body_g_components_toolbar = NavigationToolbar2Tk(self.rigid_body_g_components_canvas, self.rigid_body_resultant_g_frame_right)
+            self.rigid_body_g_components_toolbar.update()
 
             self.rigid_body_resultant_non_g_figure = plt.Figure()
             self.rigid_body_resultant_non_g_ax = self.rigid_body_resultant_non_g_figure.add_subplot(1, 1, 1)
-            self.rigid_body_resultant_non_g_canvas = FigureCanvasTkAgg(self.rigid_body_resultant_non_g_figure, self.rigid_body_resultant_non_g_frame)
+            self.rigid_body_resultant_non_g_canvas = FigureCanvasTkAgg(self.rigid_body_resultant_non_g_figure, self.rigid_body_resultant_non_g_frame_left)
             self.rigid_body_resultant_non_g_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
             self.rigid_body_non_g_components_figure = plt.Figure()
             self.rigid_body_non_g_components_ax = self.rigid_body_non_g_components_figure.add_subplot(1, 1, 1)
-            self.rigid_body_non_g_components_canvas = FigureCanvasTkAgg(self.rigid_body_non_g_components_figure, self.rigid_body_non_g_components_frame)
+            self.rigid_body_non_g_components_canvas = FigureCanvasTkAgg(self.rigid_body_non_g_components_figure, self.rigid_body_resultant_non_g_frame_right)
             self.rigid_body_non_g_components_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
             self.rigid_body_path_frame_left = tk.Frame(self.rigid_body_path_frame, borderwidth=1, relief=tk.SOLID)
@@ -470,10 +486,10 @@ class GUI:
             self.rigid_body_path_analysis_canvas = FigureCanvasTkAgg(self.rigid_body_path_analysis_figure, self.rigid_body_path_frame_right)
             self.rigid_body_path_analysis_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-            self.rigid_body_resultant_g_toolbar = NavigationToolbar2Tk(self.rigid_body_resultant_g_canvas, self.rigid_body_resultant_g_frame)
+            self.rigid_body_resultant_g_toolbar = NavigationToolbar2Tk(self.rigid_body_resultant_g_canvas, self.rigid_body_resultant_g_frame_left)
             self.rigid_body_resultant_g_toolbar.update()
 
-            self.rigid_body_resultant_non_g_toolbar = NavigationToolbar2Tk(self.rigid_body_resultant_non_g_canvas, self.rigid_body_resultant_non_g_frame)
+            self.rigid_body_resultant_non_g_toolbar = NavigationToolbar2Tk(self.rigid_body_resultant_non_g_canvas, self.rigid_body_resultant_non_g_frame_left)
             self.rigid_body_resultant_non_g_toolbar.update()
 
             self.rigid_body_path_toolbar = NavigationToolbar2Tk(self.rigid_body_path_canvas, self.rigid_body_path_frame_left)
@@ -494,7 +510,7 @@ class GUI:
         self.rigid_body_resultant_g_canvas.draw()
 
         self.rigid_body_g_components_ax.clear()
-        self.rigid_body_g_components_ax.set_title("REMOVE")
+        self.rigid_body_g_components_ax.set_title("Time-Averaged Gravitational Acceleration")
         self.rigid_body_g_components_ax.set_xlabel('Time (hours)')
         self.rigid_body_g_components_ax.set_ylabel('Acceleration (g)')
         self.rigid_body_g_components_canvas.draw()
@@ -506,10 +522,12 @@ class GUI:
         self.rigid_body_resultant_non_g_canvas.draw()
 
         self.rigid_body_non_g_components_ax.clear()
-        self.rigid_body_non_g_components_ax.set_title("REMOVE")
+        self.rigid_body_non_g_components_ax.set_title("Time-Averaged Non-Gravitational Acceleration")
         self.rigid_body_non_g_components_ax.set_xlabel('Time (hours)')
         self.rigid_body_non_g_components_ax.set_ylabel('Acceleration (g)')
         self.rigid_body_non_g_components_canvas.draw()
+        self.rigid_body_non_g_components_toolbar = NavigationToolbar2Tk(self.rigid_body_non_g_components_canvas, self.rigid_body_resultant_non_g_frame_right)
+        self.rigid_body_non_g_components_toolbar.update()
 
         self.rigid_body_path_ax.clear()
         self._configure_3d_axes(self.rigid_body_path_ax, "Acceleration Distribution")
@@ -865,14 +883,20 @@ class GUI:
     def _update_rigid_body_g_components_plot(self, time_array, g_x_avg, g_y_avg, g_z_avg):
         time_in_hours = time_array / 3600 
         self.rigid_body_g_components_ax.clear()
-        self.rigid_body_g_components_ax.set_title("Time-Averaged Gravitational Acceleration Components")
-        self.rigid_body_g_components_ax.plot(time_in_hours, g_x_avg, label='X', color='#0066b2')
-        self.rigid_body_g_components_ax.plot(time_in_hours, g_y_avg, label='Y', color='#ec1c24')
-        self.rigid_body_g_components_ax.plot(time_in_hours, g_z_avg, label='Z', color='#aeb0b5')
+        self.rigid_body_g_components_ax.set_title("Time-Averaged Gravitational Acceleration")
+        self.rigid_body_g_components_ax.plot(time_in_hours, g_x_avg, label='X', color='#009988')
+        self.rigid_body_g_components_ax.plot(time_in_hours, g_y_avg, label='Y', color='#ee7733')
+        self.rigid_body_g_components_ax.plot(time_in_hours, g_z_avg, label='Z', color='#bbbbbb')
         self.rigid_body_g_components_ax.legend()
         self.rigid_body_g_components_ax.set_xlim(left=0, right=time_in_hours[-1])
         self.rigid_body_g_components_ax.set_xlabel('Time (hours)')
         self.rigid_body_g_components_ax.set_ylabel('Acceleration (g)')
+
+        # Dynamically set the y-axis limits based on the data
+        y_min = min(np.min(g_x_avg), np.min(g_y_avg), np.min(g_z_avg))
+        y_max = max(np.max(g_x_avg), np.max(g_y_avg), np.max(g_z_avg))
+        self.rigid_body_g_components_ax.set_ylim(y_min, y_max)
+
         self.rigid_body_g_components_canvas.draw()
 
     def _update_rigid_body_non_g_vector_plot(self, time_array, a_magnitude, avg_a_magnitude, a_x_avg, a_y_avg, a_z_avg):
@@ -921,17 +945,31 @@ class GUI:
     def _update_rigid_body_non_g_components_plot(self, time_array, a_x_avg, a_y_avg, a_z_avg):
         time_in_hours = time_array / 3600  
         self.rigid_body_non_g_components_ax.clear()
-        self.rigid_body_non_g_components_ax.set_title("Time-Averaged Non-Gravitational Acceleration Components")
-        self.rigid_body_non_g_components_ax.plot(time_in_hours, a_x_avg, label='X', color='#0066b2')
-        self.rigid_body_non_g_components_ax.plot(time_in_hours, a_y_avg, label='Y', color='#ec1c24')
-        self.rigid_body_non_g_components_ax.plot(time_in_hours, a_z_avg, label='Z', color='#aeb0b5')
+        self.rigid_body_non_g_components_ax.set_title("Time-Averaged Non-Gravitational Acceleration")
+        self.rigid_body_non_g_components_ax.plot(time_in_hours, a_x_avg, label='X', color='#009988')
+        self.rigid_body_non_g_components_ax.plot(time_in_hours, a_y_avg, label='Y', color='#ee7733')
+        self.rigid_body_non_g_components_ax.plot(time_in_hours, a_z_avg, label='Z', color='#bbbbbb')
         self.rigid_body_non_g_components_ax.legend()
         self.rigid_body_non_g_components_ax.set_xlim(left=0, right=time_in_hours[-1])
         self.rigid_body_non_g_components_ax.set_xlabel('Time (hours)')
         self.rigid_body_non_g_components_ax.set_ylabel('Acceleration (g)')
         self.rigid_body_non_g_components_ax.yaxis.set_major_formatter(plt.ScalarFormatter(useMathText=True))
         self.rigid_body_non_g_components_ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+
+        # Dynamically set the y-axis limits based on the data
+        y_min = min(np.min(a_x_avg), np.min(a_y_avg), np.min(a_z_avg))
+        y_max = max(np.max(a_x_avg), np.max(a_y_avg), np.max(a_z_avg))
+        self.rigid_body_non_g_components_ax.set_ylim(y_min, y_max)
+
         self.rigid_body_non_g_components_canvas.draw()
+
+        # Ensure the toolbar is created only once
+        if not hasattr(self, 'rigid_body_non_g_components_toolbar'):
+            self.rigid_body_non_g_components_toolbar = NavigationToolbar2Tk(
+                self.rigid_body_non_g_components_canvas, 
+                self.rigid_body_resultant_non_g_frame_right
+            )
+            self.rigid_body_non_g_components_toolbar.update()
 
     def _update_rigid_body_path_plot(self, a_tot_array, time_array):
         # Full simulation plot (left)
