@@ -194,8 +194,8 @@ class GUI:
         self.notebook = ttk.Notebook(plot_frame)
         self.notebook.pack(fill=tk.BOTH, expand=True)
 
-        self.magnitude_frame = tk.Frame(self.notebook, borderwidth=1, relief=tk.SOLID)
-        self.vector_components_frame = tk.Frame(self.notebook, borderwidth=1, relief=tk.SOLID)
+        self.magnitude_frame = tk.Frame(self.notebook, borderwidth=0, relief=tk.SOLID)
+        self.vector_components_frame = tk.Frame(self.notebook, borderwidth=0, relief=tk.SOLID)
         self.path_frame = tk.Frame(self.notebook, borderwidth=0, relief=tk.SOLID)
 
         self.notebook.add(self.magnitude_frame, text="Gravitational Acceleration")
@@ -211,16 +211,42 @@ class GUI:
         self._clear_plots()
 
     def _setup_magnitude_plot(self):
-        self.figure = plt.Figure()
-        self.ax = self.figure.add_subplot(1, 1, 1)
-        #self.ax.set_yscale('log')
-        self.ax.set_title("Time-Averaged Gravitational Acceleration")
-        self.ax.set_xlabel('Time (hours)')
-        self.ax.set_ylabel('Acceleration (g)')
-        self.canvas = FigureCanvasTkAgg(self.figure, self.magnitude_frame)
-        self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-        self.toolbar = NavigationToolbar2Tk(self.canvas, self.magnitude_frame)
-        self.toolbar.update()
+        # Create left and right frames for the plots
+        self.magnitude_frame_left = tk.Frame(self.magnitude_frame, borderwidth=1, relief=tk.SOLID)
+        self.magnitude_frame_left.grid(row=0, column=0, sticky="nsew")
+
+        self.magnitude_frame_right = tk.Frame(self.magnitude_frame, borderwidth=1, relief=tk.SOLID)
+        self.magnitude_frame_right.grid(row=0, column=1, sticky="nsew")
+
+        # Configure grid layout for the parent frame
+        self.magnitude_frame.grid_columnconfigure(0, weight=1)
+        self.magnitude_frame.grid_columnconfigure(1, weight=1)
+        self.magnitude_frame.grid_rowconfigure(0, weight=1)
+
+        # Left plot: Time-Averaged Gravitational Acceleration
+        self.figure_left = plt.Figure()
+        self.ax_left = self.figure_left.add_subplot(1, 1, 1)
+        self.ax_left.set_title("Time-Averaged Gravitational Acceleration")
+        self.ax_left.set_xlabel('Time (hours)')
+        self.ax_left.set_ylabel('Acceleration (g)')
+        self.canvas_left = FigureCanvasTkAgg(self.figure_left, self.magnitude_frame_left)
+        self.canvas_left.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        self.toolbar_left = NavigationToolbar2Tk(self.canvas_left, self.magnitude_frame_left)
+        self.toolbar_left.update()
+
+        # Right plot: Time-Averaged Gravitational Acceleration Components
+        self.figure_right = plt.Figure()
+        self.ax_right = self.figure_right.add_subplot(1, 1, 1)
+        self.canvas_right = FigureCanvasTkAgg(self.figure_right, self.magnitude_frame_right)
+        self.canvas_right.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        self.toolbar_right = NavigationToolbar2Tk(self.canvas_right, self.magnitude_frame_right)
+        self.toolbar_right.update()
+
+        # Call _create_time_avg_fig to plot on the right frame
+        self._create_time_avg_fig([], [], [], [], legend=False, title=False)  # Placeholder for initial setup
+
+        self.ax = self.ax_left  # Define self.ax as a reference to ax_left
+        self.canvas = self.canvas_left  # Define self.canvas as a reference to canvas_left
 
     def _export_magnitude_data(self):
         file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
@@ -264,8 +290,8 @@ class GUI:
 
     def _setup_components_plot(self):
         self.components_figure = plt.Figure()
-        self.components_ax = self.components_figure.add_subplot(1, 1, 1)
-        self.components_ax.set_title("Time-Averaged Gravitational Acceleration Components")
+        self.components_ax = self.components_figure.add_subplot(1, 1, 1)  # Ensure components_ax is initialized
+        self.components_ax.set_title("Time-Averaged Gravitational Acceleration")
         self.components_ax.set_xlabel('Time (hours)')
         self.components_ax.set_ylabel('Acceleration (g)')
         self.components_canvas = FigureCanvasTkAgg(self.components_figure, self.vector_components_frame)
@@ -494,13 +520,21 @@ class GUI:
         self.rigid_body_path_analysis_canvas.draw()
 
     def _clear_plots(self):
-        self.ax.clear()
-        #self.ax.set_yscale('log')
-        self.ax.set_title("Time-Averaged Gravitational Acceleration")
-        self.ax.set_xlabel('Time (hours)')
-        self.ax.set_ylabel('Acceleration (g)')
-        self.canvas.draw()
+        # Clear the left plot (Time-Averaged Gravitational Acceleration)
+        self.ax_left.clear()
+        self.ax_left.set_title("Time-Averaged Gravitational Acceleration")
+        self.ax_left.set_xlabel('Time (hours)')
+        self.ax_left.set_ylabel('Acceleration (g)')
+        self.canvas_left.draw()
 
+        # Clear the right plot (Additional Data or other)
+        self.ax_right.clear()
+        self.ax_right.set_title("Time-Averaged Gravitational Acceleration")
+        self.ax_right.set_xlabel('Time (hours)')
+        self.ax_right.set_ylabel('Acceleration (g)')
+        self.canvas_right.draw()
+
+        # Clear the path plots
         self.path_ax.clear()
         self._configure_3d_axes(self.path_ax, "Acceleration Distribution")
         self.path_canvas.draw()
@@ -509,8 +543,9 @@ class GUI:
         self._configure_3d_axes(self.path_ax_analysis, "Acceleration Distribution")
         self.path_canvas_analysis.draw()
 
+        # Clear the components plot
         self.components_ax.clear()
-        self.components_ax.set_title("Time-Averaged Gravitational Acceleration Components")
+        self.components_ax.set_title("Time-Averaged Gravitational Acceleration")
         self.components_ax.set_ylim(0, 1.1)
         self.components_ax.set_xlabel('Time (hours)')
         self.components_ax.set_ylabel('Acceleration (g)')
@@ -562,16 +597,20 @@ class GUI:
         magnitude = np.sqrt(x_time_avg**2 + y_time_avg**2 + z_time_avg**2)
         avg_mag_full = np.mean(magnitude)
 
-        self.ax.plot(time_in_hours, magnitude, color='#0066B2', label=f"Magnitude: {avg_mag_full:.3g}")
-        # self.ax.plot(time_in_hours, x_time_avg, color='#EF7A35', label="X")
-        # self.ax.plot(time_in_hours, y_time_avg, color='#6EAE39', label="Y")
-        # self.ax.plot(time_in_hours, z_time_avg, color='#EE3377', label="Z")
-        
+        self.ax_left.clear()
+        self.ax_left.set_title("Time-Averaged Gravitational Acceleration")
+        self.ax_left.set_xlim(left=0, right=time_in_hours[-1])
+        self.ax_left.plot(time_in_hours, magnitude, color='#0066B2', label=f"Magnitude: {avg_mag_full:.3g}")
+        self.ax_left.legend()
+        self.ax_left.set_xlabel('Time (hours)')
+        self.ax_left.set_ylabel('Acceleration (g)')
         # Dynamically set the y-axis limits based on the data
         y_min = np.min(magnitude)
         y_max = np.max(magnitude)
         self.ax.set_ylim(y_min, y_max)
+        self.canvas_left.draw()
 
+        self.path_ax.clear()
         if start_analysis is not None and end_analysis is not None:
             start_seg = next(i for i, t in enumerate(time_in_hours) if t >= start_analysis)
             end_seg = next(i for i, t in enumerate(time_in_hours) if t >= end_analysis)
@@ -727,23 +766,30 @@ class GUI:
 
     def _create_time_avg_fig(self, x_time_avg, y_time_avg, z_time_avg, time_data, legend=True, title=True):
         if self.mode_var.get() == "Spherical Coordinates":
-            time_in_hours = [t / 3600 for t in time_data]  
+            time_in_hours = [t / 3600 for t in time_data]
         else:
-            time_in_hours = time_data 
+            time_in_hours = time_data
 
-        self.components_ax.clear()
+        self.ax_right.clear()
         if title:
-            self.components_ax.set_title('Time-Averaged Gravitational Acceleration Components')
+            self.ax_right.set_title('Time-Averaged Gravitational Acceleration')
 
-        self.components_ax.plot(time_in_hours, x_time_avg, label='X', color='#0066b2')
-        self.components_ax.plot(time_in_hours, y_time_avg, label='Y', color='#ec1c24')
-        self.components_ax.plot(time_in_hours, z_time_avg, label='Z', color='#aeb0b5')
-        self.components_ax.set_xlim(left=0, right=time_in_hours[-1])
-        self.components_ax.set_xlabel('Time (hours)')
-        self.components_ax.set_ylabel('Acceleration (g)')
-        if legend:
-            self.components_ax.legend()
-        self.components_canvas.draw()
+        if time_in_hours:  # Ensure time_in_hours is not empty
+            self.ax_right.plot(time_in_hours, x_time_avg, label='X', color='#009988')
+            self.ax_right.plot(time_in_hours, y_time_avg, label='Y', color='#EE7733')
+            self.ax_right.plot(time_in_hours, z_time_avg, label='Z', color='#BBBBBB')
+            self.ax_right.set_xlim(left=0, right=time_in_hours[-1])
+            self.ax_right.set_xlabel('Time (hours)')
+            self.ax_right.set_ylabel('Acceleration (g)')
+
+            # Dynamically set the y-axis limits based on the data
+            y_min = min(np.min(x_time_avg), np.min(y_time_avg), np.min(z_time_avg))
+            y_max = max(np.max(x_time_avg), np.max(y_time_avg), np.max(z_time_avg))
+            self.ax_right.set_ylim(y_min, y_max)
+
+            if legend:
+                self.ax_right.legend()
+        self.canvas_right.draw()
 
     def _process_rigid_body_data(self):
         if not all([self.inner_v_entry.get(), self.outer_v_entry.get(), self.max_seg_entry.get()]):
