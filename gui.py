@@ -1,5 +1,4 @@
 # Author: Edward Romero, OSTEM Intern, Spring 2025, NASA Kennedy Space Center
-# This is a computer model that evaluates the efficacy of microgravity simulation devices
 
 import os
 from tkinter import messagebox, filedialog
@@ -14,6 +13,7 @@ from PIL import Image, ImageTk
 from dateutil import parser
 from dataCompile import DataProcessor, PathVisualization
 import csv
+from rigid_body import RigidBody
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -41,10 +41,10 @@ class CustomToolbar(NavigationToolbar2Tk):
 class GUI:
     def __init__(self, master):
         self.master = master
-        self.master.title("Computer Model - NASA")
+        self.master.title("Microgravity Simulation Support Facility - NASA")
         self.master.configure(bg="#f1f1f1")
 
-        self._current_mode = "Theoretical v1"  
+        self._current_mode = "Spherical Coordinates"  
         self._setup_gui_elements()
         self._setup_plot_frames()
 
@@ -104,11 +104,23 @@ class GUI:
         mode_frame.grid(row=0, column=0, padx=30)
 
         tk.Label(mode_frame, text="Mode", font=category_font_style).pack()
-        self.mode_var = tk.StringVar(value="Theoretical v1")
-        self.mode_menu = tk.OptionMenu(mode_frame, self.mode_var, "Theoretical v1", "Experimental", command=self._switch_mode)
-        self.mode_menu.config(font=font_style, bg="#aeb0b5", activebackground="#d6d7d9")
-        self.mode_menu["menu"].config(font=("Calibri", 10), bg="#d6d7d9")
-        self.mode_menu.pack()
+
+        self.mode_var = tk.StringVar(value="Spherical Coordinates")
+
+        menu_button = tk.Menubutton(mode_frame, text="Theoretical", font=font_style, bg="#aeb0b5", activebackground="#d6d7d9", relief=tk.RAISED, pady=6)
+        self.mode_menu = tk.Menu(menu_button, tearoff=0)
+        self.mode_menu.config(font=("Calibri", 10), bg="#d6d7d9")
+        menu_button.config(menu=self.mode_menu)
+
+        theoretical_menu = tk.Menu(self.mode_menu, tearoff=0)
+        theoretical_menu.config(font=("Calibri", 10), bg="#d6d7d9")
+        self.mode_menu.add_cascade(label="Theoretical", menu=theoretical_menu)
+        theoretical_menu.add_radiobutton(label="Spherical Coordinates", variable=self.mode_var, value="Spherical Coordinates", command=lambda: self._switch_mode("Spherical Coordinates"))
+        theoretical_menu.add_radiobutton(label="3D Rigid Body Kinematics", variable=self.mode_var, value="3D Rigid Body Kinematics", command=lambda: self._switch_mode("3D Rigid Body Kinematics"))
+
+        self.mode_menu.add_radiobutton(label="Experimental", variable=self.mode_var, value="Experimental", command=lambda: self._switch_mode("Experimental"))
+
+        menu_button.pack()
 
     def _create_operating_frame(self, parent, font_style, category_font_style):
         self.operating_frame = tk.Frame(parent, padx=1, pady=1)
@@ -171,7 +183,7 @@ class GUI:
 
     def _create_accelerometer_frame(self, parent, font_style, category_font_style):
         self.accelerometer_frame = tk.Frame(parent, padx=1, pady=1)
-        tk.Label(self.accelerometer_frame, text="Acceleration Data", font=category_font_style).pack()
+        tk.Label(self.accelerometer_frame, text="Accelerometer Data", font=category_font_style).pack()
         self.import_button = tk.Button(self.accelerometer_frame, text="Upload File (CSV)", command=self._import_data, font=font_style, bg="#aeb0b5", activebackground="#d6d7d9")
         self.import_button.pack()
 
@@ -179,16 +191,16 @@ class GUI:
         plot_frame = tk.Frame(self.master, padx=5, pady=5, bg="#f1f1f1")
         plot_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True, padx=(5, 5), pady=(0, 5))
 
-        notebook = ttk.Notebook(plot_frame)
-        notebook.pack(fill=tk.BOTH, expand=True)
+        self.notebook = ttk.Notebook(plot_frame)
+        self.notebook.pack(fill=tk.BOTH, expand=True)
 
-        self.magnitude_frame = tk.Frame(notebook, borderwidth=1, relief=tk.SOLID)
-        self.vector_components_frame = tk.Frame(notebook, borderwidth=1, relief=tk.SOLID)
-        self.path_frame = tk.Frame(notebook, borderwidth=0, relief=tk.SOLID)
+        self.magnitude_frame = tk.Frame(self.notebook, borderwidth=1, relief=tk.SOLID)
+        self.vector_components_frame = tk.Frame(self.notebook, borderwidth=1, relief=tk.SOLID)
+        self.path_frame = tk.Frame(self.notebook, borderwidth=0, relief=tk.SOLID)
 
-        notebook.add(self.magnitude_frame, text="Resultant Vector")
-        notebook.add(self.vector_components_frame, text="Vector Components")
-        notebook.add(self.path_frame, text="Vector Path")
+        self.notebook.add(self.magnitude_frame, text="Gravitational Acceleration")
+        #self.notebook.add(self.vector_components_frame, text="REMOVE")
+        self.notebook.add(self.path_frame, text="Acceleration Distribution")
 
         rcParams['font.family'] = 'Calibri'
         rcParams['font.size'] = 10
@@ -201,13 +213,13 @@ class GUI:
     def _setup_magnitude_plot(self):
         self.figure = plt.Figure()
         self.ax = self.figure.add_subplot(1, 1, 1)
-        self.ax.set_yscale('log')
-        self.ax.set_title("Resultant Acceleration Vector")
+        #self.ax.set_yscale('log')
+        self.ax.set_title("Time-Averaged Gravitational Acceleration")
         self.ax.set_xlabel('Time (hours)')
         self.ax.set_ylabel('Acceleration (g)')
         self.canvas = FigureCanvasTkAgg(self.figure, self.magnitude_frame)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-        self.toolbar = CustomToolbar(self.canvas, self.magnitude_frame, self._export_magnitude_data)
+        self.toolbar = NavigationToolbar2Tk(self.canvas, self.magnitude_frame)
         self.toolbar.update()
 
     def _export_magnitude_data(self):
@@ -228,7 +240,7 @@ class GUI:
     def _setup_path_plots(self):
         self.path_figure = plt.Figure()
         self.path_ax = self.path_figure.add_subplot(1, 1, 1, projection='3d')
-        self._configure_3d_axes(self.path_ax, "Acceleration Vector Path")
+        self._configure_3d_axes(self.path_ax, "Acceleration Distribution")
         self.path_frame_left = tk.Frame(self.path_frame, borderwidth=1, relief=tk.SOLID)
         self.path_canvas = FigureCanvasTkAgg(self.path_figure, self.path_frame_left)
         self.path_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
@@ -238,7 +250,7 @@ class GUI:
 
         self.path_figure_analysis = plt.Figure()
         self.path_ax_analysis = self.path_figure_analysis.add_subplot(1, 1, 1, projection='3d')
-        self._configure_3d_axes(self.path_ax_analysis, "Acceleration Vector Path")
+        self._configure_3d_axes(self.path_ax_analysis, "Acceleration Distribution")
         self.path_frame_right = tk.Frame(self.path_frame, borderwidth=1, relief=tk.SOLID)
         self.path_canvas_analysis = FigureCanvasTkAgg(self.path_figure_analysis, self.path_frame_right)
         self.path_canvas_analysis.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
@@ -253,7 +265,7 @@ class GUI:
     def _setup_components_plot(self):
         self.components_figure = plt.Figure()
         self.components_ax = self.components_figure.add_subplot(1, 1, 1)
-        self.components_ax.set_title("Acceleration Vector Components")
+        self.components_ax.set_title("Time-Averaged Gravitational Acceleration Components")
         self.components_ax.set_xlabel('Time (hours)')
         self.components_ax.set_ylabel('Acceleration (g)')
         self.components_canvas = FigureCanvasTkAgg(self.components_figure, self.vector_components_frame)
@@ -303,22 +315,43 @@ class GUI:
 
     def _switch_mode(self, mode):
         if hasattr(self, '_current_mode') and self._current_mode == mode:
-            return 
+            return
 
         self._current_mode = mode
-
-        if mode == "Theoretical v1":
-            self._show_theoretical_inputs()
+ 
+        if mode in ["Spherical Coordinates", "3D Rigid Body Kinematics"]:
+            self.mode_menu.master.config(text="Theoretical")
         else:
-            self._show_experimental_inputs()
+            self.mode_menu.master.config(text=mode)
 
-    def _show_theoretical_inputs(self):
+        if mode == "Spherical Coordinates":
+            self._show_spherical_inputs()
+        elif mode == "Experimental":
+            self._show_experimental_inputs()
+        elif mode == "3D Rigid Body Kinematics":
+            self._show_3d_rigid_body_inputs()
+
+    def _show_spherical_inputs(self):
         self.operating_frame.grid()
         self.duration_frame.grid()
         self.analysis_frame.grid()
         self.analysis_frame_exp.grid_remove()
         self.accelerometer_frame.grid_remove()
         self.submit_button.grid(row=1, column=0, columnspan=4, pady=(10, 5))
+
+        if hasattr(self, 'rigid_body_tabs_created') and self.rigid_body_tabs_created:
+            self.notebook.forget(self.rigid_body_resultant_g_frame)
+            #self.notebook.forget(self.rigid_body_g_components_frame)
+            self.notebook.forget(self.rigid_body_resultant_non_g_frame)
+            #self.notebook.forget(self.rigid_body_non_g_components_frame)
+            self.notebook.forget(self.rigid_body_path_frame)
+            self.rigid_body_tabs_created = False
+
+        if not self.notebook.index("end"):  
+            self.notebook.add(self.magnitude_frame, text="Gravitational Acceleration")
+            #self.notebook.add(self.vector_components_frame, text="REMOVE")
+            self.notebook.add(self.path_frame, text="Acceleration Distribution")
+
         self._clear_plots()
 
     def _show_experimental_inputs(self):
@@ -328,28 +361,156 @@ class GUI:
         self.analysis_frame_exp.grid(row=0, column=2, padx=30)
         self.accelerometer_frame.grid(row=0, column=1, padx=30)
         self.submit_button.grid(row=1, column=0, columnspan=4, pady=(10, 5))
+
+        if hasattr(self, 'rigid_body_tabs_created') and self.rigid_body_tabs_created:
+            self.notebook.forget(self.rigid_body_resultant_g_frame)
+            #self.notebook.forget(self.rigid_body_g_components_frame)
+            self.notebook.forget(self.rigid_body_resultant_non_g_frame)
+           # self.notebook.forget(self.rigid_body_non_g_components_frame)
+            self.notebook.forget(self.rigid_body_path_frame)
+            self.rigid_body_tabs_created = False  
+
+        if not self.notebook.index("end"): 
+            self.notebook.add(self.magnitude_frame, text="Gravitational Acceleration")
+            #self.notebook.add(self.vector_components_frame, text="REMOVE")
+            self.notebook.add(self.path_frame, text="Acceleration Distribution")
+
         self._clear_plots()
+
+    def _show_3d_rigid_body_inputs(self):
+        self.operating_frame.grid()
+        self.duration_frame.grid()
+        self.analysis_frame.grid()
+        self.analysis_frame_exp.grid_remove()
+        self.accelerometer_frame.grid_remove()
+        self.submit_button.grid(row=1, column=0, columnspan=4, pady=(10, 5))
+
+        self.notebook.forget(self.magnitude_frame)
+        #self.notebook.forget(self.vector_components_frame)
+        self.notebook.forget(self.path_frame)
+
+        if not hasattr(self, 'rigid_body_tabs_created') or not self.rigid_body_tabs_created:
+            self.rigid_body_resultant_g_frame = tk.Frame(self.notebook, borderwidth=1, relief=tk.SOLID)
+            self.rigid_body_g_components_frame = tk.Frame(self.notebook, borderwidth=1, relief=tk.SOLID)
+            self.rigid_body_resultant_non_g_frame = tk.Frame(self.notebook, borderwidth=1, relief=tk.SOLID)
+            self.rigid_body_non_g_components_frame = tk.Frame(self.notebook, borderwidth=1, relief=tk.SOLID)
+            self.rigid_body_path_frame = tk.Frame(self.notebook, borderwidth=0, relief=tk.SOLID)
+
+            self.notebook.add(self.rigid_body_resultant_g_frame, text="Gravitational Acceleration")
+            #self.notebook.add(self.rigid_body_g_components_frame, text="REMOVE")
+            self.notebook.add(self.rigid_body_resultant_non_g_frame, text="Non-Gravitational Acceleration")
+            #self.notebook.add(self.rigid_body_non_g_components_frame, text="REMOVE")
+            self.notebook.add(self.rigid_body_path_frame, text="Acceleration Distribution")
+
+            self.rigid_body_resultant_g_figure = plt.Figure()
+            self.rigid_body_resultant_g_ax = self.rigid_body_resultant_g_figure.add_subplot(1, 1, 1)
+            self.rigid_body_resultant_g_canvas = FigureCanvasTkAgg(self.rigid_body_resultant_g_figure, self.rigid_body_resultant_g_frame)
+            self.rigid_body_resultant_g_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+            self.rigid_body_g_components_figure = plt.Figure()
+            self.rigid_body_g_components_ax = self.rigid_body_g_components_figure.add_subplot(1, 1, 1)
+            self.rigid_body_g_components_canvas = FigureCanvasTkAgg(self.rigid_body_g_components_figure, self.rigid_body_g_components_frame)
+            self.rigid_body_g_components_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+            self.rigid_body_resultant_non_g_figure = plt.Figure()
+            self.rigid_body_resultant_non_g_ax = self.rigid_body_resultant_non_g_figure.add_subplot(1, 1, 1)
+            self.rigid_body_resultant_non_g_canvas = FigureCanvasTkAgg(self.rigid_body_resultant_non_g_figure, self.rigid_body_resultant_non_g_frame)
+            self.rigid_body_resultant_non_g_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+            self.rigid_body_non_g_components_figure = plt.Figure()
+            self.rigid_body_non_g_components_ax = self.rigid_body_non_g_components_figure.add_subplot(1, 1, 1)
+            self.rigid_body_non_g_components_canvas = FigureCanvasTkAgg(self.rigid_body_non_g_components_figure, self.rigid_body_non_g_components_frame)
+            self.rigid_body_non_g_components_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+            self.rigid_body_path_frame_left = tk.Frame(self.rigid_body_path_frame, borderwidth=1, relief=tk.SOLID)
+            self.rigid_body_path_frame_left.grid(row=0, column=0, sticky="nsew")
+
+            self.rigid_body_path_frame_right = tk.Frame(self.rigid_body_path_frame, borderwidth=1, relief=tk.SOLID)
+            self.rigid_body_path_frame_right.grid(row=0, column=1, sticky="nsew")
+
+            self.rigid_body_path_frame.grid_columnconfigure(0, weight=1)
+            self.rigid_body_path_frame.grid_columnconfigure(1, weight=1)
+            self.rigid_body_path_frame.grid_rowconfigure(0, weight=1)
+
+            self.rigid_body_path_figure = plt.Figure()
+            self.rigid_body_path_ax = self.rigid_body_path_figure.add_subplot(1, 1, 1, projection='3d')
+            self._configure_3d_axes(self.rigid_body_path_ax, "Acceleration Distribution")
+            self.rigid_body_path_canvas = FigureCanvasTkAgg(self.rigid_body_path_figure, self.rigid_body_path_frame_left)
+            self.rigid_body_path_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+            self.rigid_body_path_analysis_figure = plt.Figure()
+            self.rigid_body_path_analysis_ax = self.rigid_body_path_analysis_figure.add_subplot(1, 1, 1, projection='3d')
+            self._configure_3d_axes(self.rigid_body_path_analysis_ax, "Acceleration Distribution")
+            self.rigid_body_path_analysis_canvas = FigureCanvasTkAgg(self.rigid_body_path_analysis_figure, self.rigid_body_path_frame_right)
+            self.rigid_body_path_analysis_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+            self.rigid_body_resultant_g_toolbar = NavigationToolbar2Tk(self.rigid_body_resultant_g_canvas, self.rigid_body_resultant_g_frame)
+            self.rigid_body_resultant_g_toolbar.update()
+
+            self.rigid_body_resultant_non_g_toolbar = NavigationToolbar2Tk(self.rigid_body_resultant_non_g_canvas, self.rigid_body_resultant_non_g_frame)
+            self.rigid_body_resultant_non_g_toolbar.update()
+
+            self.rigid_body_path_toolbar = NavigationToolbar2Tk(self.rigid_body_path_canvas, self.rigid_body_path_frame_left)
+            self.rigid_body_path_toolbar.update()
+
+            self.rigid_body_path_analysis_toolbar = NavigationToolbar2Tk(self.rigid_body_path_analysis_canvas, self.rigid_body_path_frame_right)
+            self.rigid_body_path_analysis_toolbar.update()
+
+            self.rigid_body_tabs_created = True
+
+        self._clear_rigid_body_tabs()
+
+    def _clear_rigid_body_tabs(self):
+        self.rigid_body_resultant_g_ax.clear()
+        self.rigid_body_resultant_g_ax.set_title("Time-Averaged Gravitational Acceleration")
+        self.rigid_body_resultant_g_ax.set_xlabel('Time (hours)')
+        self.rigid_body_resultant_g_ax.set_ylabel('Acceleration (g)')
+        self.rigid_body_resultant_g_canvas.draw()
+
+        self.rigid_body_g_components_ax.clear()
+        self.rigid_body_g_components_ax.set_title("REMOVE")
+        self.rigid_body_g_components_ax.set_xlabel('Time (hours)')
+        self.rigid_body_g_components_ax.set_ylabel('Acceleration (g)')
+        self.rigid_body_g_components_canvas.draw()
+
+        self.rigid_body_resultant_non_g_ax.clear()
+        self.rigid_body_resultant_non_g_ax.set_title("Time-Averaged Non-Gravitational Acceleration")
+        self.rigid_body_resultant_non_g_ax.set_xlabel('Time (hours)')
+        self.rigid_body_resultant_non_g_ax.set_ylabel('Acceleration (g)')
+        self.rigid_body_resultant_non_g_canvas.draw()
+
+        self.rigid_body_non_g_components_ax.clear()
+        self.rigid_body_non_g_components_ax.set_title("REMOVE")
+        self.rigid_body_non_g_components_ax.set_xlabel('Time (hours)')
+        self.rigid_body_non_g_components_ax.set_ylabel('Acceleration (g)')
+        self.rigid_body_non_g_components_canvas.draw()
+
+        self.rigid_body_path_ax.clear()
+        self._configure_3d_axes(self.rigid_body_path_ax, "Acceleration Distribution")
+        self.rigid_body_path_canvas.draw()
+
+        self.rigid_body_path_analysis_ax.clear()
+        self._configure_3d_axes(self.rigid_body_path_analysis_ax, "Acceleration Distribution")
+        self.rigid_body_path_analysis_canvas.draw()
 
     def _clear_plots(self):
         self.ax.clear()
-        self.ax.set_yscale('log')
-        self.ax.set_title("Resultant Acceleration Vector")
+        #self.ax.set_yscale('log')
+        self.ax.set_title("Time-Averaged Gravitational Acceleration")
         self.ax.set_xlabel('Time (hours)')
         self.ax.set_ylabel('Acceleration (g)')
-        self.ax.set_yticks([10**(-i) for i in range(0, 17, 2)])
-        self.ax.set_ylim(10**-17, 10**1)
         self.canvas.draw()
 
         self.path_ax.clear()
-        self._configure_3d_axes(self.path_ax, "Acceleration Vector Path")
+        self._configure_3d_axes(self.path_ax, "Acceleration Distribution")
         self.path_canvas.draw()
 
         self.path_ax_analysis.clear()
-        self._configure_3d_axes(self.path_ax_analysis, "Acceleration Vector Path")
+        self._configure_3d_axes(self.path_ax_analysis, "Acceleration Distribution")
         self.path_canvas_analysis.draw()
 
         self.components_ax.clear()
-        self.components_ax.set_title("Acceleration Vector Components")
+        self.components_ax.set_title("Time-Averaged Gravitational Acceleration Components")
         self.components_ax.set_ylim(0, 1.1)
         self.components_ax.set_xlabel('Time (hours)')
         self.components_ax.set_ylabel('Acceleration (g)')
@@ -393,25 +554,45 @@ class GUI:
     def _update_experimental_plots(self, x, y, z, time_in_hours, start_analysis, end_analysis, distribution_score):
         rcParams['font.family'] = 'Calibri'
         self.ax.clear()
-        self.ax.set_yscale('log')
-        self.ax.set_title("Resultant Acceleration Vector")
-
+        self.ax.set_title("Time-Averaged Gravitational Acceleration")
+        self.ax.set_xlim(left=0, right=time_in_hours[-1])
         x_time_avg = np.cumsum(x) / np.arange(1, len(x) + 1)
         y_time_avg = np.cumsum(y) / np.arange(1, len(y) + 1)
         z_time_avg = np.cumsum(z) / np.arange(1, len(z) + 1)
         magnitude = np.sqrt(x_time_avg**2 + y_time_avg**2 + z_time_avg**2)
         avg_mag_full = np.mean(magnitude)
 
-        self.ax.plot(time_in_hours, magnitude, color='#0066b2', label=f"Magnitude: {avg_mag_full:.3g}")
+        self.ax.plot(time_in_hours, magnitude, color='#0066B2', label=f"Magnitude: {avg_mag_full:.3g}")
+        self.ax.plot(time_in_hours, x_time_avg, color='#EF7A35', label="X")
+        self.ax.plot(time_in_hours, y_time_avg, color='#6EAE39', label="Y")
+        self.ax.plot(time_in_hours, z_time_avg, color='#EE3377', label="Z")
+        
+        # Dynamically set the y-axis limits based on the data
+        y_min = min(min(magnitude), min(x_time_avg), min(y_time_avg), min(z_time_avg))
+        y_max = max(max(magnitude), max(x_time_avg), max(y_time_avg), max(z_time_avg))
+        self.ax.set_ylim(y_min, y_max)
+
         if start_analysis is not None and end_analysis is not None:
             start_seg = next(i for i, t in enumerate(time_in_hours) if t >= start_analysis)
             end_seg = next(i for i, t in enumerate(time_in_hours) if t >= end_analysis)
-            self.ax.axvline(x=start_analysis, color='#ec1c24', linestyle='--')
-            self.ax.axvline(x=end_analysis, color='#ec1c24', linestyle='--')
+            self.ax.axvline(x=start_analysis, color='#EC1C24', linestyle='--')
+            self.ax.axvline(x=end_analysis, color='#EC1C24', linestyle='--')
             avg_mag_analysis = np.mean(magnitude[start_seg:end_seg])
-            self.ax.plot(time_in_hours[start_seg:end_seg], magnitude[start_seg:end_seg], color='#ec1c24', label=f"Magnitude: {avg_mag_analysis:.3g}")
+            self.ax.plot(time_in_hours[start_seg:end_seg], magnitude[start_seg:end_seg], color='#EC1C24', label=f"Magnitude: {avg_mag_analysis:.3g}")
 
-        self.ax.legend()
+        handles, labels = self.ax.get_legend_handles_labels()
+        resultant_handles = [h for h, l in zip(handles, labels) if "Magnitude" in l or "Analysis" in l]
+        components_handles = [h for h, l in zip(handles, labels) if l in ["X", "Y", "Z"]]
+
+        if resultant_handles:
+            resultant_legend = self.ax.legend(handles=resultant_handles, loc='upper left', title="Resultant Vector")
+            resultant_legend.set_title("Resultant Vector", prop={'weight': 'bold'}) 
+            self.ax.add_artist(resultant_legend)
+
+        if components_handles:
+            components_legend = self.ax.legend(handles=components_handles, loc='upper right', title="Vector Components")
+            components_legend.set_title("Vector Components", prop={'weight': 'bold'}) 
+
         self.ax.set_xlabel('Time (hours)')
         self.ax.set_ylabel('Acceleration (g)')
         self.ax.set_xlim(left=0, right=time_in_hours[-1])
@@ -419,7 +600,7 @@ class GUI:
 
         self.path_ax.clear()
         self.path_ax.plot(x, y, z, color='#0066b2', linewidth=1)
-        self._configure_3d_axes(self.path_ax, "Acceleration Vector Path")
+        self._configure_3d_axes(self.path_ax, "Acceleration Distribution")
         self.path_ax.legend([f"Distribution: {distribution_score}"])
         self.path_canvas.draw()
 
@@ -427,27 +608,29 @@ class GUI:
 
         self.path_ax_analysis.clear()
         if start_analysis is not None and end_analysis is not None:
-            self.path_ax_analysis.plot(x[start_seg:end_seg], y[start_seg:end_seg], z[start_seg:end_seg], color='#ec1c24', linewidth=1)
-            self._configure_3d_axes(self.path_ax_analysis, "Acceleration Vector Path")
+            self.path_ax_analysis.plot(x[start_seg:end_seg], y[start_seg:end_seg], z[start_seg:end_seg], color='#EC1C24', linewidth=1)
+            self._configure_3d_axes(self.path_ax_analysis, "Acceleration Distribution")
             path_vis_analysis = PathVisualization("experimental", x[start_seg:end_seg], y[start_seg:end_seg], z[start_seg:end_seg])
             distribution_score_analysis = path_vis_analysis.get_distribution()
             self.path_ax_analysis.legend([f"Distribution: {distribution_score_analysis}"])
         else:
-            self._configure_3d_axes(self.path_ax_analysis, "Acceleration Vector Path")
+            self._configure_3d_axes(self.path_ax_analysis, "Acceleration Distribution")
         self.path_canvas_analysis.draw()
 
     def _submit(self):
         try:
-            if self.mode_var.get() == "Theoretical v1":
-                self._process_theoretical_data()
-            else:
+            if self.mode_var.get() == "Spherical Coordinates":
+                self._process_spherical_data()
+            elif self.mode_var.get() == "Experimental":
                 self._process_experimental_data_submission()
+            elif self.mode_var.get() == "3D Rigid Body Kinematics":
+                self._process_rigid_body_data()
         except ValueError as ve:
             messagebox.showerror("Error", str(ve))
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
-    def _process_theoretical_data(self):
+    def _process_spherical_data(self):
         if not all([self.inner_v_entry.get(), self.outer_v_entry.get(), self.max_seg_entry.get()]):
             raise ValueError("Set frame velocities and simulation duration.")
 
@@ -509,11 +692,18 @@ class GUI:
         rcParams['font.family'] = 'Calibri'
         self.ax.clear()
         f_time = path_vis.format_time(analysis.time)
-
-        self.ax.set_yscale('log')
-        self.ax.set_title("Resultant Acceleration Vector")
+        x_time_avg, y_time_avg, z_time_avg = analysis._get_time_avg()
+        self.ax.set_title("Time-Averaged Gravitational Acceleration")
         self.ax.set_xlim(left=0, right=f_time[-1])
         self.ax.plot(f_time, magnitude, color='#0066b2', label=f"Magnitude: {avg_mag_seg:.3g}")
+        self.ax.plot(f_time, x_time_avg, label='X', color='#ef7a35')
+        self.ax.plot(f_time, y_time_avg, label='Y', color='#6eae39')
+        self.ax.plot(f_time, z_time_avg, label='Z', color='#EE3377')
+
+        # Dynamically set the y-axis limits based on the data
+        y_min = min(min(magnitude), min(x_time_avg), min(y_time_avg), min(z_time_avg))
+        y_max = max(max(magnitude), max(x_time_avg), max(y_time_avg), max(z_time_avg))
+        self.ax.set_ylim(y_min, y_max)
 
         if start_analysis is not None and end_analysis is not None:
             start_index = next(i for i, t in enumerate(f_time) if t >= start_analysis)
@@ -522,14 +712,26 @@ class GUI:
             self.ax.axvline(x=end_analysis, color='#ec1c24', linestyle='--')
             self.ax.plot(f_time[start_index:end_index], magnitude[start_index:end_index], color='#ec1c24', label=f"Magnitude: {avg_mag_analysis:.3g}")
 
-        self.ax.legend()
+        handles, labels = self.ax.get_legend_handles_labels()
+        resultant_handles = [h for h, l in zip(handles, labels) if "Magnitude" in l or "Analysis" in l]
+        components_handles = [h for h, l in zip(handles, labels) if l in ["X", "Y", "Z"]]
+
+        if resultant_handles:
+            resultant_legend = self.ax.legend(handles=resultant_handles, loc='upper left', title="Resultant Vector")
+            resultant_legend.set_title("Resultant Vector", prop={'weight': 'bold'})  # Bold title
+            self.ax.add_artist(resultant_legend)
+
+        if components_handles:
+            components_legend = self.ax.legend(handles=components_handles, loc='upper right', title="Vector Components")
+            components_legend.set_title("Vector Components", prop={'weight': 'bold'})  # Bold title
+
         self.ax.set_xlabel('Time (hours)')
         self.ax.set_ylabel('Acceleration (g)')
         self.canvas.draw()
 
         self.path_ax.clear()
         self.path_ax.plot(analysis.x, analysis.y, analysis.z, color='#0066b2', linewidth=1)
-        self._configure_3d_axes(self.path_ax, "Acceleration Vector Path")
+        self._configure_3d_axes(self.path_ax, "Acceleration Distribution")
         self.path_ax.legend([f"Distribution: {dis_score}"])
         self.path_canvas.draw()
 
@@ -539,23 +741,23 @@ class GUI:
         self.path_ax_analysis.clear()
         if start_analysis is not None and end_analysis is not None:
             self.path_ax_analysis.plot(analysis.x[start_index:end_index], analysis.y[start_index:end_index], analysis.z[start_index:end_index], color='#ec1c24', linewidth=1)
-            self._configure_3d_axes(self.path_ax_analysis, "Acceleration Vector Path")
+            self._configure_3d_axes(self.path_ax_analysis, "Acceleration Distribution")
             path_vis_analysis = PathVisualization("experimental", analysis.x[start_index:end_index], analysis.y[start_index:end_index], analysis.z[start_index:end_index])
             distribution_score_analysis = path_vis_analysis.get_distribution()
             self.path_ax_analysis.legend([f"Distribution: {distribution_score_analysis}"])
         else:
-            self._configure_3d_axes(self.path_ax_analysis, "Acceleration Vector Path")
+            self._configure_3d_axes(self.path_ax_analysis, "Acceleration Distribution")
         self.path_canvas_analysis.draw()
 
     def _create_time_avg_fig(self, x_time_avg, y_time_avg, z_time_avg, time_data, legend=True, title=True):
-        if self.mode_var.get() == "Theoretical v1":
+        if self.mode_var.get() == "Spherical Coordinates":
             time_in_hours = [t / 3600 for t in time_data]  
         else:
             time_in_hours = time_data 
 
         self.components_ax.clear()
         if title:
-            self.components_ax.set_title('Acceleration Vector Components')
+            self.components_ax.set_title('Time-Averaged Gravitational Acceleration Components')
 
         self.components_ax.plot(time_in_hours, x_time_avg, label='X', color='#0066b2')
         self.components_ax.plot(time_in_hours, y_time_avg, label='Y', color='#ec1c24')
@@ -566,6 +768,220 @@ class GUI:
         if legend:
             self.components_ax.legend()
         self.components_canvas.draw()
+
+    def _process_rigid_body_data(self):
+        if not all([self.inner_v_entry.get(), self.outer_v_entry.get(), self.max_seg_entry.get()]):
+            raise ValueError("Set frame velocities and simulation duration.")
+
+        inner_rpm = float(self.inner_v_entry.get())
+        outer_rpm = float(self.outer_v_entry.get())
+        duration_hours = float(self.max_seg_entry.get())
+        delta_x, delta_y, delta_z = 0.1, 0.1, 0.1  
+
+        rigid_body = RigidBody(inner_rpm, outer_rpm, delta_x, delta_y, delta_z, duration_hours)
+        time_array, g_array, a_array, a_tot_array = rigid_body.calculate_acceleration()
+
+        g_x_avg = np.cumsum(g_array[0]) / np.arange(1, len(g_array[0]) + 1)
+        g_y_avg = np.cumsum(g_array[1]) / np.arange(1, len(g_array[1]) + 1)
+        g_z_avg = np.cumsum(g_array[2]) / np.arange(1, len(g_array[2]) + 1)
+        g_magnitude = np.sqrt(g_x_avg**2 + g_y_avg**2 + g_z_avg**2)
+        avg_g_magnitude = np.mean(g_magnitude)
+
+        a_x_avg = np.cumsum(a_array[0]) / np.arange(1, len(a_array[0]) + 1)
+        a_y_avg = np.cumsum(a_array[1]) / np.arange(1, len(a_array[1]) + 1)
+        a_z_avg = np.cumsum(a_array[2]) / np.arange(1, len(a_array[2]) + 1)
+        a_magnitude = np.sqrt(a_x_avg**2 + a_y_avg**2 + a_z_avg**2)
+        avg_a_magnitude = np.mean(a_magnitude)
+
+        self._update_rigid_body_g_vector_plot(time_array, g_magnitude, avg_g_magnitude, g_x_avg, g_y_avg, g_z_avg)
+        self._update_rigid_body_g_components_plot(time_array, g_x_avg, g_y_avg, g_z_avg)
+        self._update_rigid_body_non_g_vector_plot(time_array, a_magnitude, avg_a_magnitude, a_x_avg, a_y_avg, a_z_avg)
+        self._update_rigid_body_non_g_components_plot(time_array, a_x_avg, a_y_avg, a_z_avg)
+        self._update_rigid_body_path_plot(a_tot_array, time_array)
+
+    def _update_rigid_body_g_vector_plot(self, time_array, g_magnitude, avg_g_magnitude, g_x_avg, g_y_avg, g_z_avg):
+        time_in_hours = time_array / 3600
+        self.rigid_body_resultant_g_ax.clear()
+        self.rigid_body_resultant_g_ax.set_title("Time-Averaged Gravitational Acceleration")
+        self.rigid_body_resultant_g_ax.plot(time_in_hours, g_magnitude, color='#0066b2', label=f"Magnitude: {avg_g_magnitude:.3g}")
+        self.rigid_body_resultant_g_ax.plot(time_in_hours, g_x_avg, label='X', color='#ef7a35')
+        self.rigid_body_resultant_g_ax.plot(time_in_hours, g_y_avg, label='Y', color='#6eae39')
+        self.rigid_body_resultant_g_ax.plot(time_in_hours, g_z_avg, label='Z', color='#EE3377')
+
+        # Overlay vertical lines for the time period of analysis
+        start_analysis = self.start_analysis_entry.get()
+        end_analysis = self.end_analysis_entry.get()
+        start_analysis = float(start_analysis) if start_analysis else None
+        end_analysis = float(end_analysis) if end_analysis else None
+
+        if start_analysis is not None and end_analysis is not None:
+            self.rigid_body_resultant_g_ax.axvline(x=start_analysis, color='#EC1C24', linestyle='--')
+            self.rigid_body_resultant_g_ax.axvline(x=end_analysis, color='#EC1C24', linestyle='--')
+
+            # Compute the magnitude for the analysis range
+            start_index = next(i for i, t in enumerate(time_in_hours) if t >= start_analysis)
+            end_index = next(i for i, t in enumerate(time_in_hours) if t >= end_analysis)
+            avg_g_magnitude_analysis = np.mean(g_magnitude[start_index:end_index])
+            self.rigid_body_resultant_g_ax.plot(
+                time_in_hours[start_index:end_index], 
+                g_magnitude[start_index:end_index], 
+                color='#EC1C24', 
+                label=f"Magnitude: {avg_g_magnitude_analysis:.3g}"
+            )
+
+        # Dynamically set the y-axis limits based on the data
+        y_min = min(min(g_magnitude), min(g_x_avg), min(g_y_avg), min(g_z_avg))
+        y_max = max(max(g_magnitude), max(g_x_avg), max(g_y_avg), max(g_z_avg))
+        self.rigid_body_resultant_g_ax.set_ylim(y_min, y_max)
+
+        self.rigid_body_resultant_g_ax.set_xlim(left=0, right=time_in_hours[-1])
+        self.rigid_body_resultant_g_ax.set_xlabel('Time (hours)')
+        self.rigid_body_resultant_g_ax.set_ylabel('Acceleration (g)')
+
+        # Style the legends
+        handles, labels = self.rigid_body_resultant_g_ax.get_legend_handles_labels()
+        resultant_handles = [h for h, l in zip(handles, labels) if "Magnitude" in l]
+        components_handles = [h for h, l in zip(handles, labels) if l in ["X", "Y", "Z"]]
+
+        if resultant_handles:
+            resultant_legend = self.rigid_body_resultant_g_ax.legend(handles=resultant_handles, loc='upper left', title="Resultant Vector")
+            resultant_legend.set_title("Resultant Vector", prop={'weight': 'bold'})
+            self.rigid_body_resultant_g_ax.add_artist(resultant_legend)
+
+        if components_handles:
+            components_legend = self.rigid_body_resultant_g_ax.legend(handles=components_handles, loc='upper right', title="Vector Components")
+            components_legend.set_title("Vector Components", prop={'weight': 'bold'})
+
+        self.rigid_body_resultant_g_canvas.draw()
+
+    def _update_rigid_body_g_components_plot(self, time_array, g_x_avg, g_y_avg, g_z_avg):
+        time_in_hours = time_array / 3600 
+        self.rigid_body_g_components_ax.clear()
+        self.rigid_body_g_components_ax.set_title("Time-Averaged Gravitational Acceleration Components")
+        self.rigid_body_g_components_ax.plot(time_in_hours, g_x_avg, label='X', color='#0066b2')
+        self.rigid_body_g_components_ax.plot(time_in_hours, g_y_avg, label='Y', color='#ec1c24')
+        self.rigid_body_g_components_ax.plot(time_in_hours, g_z_avg, label='Z', color='#aeb0b5')
+        self.rigid_body_g_components_ax.legend()
+        self.rigid_body_g_components_ax.set_xlim(left=0, right=time_in_hours[-1])
+        self.rigid_body_g_components_ax.set_xlabel('Time (hours)')
+        self.rigid_body_g_components_ax.set_ylabel('Acceleration (g)')
+        self.rigid_body_g_components_canvas.draw()
+
+    def _update_rigid_body_non_g_vector_plot(self, time_array, a_magnitude, avg_a_magnitude, a_x_avg, a_y_avg, a_z_avg):
+        time_in_hours = time_array / 3600
+        self.rigid_body_resultant_non_g_ax.clear()
+        self.rigid_body_resultant_non_g_ax.set_title("Time-Averaged Non-Gravitational Acceleration")
+        self.rigid_body_resultant_non_g_ax.plot(time_in_hours, a_magnitude, color='#0066b2', label=f"Magnitude: {avg_a_magnitude:.3g}")
+        self.rigid_body_resultant_non_g_ax.plot(time_in_hours, a_x_avg, label='X', color='#ef7a35')
+        self.rigid_body_resultant_non_g_ax.plot(time_in_hours, a_y_avg, label='Y', color='#6eae39')
+        self.rigid_body_resultant_non_g_ax.plot(time_in_hours, a_z_avg, label='Z', color='#EE3377')
+
+        # Overlay vertical lines for the time period of analysis
+        start_analysis = self.start_analysis_entry.get()
+        end_analysis = self.end_analysis_entry.get()
+        start_analysis = float(start_analysis) if start_analysis else None
+        end_analysis = float(end_analysis) if end_analysis else None
+
+        if start_analysis is not None and end_analysis is not None:
+            self.rigid_body_resultant_non_g_ax.axvline(x=start_analysis, color='#EC1C24', linestyle='--')
+            self.rigid_body_resultant_non_g_ax.axvline(x=end_analysis, color='#EC1C24', linestyle='--')
+
+            # Compute the magnitude for the analysis range
+            start_index = next(i for i, t in enumerate(time_in_hours) if t >= start_analysis)
+            end_index = next(i for i, t in enumerate(time_in_hours) if t >= end_analysis)
+            avg_a_magnitude_analysis = np.mean(a_magnitude[start_index:end_index])
+            self.rigid_body_resultant_non_g_ax.plot(
+                time_in_hours[start_index:end_index],
+                a_magnitude[start_index:end_index],
+                color='#EC1C24',
+                label=f"Magnitude: {avg_a_magnitude_analysis:.3g}"
+            )
+
+        # Dynamically set the y-axis limits based on the data
+        y_min = min(min(a_magnitude), min(a_x_avg), min(a_y_avg), min(a_z_avg))
+        y_max = max(max(a_magnitude), max(a_x_avg), max(a_y_avg), max(a_z_avg))
+        self.rigid_body_resultant_non_g_ax.set_ylim(y_min, y_max)
+
+        self.rigid_body_resultant_non_g_ax.set_xlim(left=0, right=time_in_hours[-1])
+        self.rigid_body_resultant_non_g_ax.set_xlabel('Time (hours)')
+        self.rigid_body_resultant_non_g_ax.set_ylabel('Acceleration (g)')
+        self.rigid_body_resultant_non_g_ax.yaxis.set_major_formatter(plt.ScalarFormatter(useMathText=True))
+        self.rigid_body_resultant_non_g_ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+
+        # Style the legends
+        handles, labels = self.rigid_body_resultant_non_g_ax.get_legend_handles_labels()
+        resultant_handles = [h for h, l in zip(handles, labels) if "Magnitude" in l]
+        components_handles = [h for h, l in zip(handles, labels) if l in ["X", "Y", "Z"]]
+
+        if resultant_handles:
+            resultant_legend = self.rigid_body_resultant_non_g_ax.legend(handles=resultant_handles, loc='upper left', title="Resultant Vector")
+            resultant_legend.set_title("Resultant Vector", prop={'weight': 'bold'})
+            self.rigid_body_resultant_non_g_ax.add_artist(resultant_legend)
+
+        if components_handles:
+            components_legend = self.rigid_body_resultant_non_g_ax.legend(handles=components_handles, loc='upper right', title="Vector Components")
+            components_legend.set_title("Vector Components", prop={'weight': 'bold'})
+
+        self.rigid_body_resultant_non_g_canvas.draw()
+
+    def _update_rigid_body_non_g_components_plot(self, time_array, a_x_avg, a_y_avg, a_z_avg):
+        time_in_hours = time_array / 3600  
+        self.rigid_body_non_g_components_ax.clear()
+        self.rigid_body_non_g_components_ax.set_title("Time-Averaged Non-Gravitational Acceleration Components")
+        self.rigid_body_non_g_components_ax.plot(time_in_hours, a_x_avg, label='X', color='#0066b2')
+        self.rigid_body_non_g_components_ax.plot(time_in_hours, a_y_avg, label='Y', color='#ec1c24')
+        self.rigid_body_non_g_components_ax.plot(time_in_hours, a_z_avg, label='Z', color='#aeb0b5')
+        self.rigid_body_non_g_components_ax.legend()
+        self.rigid_body_non_g_components_ax.set_xlim(left=0, right=time_in_hours[-1])
+        self.rigid_body_non_g_components_ax.set_xlabel('Time (hours)')
+        self.rigid_body_non_g_components_ax.set_ylabel('Acceleration (g)')
+        self.rigid_body_non_g_components_ax.yaxis.set_major_formatter(plt.ScalarFormatter(useMathText=True))
+        self.rigid_body_non_g_components_ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+        self.rigid_body_non_g_components_canvas.draw()
+
+    def _update_rigid_body_path_plot(self, a_tot_array, time_array):
+        # Full simulation plot (left)
+        self.rigid_body_path_ax.clear()
+        self.rigid_body_path_ax.plot(a_tot_array[0], a_tot_array[1], a_tot_array[2], color='#0066b2', linewidth=1)
+        self._configure_3d_axes(self.rigid_body_path_ax, "Acceleration Distribution")
+        distribution_score = PathVisualization("rigid_body", a_tot_array[0], a_tot_array[1], a_tot_array[2]).get_distribution()
+        self.rigid_body_path_ax.legend([f"Distribution: {distribution_score}"])
+        self.rigid_body_path_canvas.draw()
+
+        # Analysis period plot (right)
+        self.rigid_body_path_analysis_ax.clear()
+        start_analysis = self.start_analysis_entry.get()
+        end_analysis = self.end_analysis_entry.get()
+        start_analysis = float(start_analysis) if start_analysis else None
+        end_analysis = float(end_analysis) if end_analysis else None
+
+        if start_analysis is not None and end_analysis is not None:
+            time_in_hours = time_array / 3600
+            duration_hours = self.max_seg_entry.get()  # Get simulation duration
+            duration_hours = float(duration_hours) if duration_hours else 0
+        
+            start_index = next(i for i, t in enumerate(time_in_hours) if t >= start_analysis)
+            # If end_analysis equals simulation duration, use the full length
+            if abs(end_analysis - duration_hours) < 1e-6:  # Floating-point tolerance
+                end_index = len(time_in_hours)
+            else:
+                end_index = next(i for i, t in enumerate(time_in_hours) if t >= end_analysis)
+        
+            # Ensure bounds are within array length
+            start_index = min(start_index, len(a_tot_array[0]))
+            end_index = min(end_index, len(a_tot_array[0]))
+        
+            sliced_x = a_tot_array[0][start_index:end_index]
+            sliced_y = a_tot_array[1][start_index:end_index]
+            sliced_z = a_tot_array[2][start_index:end_index]
+            self.rigid_body_path_analysis_ax.plot(sliced_x, sliced_y, sliced_z, color='#ec1c24', linewidth=1)
+            self._configure_3d_axes(self.rigid_body_path_analysis_ax, "Acceleration Distribution")
+            distribution_score_analysis = PathVisualization("rigid_body", sliced_x, sliced_y, sliced_z).get_distribution()
+            self.rigid_body_path_analysis_ax.legend([f"Distribution: {distribution_score_analysis}"])
+        else:
+            self._configure_3d_axes(self.rigid_body_path_analysis_ax, "Acceleration Distribution")
+    
+        self.rigid_body_path_analysis_canvas.draw()
 
     def _open_url(self, url):
         webbrowser.open_new(url)
