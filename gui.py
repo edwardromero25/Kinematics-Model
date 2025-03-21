@@ -563,13 +563,13 @@ class GUI:
         avg_mag_full = np.mean(magnitude)
 
         self.ax.plot(time_in_hours, magnitude, color='#0066B2', label=f"Magnitude: {avg_mag_full:.3g}")
-        self.ax.plot(time_in_hours, x_time_avg, color='#EF7A35', label="X")
-        self.ax.plot(time_in_hours, y_time_avg, color='#6EAE39', label="Y")
-        self.ax.plot(time_in_hours, z_time_avg, color='#EE3377', label="Z")
+        # self.ax.plot(time_in_hours, x_time_avg, color='#EF7A35', label="X")
+        # self.ax.plot(time_in_hours, y_time_avg, color='#6EAE39', label="Y")
+        # self.ax.plot(time_in_hours, z_time_avg, color='#EE3377', label="Z")
         
         # Dynamically set the y-axis limits based on the data
-        y_min = min(min(magnitude), min(x_time_avg), min(y_time_avg), min(z_time_avg))
-        y_max = max(max(magnitude), max(x_time_avg), max(y_time_avg), max(z_time_avg))
+        y_min = np.min(magnitude)
+        y_max = np.max(magnitude)
         self.ax.set_ylim(y_min, y_max)
 
         if start_analysis is not None and end_analysis is not None:
@@ -580,19 +580,7 @@ class GUI:
             avg_mag_analysis = np.mean(magnitude[start_seg:end_seg])
             self.ax.plot(time_in_hours[start_seg:end_seg], magnitude[start_seg:end_seg], color='#EC1C24', label=f"Magnitude: {avg_mag_analysis:.3g}")
 
-        handles, labels = self.ax.get_legend_handles_labels()
-        resultant_handles = [h for h, l in zip(handles, labels) if "Magnitude" in l or "Analysis" in l]
-        components_handles = [h for h, l in zip(handles, labels) if l in ["X", "Y", "Z"]]
-
-        if resultant_handles:
-            resultant_legend = self.ax.legend(handles=resultant_handles, loc='upper left', title="Resultant Vector")
-            resultant_legend.set_title("Resultant Vector", prop={'weight': 'bold'}) 
-            self.ax.add_artist(resultant_legend)
-
-        if components_handles:
-            components_legend = self.ax.legend(handles=components_handles, loc='upper right', title="Vector Components")
-            components_legend.set_title("Vector Components", prop={'weight': 'bold'}) 
-
+        self.ax.legend()
         self.ax.set_xlabel('Time (hours)')
         self.ax.set_ylabel('Acceleration (g)')
         self.ax.set_xlim(left=0, right=time_in_hours[-1])
@@ -696,13 +684,13 @@ class GUI:
         self.ax.set_title("Time-Averaged Gravitational Acceleration")
         self.ax.set_xlim(left=0, right=f_time[-1])
         self.ax.plot(f_time, magnitude, color='#0066b2', label=f"Magnitude: {avg_mag_seg:.3g}")
-        self.ax.plot(f_time, x_time_avg, label='X', color='#ef7a35')
-        self.ax.plot(f_time, y_time_avg, label='Y', color='#6eae39')
-        self.ax.plot(f_time, z_time_avg, label='Z', color='#EE3377')
+        # self.ax.plot(f_time, x_time_avg, label='X', color='#ef7a35')
+        # self.ax.plot(f_time, y_time_avg, label='Y', color='#6eae39')
+        # self.ax.plot(f_time, z_time_avg, label='Z', color='#EE3377')
 
         # Dynamically set the y-axis limits based on the data
-        y_min = min(min(magnitude), min(x_time_avg), min(y_time_avg), min(z_time_avg))
-        y_max = max(max(magnitude), max(x_time_avg), max(y_time_avg), max(z_time_avg))
+        y_min = np.min(magnitude)
+        y_max = np.max(magnitude)
         self.ax.set_ylim(y_min, y_max)
 
         if start_analysis is not None and end_analysis is not None:
@@ -712,19 +700,7 @@ class GUI:
             self.ax.axvline(x=end_analysis, color='#ec1c24', linestyle='--')
             self.ax.plot(f_time[start_index:end_index], magnitude[start_index:end_index], color='#ec1c24', label=f"Magnitude: {avg_mag_analysis:.3g}")
 
-        handles, labels = self.ax.get_legend_handles_labels()
-        resultant_handles = [h for h, l in zip(handles, labels) if "Magnitude" in l or "Analysis" in l]
-        components_handles = [h for h, l in zip(handles, labels) if l in ["X", "Y", "Z"]]
-
-        if resultant_handles:
-            resultant_legend = self.ax.legend(handles=resultant_handles, loc='upper left', title="Resultant Vector")
-            resultant_legend.set_title("Resultant Vector", prop={'weight': 'bold'})  # Bold title
-            self.ax.add_artist(resultant_legend)
-
-        if components_handles:
-            components_legend = self.ax.legend(handles=components_handles, loc='upper right', title="Vector Components")
-            components_legend.set_title("Vector Components", prop={'weight': 'bold'})  # Bold title
-
+        self.ax.legend()
         self.ax.set_xlabel('Time (hours)')
         self.ax.set_ylabel('Acceleration (g)')
         self.canvas.draw()
@@ -804,9 +780,9 @@ class GUI:
         self.rigid_body_resultant_g_ax.clear()
         self.rigid_body_resultant_g_ax.set_title("Time-Averaged Gravitational Acceleration")
         self.rigid_body_resultant_g_ax.plot(time_in_hours, g_magnitude, color='#0066b2', label=f"Magnitude: {avg_g_magnitude:.3g}")
-        self.rigid_body_resultant_g_ax.plot(time_in_hours, g_x_avg, label='X', color='#ef7a35')
-        self.rigid_body_resultant_g_ax.plot(time_in_hours, g_y_avg, label='Y', color='#6eae39')
-        self.rigid_body_resultant_g_ax.plot(time_in_hours, g_z_avg, label='Z', color='#EE3377')
+        # self.rigid_body_resultant_g_ax.plot(time_in_hours, g_x_avg, label='X', color='#ef7a35')
+        # self.rigid_body_resultant_g_ax.plot(time_in_hours, g_y_avg, label='Y', color='#6eae39')
+        # self.rigid_body_resultant_g_ax.plot(time_in_hours, g_z_avg, label='Z', color='#EE3377')
 
         # Overlay vertical lines for the time period of analysis
         start_analysis = self.start_analysis_entry.get()
@@ -830,29 +806,15 @@ class GUI:
             )
 
         # Dynamically set the y-axis limits based on the data
-        y_min = min(min(g_magnitude), min(g_x_avg), min(g_y_avg), min(g_z_avg))
-        y_max = max(max(g_magnitude), max(g_x_avg), max(g_y_avg), max(g_z_avg))
+        y_min = np.min(g_magnitude)
+        y_max = np.max(g_magnitude)
         self.rigid_body_resultant_g_ax.set_ylim(y_min, y_max)
-
+        self.rigid_body_resultant_g_ax.legend()
         self.rigid_body_resultant_g_ax.set_xlim(left=0, right=time_in_hours[-1])
         self.rigid_body_resultant_g_ax.set_xlabel('Time (hours)')
         self.rigid_body_resultant_g_ax.set_ylabel('Acceleration (g)')
-
-        # Style the legends
-        handles, labels = self.rigid_body_resultant_g_ax.get_legend_handles_labels()
-        resultant_handles = [h for h, l in zip(handles, labels) if "Magnitude" in l]
-        components_handles = [h for h, l in zip(handles, labels) if l in ["X", "Y", "Z"]]
-
-        if resultant_handles:
-            resultant_legend = self.rigid_body_resultant_g_ax.legend(handles=resultant_handles, loc='upper left', title="Resultant Vector")
-            resultant_legend.set_title("Resultant Vector", prop={'weight': 'bold'})
-            self.rigid_body_resultant_g_ax.add_artist(resultant_legend)
-
-        if components_handles:
-            components_legend = self.rigid_body_resultant_g_ax.legend(handles=components_handles, loc='upper right', title="Vector Components")
-            components_legend.set_title("Vector Components", prop={'weight': 'bold'})
-
         self.rigid_body_resultant_g_canvas.draw()
+
 
     def _update_rigid_body_g_components_plot(self, time_array, g_x_avg, g_y_avg, g_z_avg):
         time_in_hours = time_array / 3600 
@@ -872,9 +834,9 @@ class GUI:
         self.rigid_body_resultant_non_g_ax.clear()
         self.rigid_body_resultant_non_g_ax.set_title("Time-Averaged Non-Gravitational Acceleration")
         self.rigid_body_resultant_non_g_ax.plot(time_in_hours, a_magnitude, color='#0066b2', label=f"Magnitude: {avg_a_magnitude:.3g}")
-        self.rigid_body_resultant_non_g_ax.plot(time_in_hours, a_x_avg, label='X', color='#ef7a35')
-        self.rigid_body_resultant_non_g_ax.plot(time_in_hours, a_y_avg, label='Y', color='#6eae39')
-        self.rigid_body_resultant_non_g_ax.plot(time_in_hours, a_z_avg, label='Z', color='#EE3377')
+        # self.rigid_body_resultant_non_g_ax.plot(time_in_hours, a_x_avg, label='X', color='#ef7a35')
+        # self.rigid_body_resultant_non_g_ax.plot(time_in_hours, a_y_avg, label='Y', color='#6eae39')
+        # self.rigid_body_resultant_non_g_ax.plot(time_in_hours, a_z_avg, label='Z', color='#EE3377')
 
         # Overlay vertical lines for the time period of analysis
         start_analysis = self.start_analysis_entry.get()
@@ -898,31 +860,17 @@ class GUI:
             )
 
         # Dynamically set the y-axis limits based on the data
-        y_min = min(min(a_magnitude), min(a_x_avg), min(a_y_avg), min(a_z_avg))
-        y_max = max(max(a_magnitude), max(a_x_avg), max(a_y_avg), max(a_z_avg))
+        y_min = np.min(a_magnitude)
+        y_max = np.max(a_magnitude)
         self.rigid_body_resultant_non_g_ax.set_ylim(y_min, y_max)
-
+        self.rigid_body_resultant_non_g_ax.legend()
         self.rigid_body_resultant_non_g_ax.set_xlim(left=0, right=time_in_hours[-1])
         self.rigid_body_resultant_non_g_ax.set_xlabel('Time (hours)')
         self.rigid_body_resultant_non_g_ax.set_ylabel('Acceleration (g)')
         self.rigid_body_resultant_non_g_ax.yaxis.set_major_formatter(plt.ScalarFormatter(useMathText=True))
         self.rigid_body_resultant_non_g_ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
-
-        # Style the legends
-        handles, labels = self.rigid_body_resultant_non_g_ax.get_legend_handles_labels()
-        resultant_handles = [h for h, l in zip(handles, labels) if "Magnitude" in l]
-        components_handles = [h for h, l in zip(handles, labels) if l in ["X", "Y", "Z"]]
-
-        if resultant_handles:
-            resultant_legend = self.rigid_body_resultant_non_g_ax.legend(handles=resultant_handles, loc='upper left', title="Resultant Vector")
-            resultant_legend.set_title("Resultant Vector", prop={'weight': 'bold'})
-            self.rigid_body_resultant_non_g_ax.add_artist(resultant_legend)
-
-        if components_handles:
-            components_legend = self.rigid_body_resultant_non_g_ax.legend(handles=components_handles, loc='upper right', title="Vector Components")
-            components_legend.set_title("Vector Components", prop={'weight': 'bold'})
-
         self.rigid_body_resultant_non_g_canvas.draw()
+
 
     def _update_rigid_body_non_g_components_plot(self, time_array, a_x_avg, a_y_avg, a_z_avg):
         time_in_hours = time_array / 3600  
