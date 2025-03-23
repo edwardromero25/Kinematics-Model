@@ -14,7 +14,8 @@ a = Analysis(
         (os.path.join(project_dir, 'images/favicon.ico'), 'images'),
         (os.path.join(project_dir, 'images/MSSF_logo.png'), 'images'),
         (os.path.join(project_dir, 'images/NASA_logo.png'), 'images'),
-        (os.path.join(project_dir, 'dataCompile.py'), '.')
+        (os.path.join(project_dir, 'spherical_coordinates.py'), '.')
+        (os.path.join(project_dir, 'rigid_body.py'), '.')
     ],
     hiddenimports=[],
     hookspath=[],

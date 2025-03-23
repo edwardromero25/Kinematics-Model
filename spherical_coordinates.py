@@ -1,8 +1,7 @@
 import math
 import numpy as np
 
-
-class Sim:
+class SphericalCoordinates:
     def __init__(self):
         self.pi_over_30 = math.pi / 30
 
@@ -27,7 +26,6 @@ class Sim:
         z_array = [self.g_vector_z(t, inner_rad_sec, outer_rad_sec) for t in time_array]
         return time_array, x_array, y_array, z_array
 
-
 class DataProcessor:
     def __init__(self, inner_v, outer_v, max_seg, start_analysis, end_analysis):
         self.inner_v = inner_v
@@ -42,7 +40,7 @@ class DataProcessor:
         self.time, self.x, self.y, self.z = self._get_sim_accel_data()
 
     def _get_sim_accel_data(self):
-        vector_sim = Sim()
+        vector_sim = SphericalCoordinates()
         return vector_sim.g_vector_data(0, self.end_time, self.inner_v, self.outer_v)
 
     def _get_time_avg(self):
@@ -63,7 +61,6 @@ class DataProcessor:
     def get_distribution(self):
         path = PathVisualization(self.inner_v, self.x, self.y, self.z)
         return path.get_distribution()
-
 
 class PathVisualization:
     def __init__(self, id_, x, y, z):
