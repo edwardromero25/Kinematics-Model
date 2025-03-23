@@ -1,4 +1,3 @@
-import csv
 import os
 import webbrowser
 import numpy as np
@@ -585,9 +584,9 @@ class GUI:
         if title:
             self.gravitational_acceleration_ax_right.set_title('Time-Averaged Gravitational Acceleration')
         if time_in_hours:
-            self.gravitational_acceleration_ax_right.plot(time_in_hours, x_time_avg, label='X', color='#009988')
-            self.gravitational_acceleration_ax_right.plot(time_in_hours, y_time_avg, label='Y', color='#EE7733')
-            self.gravitational_acceleration_ax_right.plot(time_in_hours, z_time_avg, label='Z', color='#BBBBBB')
+            self.gravitational_acceleration_ax_right.plot(time_in_hours, x_time_avg, label='X', color='#6EAE39')
+            self.gravitational_acceleration_ax_right.plot(time_in_hours, y_time_avg, label='Y', color='#EF7A35')
+            self.gravitational_acceleration_ax_right.plot(time_in_hours, z_time_avg, label='Z', color='blueviolet')
             self.gravitational_acceleration_ax_right.set_xlim(left=0, right=time_in_hours[-1])
             self.gravitational_acceleration_ax_right.set_xlabel('Time (hours)')
             self.gravitational_acceleration_ax_right.set_ylabel('Acceleration (g)')
@@ -652,9 +651,9 @@ class GUI:
         time_in_hours = time_array / 3600
         self.rigid_body_gravitational_components_ax.clear()
         self.rigid_body_gravitational_components_ax.set_title("Time-Averaged Gravitational Acceleration")
-        self.rigid_body_gravitational_components_ax.plot(time_in_hours, g_x_avg, label='X', color='#009988')
-        self.rigid_body_gravitational_components_ax.plot(time_in_hours, g_y_avg, label='Y', color='#ee7733')
-        self.rigid_body_gravitational_components_ax.plot(time_in_hours, g_z_avg, label='Z', color='#bbbbbb')
+        self.rigid_body_gravitational_components_ax.plot(time_in_hours, g_x_avg, label='X', color='#6EAE39')
+        self.rigid_body_gravitational_components_ax.plot(time_in_hours, g_y_avg, label='Y', color='#EF7A35')
+        self.rigid_body_gravitational_components_ax.plot(time_in_hours, g_z_avg, label='Z', color='blueviolet')
         self.rigid_body_gravitational_components_ax.legend()
         self.rigid_body_gravitational_components_ax.set_xlim(left=0, right=time_in_hours[-1])
         self.rigid_body_gravitational_components_ax.set_xlabel('Time (hours)')
@@ -695,9 +694,9 @@ class GUI:
         time_in_hours = time_array / 3600
         self.rigid_body_non_gravitational_components_ax.clear()
         self.rigid_body_non_gravitational_components_ax.set_title("Time-Averaged Non-Gravitational Acceleration")
-        self.rigid_body_non_gravitational_components_ax.plot(time_in_hours, a_x_avg, label='X', color='#009988')
-        self.rigid_body_non_gravitational_components_ax.plot(time_in_hours, a_y_avg, label='Y', color='#ee7733')
-        self.rigid_body_non_gravitational_components_ax.plot(time_in_hours, a_z_avg, label='Z', color='#bbbbbb')
+        self.rigid_body_non_gravitational_components_ax.plot(time_in_hours, a_x_avg, label='X', color='#6EAE39')
+        self.rigid_body_non_gravitational_components_ax.plot(time_in_hours, a_y_avg, label='Y', color='#EF7A35')
+        self.rigid_body_non_gravitational_components_ax.plot(time_in_hours, a_z_avg, label='Z', color='blueviolet')
         self.rigid_body_non_gravitational_components_ax.legend()
         self.rigid_body_non_gravitational_components_ax.set_xlim(left=0, right=time_in_hours[-1])
         self.rigid_body_non_gravitational_components_ax.set_xlabel('Time (hours)')
