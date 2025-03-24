@@ -217,7 +217,7 @@ class GUI:
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
         ax.set_xlim(-1, 1)
-        ax.set_ylim(-1, 1)
+        ax.set_ylim(1, -1)
         ax.set_zlim(-1, 1)
         ax.set_xticks([-1, -0.5, 0, 0.5, 1])  
         ax.set_yticks([-1, -0.5, 0, 0.5, 1])  
