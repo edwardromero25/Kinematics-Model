@@ -215,10 +215,12 @@ class GUI:
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
-        ticks = np.arange(-1.0, 1.5, 0.5)
-        ax.set_xticks(ticks)
-        ax.set_yticks(ticks)
-        ax.set_zticks(ticks)
+        ax.set_xlim(-1, 1)
+        ax.set_ylim(-1, 1)
+        ax.set_zlim(-1, 1)
+        ax.set_xticks([-1, -0.5, 0, 0.5, 1])  
+        ax.set_yticks([-1, -0.5, 0, 0.5, 1])  
+        ax.set_zticks([-1, -0.5, 0, 0.5, 1])  
         ax.set_title(title)
 
     def create_custom_theme(self):
