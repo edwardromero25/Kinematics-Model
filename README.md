@@ -12,7 +12,7 @@
   <img src="images/example.png" alt="example" style="max-width: 100%; height: auto;">
 </div>
 
-This is a computer model that evaluates the efficacy of microgravity simulation devices.
+I developed this Python-based GUI application to enable space biology investigators to validate that their ground-based simulators achieve gravity levels equivalent to those of the ISS, the Moon, and Mars.
 
 ## Built With
 

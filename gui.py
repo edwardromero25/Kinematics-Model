@@ -1,3 +1,5 @@
+# Author: Edward Romero, OSTEM Intern, Spring 2025, NASA Kennedy Space Center
+
 import os
 import webbrowser
 import numpy as np
@@ -43,7 +45,6 @@ class GUI:
         self.create_time_period_analysis_exp_frame(center_frame, font_style, category_font_style)
         self.create_start_button(center_frame, font_style)
         self.create_accelerometer_data_frame(center_frame, font_style, category_font_style)
-
         self.distance_frame.grid_remove()
 
     def load_images(self):
@@ -611,12 +612,31 @@ class GUI:
         self.gravitational_acceleration_canvas_right.draw()
 
     def process_rigid_body_data(self):
-        if not all([self.inner_velocity_entry.get(), self.outer_velocity_entry.get(), self.simulation_duration_entry.get()]):
-            raise ValueError("Set frame velocities and simulation duration.")
+        start_analysis = self.start_analysis_entry.get()
+        end_analysis = self.end_analysis_entry.get()
+        start_analysis = float(start_analysis) if start_analysis else None
+        end_analysis = float(end_analysis) if end_analysis else None
+        if start_analysis and end_analysis:
+            if start_analysis < 0 or end_analysis < 0:
+                raise ValueError("Time values must be positive.")
+            if end_analysis <= start_analysis:
+                raise ValueError("Upper bound for analysis period must be greater than the lower bound.")
+            if end_analysis > float(self.simulation_duration_entry.get()):
+                raise ValueError("Upper bound for analysis period must be less than or equal to the simulation duration.")
+
+        if not all([self.inner_velocity_entry.get(), self.outer_velocity_entry.get(), self.distance_entry.get(), self.simulation_duration_entry.get()]):
+            raise ValueError("Set frame velocities, distance, and simulation duration.")
+        
+        duration_hours = float(self.simulation_duration_entry.get())
+        if duration_hours <= 0:
+            raise ValueError("Simulation duration must be positive.")
+        
         inner_rpm = float(self.inner_velocity_entry.get())
         outer_rpm = float(self.outer_velocity_entry.get())
-        duration_hours = float(self.simulation_duration_entry.get())
-        delta_x, delta_y, delta_z = 0.1, 0.1, 0.1
+        delta_cm = float(self.distance_entry.get())  
+        delta_m = delta_cm / 100  
+        delta_x, delta_y, delta_z = delta_m, delta_m, delta_m  
+
         rigid_body = RigidBody(inner_rpm, outer_rpm, delta_x, delta_y, delta_z, duration_hours)
         time_array, g_array, a_array, a_tot_array = rigid_body.calculate_acceleration()
         g_x_avg = np.cumsum(g_array[0]) / np.arange(1, len(g_array[0]) + 1)
