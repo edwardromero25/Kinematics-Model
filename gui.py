@@ -37,11 +37,14 @@ class GUI:
         center_frame.pack()
         self.create_mode_frame(center_frame, font_style, category_font_style)
         self.create_frame_velocities_frame(center_frame, font_style, category_font_style)
+        self.create_distance_frame(center_frame, font_style, category_font_style)
         self.create_simulation_duration_frame(center_frame, font_style, category_font_style)
         self.create_time_period_analysis_frame(center_frame, font_style, category_font_style)
         self.create_time_period_analysis_exp_frame(center_frame, font_style, category_font_style)
         self.create_start_button(center_frame, font_style)
         self.create_accelerometer_data_frame(center_frame, font_style, category_font_style)
+
+        self.distance_frame.grid_remove()
 
     def load_images(self):
         nasa_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'NASA_logo.png')).resize((69, 58), Image.LANCZOS)
@@ -64,7 +67,7 @@ class GUI:
 
     def create_mode_frame(self, parent, font_style, category_font_style):
         mode_frame = tk.Frame(parent, padx=1, pady=1)
-        mode_frame.grid(row=0, column=0, padx=30)
+        mode_frame.grid(row=0, column=0, padx=20)
         tk.Label(mode_frame, text="Mode", font=category_font_style).pack()
         self.mode_var = tk.StringVar(value="Spherical Coordinates")
         menu_button = tk.Menubutton(mode_frame, text="Theoretical", font=font_style, bg="#aeb0b5", activebackground="#d6d7d9", relief=tk.RAISED, pady=6)
@@ -81,7 +84,7 @@ class GUI:
 
     def create_frame_velocities_frame(self, parent, font_style, category_font_style):
         self.frame_velocities_frame = tk.Frame(parent, padx=1, pady=1)
-        self.frame_velocities_frame.grid(row=0, column=1, padx=30)
+        self.frame_velocities_frame.grid(row=0, column=1, padx=20)
         tk.Label(self.frame_velocities_frame, text="Frame Velocities (rpm)", font=category_font_style).pack()
         operating_input_frame = tk.Frame(self.frame_velocities_frame)
         operating_input_frame.pack()
@@ -94,16 +97,23 @@ class GUI:
         self.outer_velocity_entry = tk.Entry(operating_input_frame, font=font_style, width=10)
         self.outer_velocity_entry.pack(side=tk.LEFT)
 
+    def create_distance_frame(self, parent, font_style, category_font_style):
+        self.distance_frame = tk.Frame(parent, padx=1, pady=1)
+        self.distance_frame.grid(row=0, column=2, padx=20)
+        tk.Label(self.distance_frame, text="Distance from Center (cm)", font=category_font_style).pack()
+        self.distance_entry = tk.Entry(self.distance_frame, font=font_style)
+        self.distance_entry.pack()
+
     def create_simulation_duration_frame(self, parent, font_style, category_font_style):
         self.simulation_duration_frame = tk.Frame(parent, padx=1, pady=1)
-        self.simulation_duration_frame.grid(row=0, column=2, padx=30)
+        self.simulation_duration_frame.grid(row=0, column=3, padx=20)
         tk.Label(self.simulation_duration_frame, text="Simulation Duration (hours)", font=category_font_style).pack()
         self.simulation_duration_entry = tk.Entry(self.simulation_duration_frame, font=font_style)
         self.simulation_duration_entry.pack()
 
     def create_time_period_analysis_frame(self, parent, font_style, category_font_style):
         self.time_period_analysis_frame = tk.Frame(parent, padx=1, pady=1)
-        self.time_period_analysis_frame.grid(row=0, column=3, padx=30)
+        self.time_period_analysis_frame.grid(row=0, column=4, padx=20)
         tk.Label(self.time_period_analysis_frame, text="Time Period of Analysis (hours)", font=category_font_style).pack()
         analysis_period_frame = tk.Frame(self.time_period_analysis_frame)
         analysis_period_frame.pack()
@@ -115,7 +125,7 @@ class GUI:
 
     def create_time_period_analysis_exp_frame(self, parent, font_style, category_font_style):
         self.time_period_analysis_exp_frame = tk.Frame(parent, padx=1, pady=1)
-        self.time_period_analysis_exp_frame.grid(row=0, column=4, padx=30)
+        self.time_period_analysis_exp_frame.grid(row=0, column=5, padx=20)
         self.time_period_analysis_exp_frame.grid_remove()
         tk.Label(self.time_period_analysis_exp_frame, text="Time Period of Analysis (hours)", font=category_font_style).pack()
         analysis_period_frame_exp = tk.Frame(self.time_period_analysis_exp_frame)
@@ -128,7 +138,7 @@ class GUI:
 
     def create_start_button(self, parent, font_style):
         self.start_button = tk.Button(parent, text="Start", command=self.start_simulation, font=font_style, bg="#0066b2", fg="#ffffff", activebackground="#3380cc", activeforeground="#ffffff")
-        self.start_button.grid(row=1, column=0, columnspan=4, pady=(10, 5))
+        self.start_button.grid(row=1, column=0, columnspan=5, pady=(10, 5))
 
     def create_accelerometer_data_frame(self, parent, font_style, category_font_style):
         self.accelerometer_data_frame = tk.Frame(parent, padx=1, pady=1)
@@ -237,11 +247,12 @@ class GUI:
 
     def show_spherical_inputs(self):
         self.frame_velocities_frame.grid()
+        self.distance_frame.grid_remove()
         self.simulation_duration_frame.grid()
         self.time_period_analysis_frame.grid()
         self.time_period_analysis_exp_frame.grid_remove()
         self.accelerometer_data_frame.grid_remove()
-        self.start_button.grid(row=1, column=0, columnspan=4, pady=(10, 5))
+        self.start_button.grid(row=1, column=0, columnspan=5, pady=(10, 5))
         if hasattr(self, 'rigid_body_tabs_created') and self.rigid_body_tabs_created:
             self.notebook.forget(self.rigid_body_gravitational_acceleration_frame)
             self.notebook.forget(self.rigid_body_non_gravitational_acceleration_frame)
@@ -254,11 +265,12 @@ class GUI:
 
     def show_experimental_inputs(self):
         self.frame_velocities_frame.grid_remove()
+        self.distance_frame.grid_remove()
         self.simulation_duration_frame.grid_remove()
         self.time_period_analysis_frame.grid_remove()
-        self.time_period_analysis_exp_frame.grid(row=0, column=2, padx=30)
-        self.accelerometer_data_frame.grid(row=0, column=1, padx=30)
-        self.start_button.grid(row=1, column=0, columnspan=4, pady=(10, 5))
+        self.time_period_analysis_exp_frame.grid(row=0, column=2, padx=20)
+        self.accelerometer_data_frame.grid(row=0, column=1, padx=20)
+        self.start_button.grid(row=1, column=0, columnspan=3, pady=(10, 5))
         if hasattr(self, 'rigid_body_tabs_created') and self.rigid_body_tabs_created:
             self.notebook.forget(self.rigid_body_gravitational_acceleration_frame)
             self.notebook.forget(self.rigid_body_non_gravitational_acceleration_frame)
@@ -271,11 +283,12 @@ class GUI:
 
     def show_3d_rigid_body_inputs(self):
         self.frame_velocities_frame.grid()
+        self.distance_frame.grid()
         self.simulation_duration_frame.grid()
         self.time_period_analysis_frame.grid()
         self.time_period_analysis_exp_frame.grid_remove()
         self.accelerometer_data_frame.grid_remove()
-        self.start_button.grid(row=1, column=0, columnspan=4, pady=(10, 5))
+        self.start_button.grid(row=1, column=0, columnspan=5, pady=(10, 5))
         self.notebook.forget(self.gravitational_acceleration_frame)
         self.notebook.forget(self.acceleration_distribution_frame)
         if not hasattr(self, 'rigid_body_tabs_created') or not self.rigid_body_tabs_created:
