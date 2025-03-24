@@ -7,7 +7,7 @@ block_cipher = None
 project_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 
 a = Analysis(
-    [os.path.join(project_dir, 'gui.py')],
+    [os.path.join(project_dir, 'mssf_gui.py')],
     pathex=[project_dir],
     binaries=[],
     datas=[

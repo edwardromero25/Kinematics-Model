@@ -13,6 +13,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from PIL import Image, ImageTk
 from spherical_coordinates import DataProcessor, PathVisualization
 from rigid_body import RigidBody
+import matplotlib.animation as animation
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -441,6 +442,25 @@ class GUI:
         distribution_score = path_vis.get_distribution()
         self.update_experimental_plots(x, y, z, time_in_hours, start_analysis, end_analysis, distribution_score)
 
+    def animate_distribution(self, ax, canvas, x_data, y_data, z_data, color, label):
+        ax.clear()
+        self.configure_3d_axes(ax, "Acceleration Distribution")
+        line, = ax.plot([], [], [], color=color, linewidth=1)
+
+        path_vis = PathVisualization("animated", x_data, y_data, z_data)
+        distribution_score = path_vis.get_distribution()
+
+        def update(num):
+            line.set_data(x_data[:num], y_data[:num])
+            line.set_3d_properties(z_data[:num])
+            return line,
+
+        ax.legend([f"Distribution: {distribution_score}"])
+        ani = animation.FuncAnimation(
+            ax.figure, update, frames=len(x_data), interval=75, blit=False  
+        )
+        canvas.draw()
+
     def update_experimental_plots(self, x, y, z, time_in_hours, start_analysis, end_analysis, distribution_score):
         rcParams['font.family'] = 'Calibri'
         self.gravitational_acceleration_ax_left.clear()
@@ -480,14 +500,21 @@ class GUI:
         self.create_time_averaged_gravitational_acceleration_fig(x_time_avg, y_time_avg, z_time_avg, time_in_hours)
         self.acceleration_distribution_ax_analysis.clear()
         if start_analysis is not None and end_analysis is not None:
-            self.acceleration_distribution_ax_analysis.plot(x[start_seg:end_seg], y[start_seg:end_seg], z[start_seg:end_seg], color='#EC1C24', linewidth=1)
-            self.configure_3d_axes(self.acceleration_distribution_ax_analysis, "Acceleration Distribution")
-            path_vis_analysis = PathVisualization("experimental", x[start_seg:end_seg], y[start_seg:end_seg], z[start_seg:end_seg])
+            start_seg = next(i for i, t in enumerate(time_in_hours) if t >= start_analysis)
+            end_seg = next(i for i, t in enumerate(time_in_hours) if t >= end_analysis)
+            sliced_x, sliced_y, sliced_z = x[start_seg:end_seg], y[start_seg:end_seg], z[start_seg:end_seg]
+            path_vis_analysis = PathVisualization("experimental", sliced_x, sliced_y, sliced_z)
             distribution_score_analysis = path_vis_analysis.get_distribution()
-            self.acceleration_distribution_ax_analysis.legend([f"Distribution: {distribution_score_analysis}"])
+            self.animate_distribution(
+                self.acceleration_distribution_ax_analysis,
+                self.acceleration_distribution_canvas_analysis,
+                sliced_x, sliced_y, sliced_z,
+                color='#ec1c24',
+                label=f"Distribution: {distribution_score_analysis}"
+            )
         else:
             self.configure_3d_axes(self.acceleration_distribution_ax_analysis, "Acceleration Distribution")
-        self.acceleration_distribution_canvas_analysis.draw()
+            self.acceleration_distribution_canvas_analysis.draw()
 
     def start_simulation(self):
         try:
@@ -583,14 +610,21 @@ class GUI:
         self.create_time_averaged_gravitational_acceleration_fig(x_time_avg, y_time_avg, z_time_avg, analysis.time)
         self.acceleration_distribution_ax_analysis.clear()
         if start_analysis is not None and end_analysis is not None:
-            self.acceleration_distribution_ax_analysis.plot(analysis.x[start_index:end_index], analysis.y[start_index:end_index], analysis.z[start_index:end_index], color='#ec1c24', linewidth=1)
-            self.configure_3d_axes(self.acceleration_distribution_ax_analysis, "Acceleration Distribution")
-            path_vis_analysis = PathVisualization("experimental", analysis.x[start_index:end_index], analysis.y[start_index:end_index], analysis.z[start_index:end_index])
+            start_index = next(i for i, t in enumerate(f_time) if t >= start_analysis)
+            end_index = next(i for i, t in enumerate(f_time) if t >= end_analysis)
+            sliced_x, sliced_y, sliced_z = analysis.x[start_index:end_index], analysis.y[start_index:end_index], analysis.z[start_index:end_index]
+            path_vis_analysis = PathVisualization("spherical", sliced_x, sliced_y, sliced_z)
             distribution_score_analysis = path_vis_analysis.get_distribution()
-            self.acceleration_distribution_ax_analysis.legend([f"Distribution: {distribution_score_analysis}"])
+            self.animate_distribution(
+                self.acceleration_distribution_ax_analysis,
+                self.acceleration_distribution_canvas_analysis,
+                sliced_x, sliced_y, sliced_z,
+                color='#ec1c24',
+                label=f"Distribution: {distribution_score_analysis}"
+            )
         else:
             self.configure_3d_axes(self.acceleration_distribution_ax_analysis, "Acceleration Distribution")
-        self.acceleration_distribution_canvas_analysis.draw()
+            self.acceleration_distribution_canvas_analysis.draw()
 
     def create_time_averaged_gravitational_acceleration_fig(self, x_time_avg, y_time_avg, z_time_avg, time_data, legend=True, title=True):
         if self.mode_var.get() == "Spherical Coordinates":
@@ -761,25 +795,21 @@ class GUI:
         end_analysis = float(end_analysis) if end_analysis else None
         if start_analysis is not None and end_analysis is not None:
             time_in_hours = time_array / 3600
-            duration_hours = self.simulation_duration_entry.get()
-            duration_hours = float(duration_hours) if duration_hours else 0
             start_index = next(i for i, t in enumerate(time_in_hours) if t >= start_analysis)
-            if abs(end_analysis - duration_hours) < 1e-6:
-                end_index = len(time_in_hours)
-            else:
-                end_index = next(i for i, t in enumerate(time_in_hours) if t >= end_analysis)
-            start_index = min(start_index, len(a_tot_array[0]))
-            end_index = min(end_index, len(a_tot_array[0]))
-            sliced_x = a_tot_array[0][start_index:end_index]
-            sliced_y = a_tot_array[1][start_index:end_index]
-            sliced_z = a_tot_array[2][start_index:end_index]
-            self.rigid_body_acceleration_distribution_analysis_ax.plot(sliced_x, sliced_y, sliced_z, color='#ec1c24', linewidth=1)
-            self.configure_3d_axes(self.rigid_body_acceleration_distribution_analysis_ax, "Acceleration Distribution")
-            distribution_score_analysis = PathVisualization("rigid_body", sliced_x, sliced_y, sliced_z).get_distribution()
-            self.rigid_body_acceleration_distribution_analysis_ax.legend([f"Distribution: {distribution_score_analysis}"])
+            end_index = next(i for i, t in enumerate(time_in_hours) if t >= end_analysis)
+            sliced_x, sliced_y, sliced_z = a_tot_array[0][start_index:end_index], a_tot_array[1][start_index:end_index], a_tot_array[2][start_index:end_index]
+            path_vis_analysis = PathVisualization("rigid_body", sliced_x, sliced_y, sliced_z)
+            distribution_score_analysis = path_vis_analysis.get_distribution()
+            self.animate_distribution(
+                self.rigid_body_acceleration_distribution_analysis_ax,
+                self.rigid_body_acceleration_distribution_analysis_canvas,
+                sliced_x, sliced_y, sliced_z,
+                color='#ec1c24',
+                label=f"Distribution: {distribution_score_analysis}"
+            )
         else:
             self.configure_3d_axes(self.rigid_body_acceleration_distribution_analysis_ax, "Acceleration Distribution")
-        self.rigid_body_acceleration_distribution_analysis_canvas.draw()
+            self.rigid_body_acceleration_distribution_analysis_canvas.draw()
 
     def open_url(self, url):
         webbrowser.open_new(url)
