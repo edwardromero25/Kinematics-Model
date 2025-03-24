@@ -78,6 +78,7 @@ class GUI:
         theoretical_menu = tk.Menu(self.mode_menu, tearoff=0)
         theoretical_menu.config(font=("Calibri", 10), bg="#d6d7d9")
         self.mode_menu.add_cascade(label="Theoretical", menu=theoretical_menu)
+        theoretical_menu.add_command(label="Mathematical Model", command=None, font=("Calibri", 10, "bold"), foreground="black", activeforeground="black", activebackground="#d6d7d9")
         theoretical_menu.add_radiobutton(label="Spherical Coordinates", variable=self.mode_var, value="Spherical Coordinates", command=lambda: self.switch_mode("Spherical Coordinates"))
         theoretical_menu.add_radiobutton(label="3D Rigid Body Kinematics", variable=self.mode_var, value="3D Rigid Body Kinematics", command=lambda: self.switch_mode("3D Rigid Body Kinematics"))
         self.mode_menu.add_radiobutton(label="Experimental", variable=self.mode_var, value="Experimental", command=lambda: self.switch_mode("Experimental"))
