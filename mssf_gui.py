@@ -422,20 +422,24 @@ class GUI:
         self.gravitational_acceleration_ax_left.set_xlabel('Time (hours)')
         self.gravitational_acceleration_ax_left.set_ylabel('Acceleration (g)')
         self.gravitational_acceleration_canvas_left.draw()
+        self.gravitational_acceleration_toolbar_left.update() 
 
         self.gravitational_acceleration_ax_right.clear()
         self.gravitational_acceleration_ax_right.set_title("Time-Averaged Gravitational Acceleration")
         self.gravitational_acceleration_ax_right.set_xlabel('Time (hours)')
         self.gravitational_acceleration_ax_right.set_ylabel('Acceleration (g)')
         self.gravitational_acceleration_canvas_right.draw()
+        self.gravitational_acceleration_toolbar_right.update()  
 
         self.acceleration_distribution_ax.clear()
         self.configure_3d_axes(self.acceleration_distribution_ax, "Acceleration Distribution")
         self.acceleration_distribution_canvas.draw()
+        self.acceleration_distribution_toolbar.update() 
 
-        self.acceleration_distribution_ax_analysis.clear()  
+        self.acceleration_distribution_ax_analysis.clear()
         self.configure_3d_axes(self.acceleration_distribution_ax_analysis, "Acceleration Distribution")
-        self.acceleration_distribution_canvas_analysis.draw()  
+        self.acceleration_distribution_canvas_analysis.draw()
+        self.acceleration_distribution_analysis_toolbar.update() 
 
     def import_data(self):
         file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
