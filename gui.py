@@ -19,15 +19,18 @@ import csv
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class CustomToolbar(NavigationToolbar2Tk):
-     def __init__(self, canvas, parent, export_callback=None, export_components_callback=None):
+     def __init__(self, canvas, parent, export_callback=None, export_components_callback=None, export_distribution_callback=None):
          self.toolitems = list(NavigationToolbar2Tk.toolitems)
          if export_callback:
              self.toolitems.append(("ExportData", "Export data to CSV", "filesave", "export_data"))
          if export_components_callback:
              self.toolitems.append(("ExportComponents", "Export data to CSV", "filesave", "export_components_data"))
+         if export_distribution_callback:
+             self.toolitems.append(("ExportDistribution", "Export data to CSV", "filesave", "export_distribution_data"))
          super().__init__(canvas, parent)
          self.export_callback = export_callback
          self.export_components_callback = export_components_callback
+         self.export_distribution_callback = export_distribution_callback
  
      def export_data(self):
          if self.export_callback:
@@ -36,6 +39,10 @@ class CustomToolbar(NavigationToolbar2Tk):
      def export_components_data(self):
          if self.export_components_callback:
              self.export_components_callback()
+
+     def export_distribution_data(self):
+         if self.export_distribution_callback:
+             self.export_distribution_callback()
 
 
 class GUI:
@@ -247,6 +254,27 @@ class GUI:
                  messagebox.showinfo("Success", "Data exported successfully.")
              except Exception as e:
                  messagebox.showerror("Error", str(e))
+    
+    def _export_distribution_data(self):
+        file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+        if file_path:
+            try:
+                if not self.acceleration_distribution_ax.lines:
+                    raise ValueError("No data available to export.")
+            
+                line = self.acceleration_distribution_ax.lines[0]
+                x_data, y_data, z_data = line.get_data_3d()
+                time_data = self.gravitational_acceleration_ax_left.lines[0].get_xdata()
+                with open(file_path, mode='w', newline='') as file:
+                    writer = csv.writer(file)
+                    writer.writerow(["Time (hours)", "X", "Y", "Z"]) 
+                    for time, x, y, z in zip(time_data, x_data, y_data, z_data):
+                        writer.writerow([time, x, y, z])
+            
+                messagebox.showinfo("Success", "Data exported successfully.")
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
+
 
     def setup_acceleration_distribution_plots(self):
         self.acceleration_distribution_frame_left = tk.Frame(self.acceleration_distribution_frame, borderwidth=1, relief=tk.SOLID)
@@ -273,7 +301,7 @@ class GUI:
         self.acceleration_distribution_canvas_analysis = FigureCanvasTkAgg(self.acceleration_distribution_analysis_figure, self.acceleration_distribution_frame_right)
         self.acceleration_distribution_canvas_analysis.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        self.acceleration_distribution_toolbar = NavigationToolbar2Tk(self.acceleration_distribution_canvas, self.acceleration_distribution_toolbar_frame_left)
+        self.acceleration_distribution_toolbar = CustomToolbar(self.acceleration_distribution_canvas, self.acceleration_distribution_toolbar_frame_left, export_distribution_callback=self._export_distribution_data)
         self.acceleration_distribution_toolbar.update()
         self.acceleration_distribution_analysis_toolbar = NavigationToolbar2Tk(self.acceleration_distribution_canvas_analysis, self.acceleration_distribution_toolbar_frame_right)
         self.acceleration_distribution_analysis_toolbar.update()
@@ -436,7 +464,7 @@ class GUI:
             self.configure_3d_axes(self.rigid_body_acceleration_distribution_analysis_ax, "Acceleration Distribution")
             self.rigid_body_acceleration_distribution_analysis_canvas = FigureCanvasTkAgg(self.rigid_body_acceleration_distribution_analysis_figure, self.rigid_body_acceleration_distribution_frame_right)
             self.rigid_body_acceleration_distribution_analysis_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-            self.rigid_body_acceleration_distribution_toolbar = NavigationToolbar2Tk(self.rigid_body_acceleration_distribution_canvas, self.rigid_body_acceleration_distribution_toolbar_frame_left)
+            self.rigid_body_acceleration_distribution_toolbar = CustomToolbar(self.rigid_body_acceleration_distribution_canvas, self.rigid_body_acceleration_distribution_toolbar_frame_left, export_distribution_callback=self._export_rigid_body_distribution_data)
             self.rigid_body_acceleration_distribution_toolbar.update()
             self.rigid_body_acceleration_distribution_analysis_toolbar = NavigationToolbar2Tk(self.rigid_body_acceleration_distribution_analysis_canvas, self.rigid_body_acceleration_distribution_toolbar_frame_right)
             self.rigid_body_acceleration_distribution_analysis_toolbar.update()
@@ -510,6 +538,26 @@ class GUI:
                  messagebox.showinfo("Success", "Data exported successfully.")
              except Exception as e:
                  messagebox.showerror("Error", str(e))
+
+    def _export_rigid_body_distribution_data(self):
+        file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+        if file_path:
+            try:
+                if not self.rigid_body_acceleration_distribution_ax.lines:
+                    raise ValueError("No data available to export.")
+            
+                line = self.rigid_body_acceleration_distribution_ax.lines[0]
+                x_data, y_data, z_data = line.get_data_3d()
+                time_data = self.rigid_body_non_gravitational_acceleration_ax.lines[0].get_xdata()
+                with open(file_path, mode='w', newline='') as file:
+                    writer = csv.writer(file)
+                    writer.writerow(["Time (hours)", "X", "Y", "Z"]) 
+                    for time, x, y, z in zip(time_data, x_data, y_data, z_data):
+                        writer.writerow([time, x, y, z])
+            
+                messagebox.showinfo("Success", "Data exported successfully.")
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
 
     def clear_rigid_body_tabs(self):
         self.rigid_body_gravitational_acceleration_ax.clear()
