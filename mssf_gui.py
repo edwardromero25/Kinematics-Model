@@ -14,8 +14,29 @@ from PIL import Image, ImageTk
 from spherical_coordinates import DataProcessor, PathVisualization
 from rigid_body import RigidBody
 import matplotlib.animation as animation
+import csv
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
+
+class CustomToolbar(NavigationToolbar2Tk):
+     def __init__(self, canvas, parent, export_callback=None, export_components_callback=None):
+         self.toolitems = list(NavigationToolbar2Tk.toolitems)
+         if export_callback:
+             self.toolitems.append(("ExportData", "Export data to CSV", "filesave", "export_data"))
+         if export_components_callback:
+             self.toolitems.append(("ExportComponents", "Export data to CSV", "filesave", "export_components_data"))
+         super().__init__(canvas, parent)
+         self.export_callback = export_callback
+         self.export_components_callback = export_components_callback
+ 
+     def export_data(self):
+         if self.export_callback:
+             self.export_callback()
+ 
+     def export_components_data(self):
+         if self.export_components_callback:
+             self.export_components_callback()
+
 
 class GUI:
     def __init__(self, master):
@@ -183,15 +204,49 @@ class GUI:
         self.gravitational_acceleration_ax_left.set_ylabel('Acceleration (g)')
         self.gravitational_acceleration_canvas_left = FigureCanvasTkAgg(self.gravitational_acceleration_figure_left, self.gravitational_acceleration_frame_left)
         self.gravitational_acceleration_canvas_left.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-        self.gravitational_acceleration_toolbar_left = NavigationToolbar2Tk(self.gravitational_acceleration_canvas_left, self.gravitational_acceleration_toolbar_frame_left)
+        self.gravitational_acceleration_toolbar_left = CustomToolbar(self.gravitational_acceleration_canvas_left, self.gravitational_acceleration_toolbar_frame_left, self._export_magnitude_data)
         self.gravitational_acceleration_toolbar_left.update()
         self.gravitational_acceleration_figure_right = plt.Figure()
         self.gravitational_acceleration_ax_right = self.gravitational_acceleration_figure_right.add_subplot(1, 1, 1)
         self.gravitational_acceleration_canvas_right = FigureCanvasTkAgg(self.gravitational_acceleration_figure_right, self.gravitational_acceleration_frame_right)
         self.gravitational_acceleration_canvas_right.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-        self.gravitational_acceleration_toolbar_right = NavigationToolbar2Tk(self.gravitational_acceleration_canvas_right, self.gravitational_acceleration_toolbar_frame_right)
+        self.gravitational_acceleration_toolbar_right = CustomToolbar(self.gravitational_acceleration_canvas_right, self.gravitational_acceleration_toolbar_frame_right, export_components_callback=self._export_components_data)
         self.gravitational_acceleration_toolbar_right.update()
         self.create_time_averaged_gravitational_acceleration_fig([], [], [], [], legend=False, title=False)
+
+    def _export_magnitude_data(self):
+         file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+         if file_path:
+             try:
+                 if not self.gravitational_acceleration_ax_left.lines:
+                     raise ValueError("No data available to export.")
+                 with open(file_path, mode='w', newline='') as file:
+                     writer = csv.writer(file)
+                     writer.writerow(["Time (hours)", "Acceleration (g)"])
+                     for time, mag in zip(self.gravitational_acceleration_ax_left.lines[0].get_xdata(), self.gravitational_acceleration_ax_left.lines[0].get_ydata()):
+                         writer.writerow([time, mag])
+                 messagebox.showinfo("Success", "Data exported successfully.")
+             except Exception as e:
+                 messagebox.showerror("Error", str(e))
+
+    def _export_components_data(self):
+         file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+         if file_path:
+             try:
+                 if not self.gravitational_acceleration_ax_right.lines:
+                     raise ValueError("No data available to export.")
+                 with open(file_path, mode='w', newline='') as file:
+                     writer = csv.writer(file)
+                     writer.writerow(["Time (hours)", "X (g)", "Y (g)", "Z (g)"])
+                     time_data = self.gravitational_acceleration_ax_right.lines[0].get_xdata()
+                     x_data = self.gravitational_acceleration_ax_right.lines[0].get_ydata()
+                     y_data = self.gravitational_acceleration_ax_right.lines[1].get_ydata()
+                     z_data = self.gravitational_acceleration_ax_right.lines[2].get_ydata()
+                     for time, x, y, z in zip(time_data, x_data, y_data, z_data):
+                         writer.writerow([time, x, y, z])
+                 messagebox.showinfo("Success", "Data exported successfully.")
+             except Exception as e:
+                 messagebox.showerror("Error", str(e))
 
     def setup_acceleration_distribution_plots(self):
         self.acceleration_distribution_frame_left = tk.Frame(self.acceleration_distribution_frame, borderwidth=1, relief=tk.SOLID)
@@ -344,9 +399,9 @@ class GUI:
             self.rigid_body_gravitational_components_ax = self.rigid_body_gravitational_components_figure.add_subplot(1, 1, 1)
             self.rigid_body_gravitational_components_canvas = FigureCanvasTkAgg(self.rigid_body_gravitational_components_figure, self.rigid_body_gravitational_acceleration_frame_right)
             self.rigid_body_gravitational_components_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-            self.rigid_body_gravitational_components_toolbar = NavigationToolbar2Tk(self.rigid_body_gravitational_components_canvas, self.rigid_body_gravitational_acceleration_toolbar_frame_right)
+            self.rigid_body_gravitational_components_toolbar = CustomToolbar(self.rigid_body_gravitational_components_canvas, self.rigid_body_gravitational_acceleration_toolbar_frame_right, export_components_callback=self._export_rigid_body_components_data)
             self.rigid_body_gravitational_components_toolbar.update()
-            self.rigid_body_gravitational_acceleration_toolbar = NavigationToolbar2Tk(self.rigid_body_gravitational_acceleration_canvas, self.rigid_body_gravitational_acceleration_toolbar_frame_left)
+            self.rigid_body_gravitational_acceleration_toolbar = CustomToolbar(self.rigid_body_gravitational_acceleration_canvas, self.rigid_body_gravitational_acceleration_toolbar_frame_left, self._export_rigid_body_magnitude_data)
             self.rigid_body_gravitational_acceleration_toolbar.update()
             self.rigid_body_non_gravitational_acceleration_figure = plt.Figure()
             self.rigid_body_non_gravitational_acceleration_ax = self.rigid_body_non_gravitational_acceleration_figure.add_subplot(1, 1, 1)
@@ -356,9 +411,9 @@ class GUI:
             self.rigid_body_non_gravitational_components_ax = self.rigid_body_non_gravitational_components_figure.add_subplot(1, 1, 1)
             self.rigid_body_non_gravitational_components_canvas = FigureCanvasTkAgg(self.rigid_body_non_gravitational_components_figure, self.rigid_body_non_gravitational_acceleration_frame_right)
             self.rigid_body_non_gravitational_components_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-            self.rigid_body_non_gravitational_acceleration_toolbar = NavigationToolbar2Tk(self.rigid_body_non_gravitational_acceleration_canvas, self.rigid_body_non_gravitational_acceleration_toolbar_frame_left)
+            self.rigid_body_non_gravitational_acceleration_toolbar = CustomToolbar(self.rigid_body_non_gravitational_acceleration_canvas, self.rigid_body_non_gravitational_acceleration_toolbar_frame_left, self._export_rigid_body_non_g_magnitude_data)
             self.rigid_body_non_gravitational_acceleration_toolbar.update()
-            self.rigid_body_non_gravitational_components_toolbar = NavigationToolbar2Tk(self.rigid_body_non_gravitational_components_canvas, self.rigid_body_non_gravitational_acceleration_toolbar_frame_right)
+            self.rigid_body_non_gravitational_components_toolbar = CustomToolbar(self.rigid_body_non_gravitational_components_canvas, self.rigid_body_non_gravitational_acceleration_toolbar_frame_right, export_components_callback=self._export_rigid_body_non_g_components_data)
             self.rigid_body_non_gravitational_components_toolbar.update()
             self.rigid_body_acceleration_distribution_frame_left = tk.Frame(self.rigid_body_acceleration_distribution_frame, borderwidth=1, relief=tk.SOLID)
             self.rigid_body_acceleration_distribution_frame_left.grid(row=0, column=0, sticky="nsew")
@@ -387,6 +442,74 @@ class GUI:
             self.rigid_body_acceleration_distribution_analysis_toolbar.update()
             self.rigid_body_tabs_created = True
         self.clear_rigid_body_tabs()
+
+    def _export_rigid_body_magnitude_data(self):
+         file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+         if file_path:
+             try:
+                 if not self.rigid_body_gravitational_acceleration_ax.lines:
+                     raise ValueError("No data available to export.")
+                 with open(file_path, mode='w', newline='') as file:
+                     writer = csv.writer(file)
+                     writer.writerow(["Time (hours)", "Acceleration (g)"])
+                     for time, mag in zip(self.rigid_body_gravitational_acceleration_ax.lines[0].get_xdata(), self.rigid_body_gravitational_acceleration_ax.lines[0].get_ydata()):
+                         writer.writerow([time, mag])
+                 messagebox.showinfo("Success", "Data exported successfully.")
+             except Exception as e:
+                 messagebox.showerror("Error", str(e))
+
+    def _export_rigid_body_components_data(self):
+         file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+         if file_path:
+             try:
+                 if not self.rigid_body_gravitational_components_ax.lines:
+                     raise ValueError("No data available to export.")
+                 with open(file_path, mode='w', newline='') as file:
+                     writer = csv.writer(file)
+                     writer.writerow(["Time (hours)", "X (g)", "Y (g)", "Z (g)"])
+                     time_data = self.rigid_body_gravitational_components_ax.lines[0].get_xdata()
+                     x_data = self.rigid_body_gravitational_components_ax.lines[0].get_ydata()
+                     y_data = self.rigid_body_gravitational_components_ax.lines[1].get_ydata()
+                     z_data = self.rigid_body_gravitational_components_ax.lines[2].get_ydata()
+                     for time, x, y, z in zip(time_data, x_data, y_data, z_data):
+                         writer.writerow([time, x, y, z])
+                 messagebox.showinfo("Success", "Data exported successfully.")
+             except Exception as e:
+                 messagebox.showerror("Error", str(e))
+
+    def _export_rigid_body_non_g_magnitude_data(self):
+         file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+         if file_path:
+             try:
+                 if not self.rigid_body_non_gravitational_acceleration_ax.lines:
+                     raise ValueError("No data available to export.")
+                 with open(file_path, mode='w', newline='') as file:
+                     writer = csv.writer(file)
+                     writer.writerow(["Time (hours)", "Acceleration (g)"])
+                     for time, mag in zip(self.rigid_body_non_gravitational_acceleration_ax.lines[0].get_xdata(), self.rigid_body_non_gravitational_acceleration_ax.lines[0].get_ydata()):
+                         writer.writerow([time, mag])
+                 messagebox.showinfo("Success", "Data exported successfully.")
+             except Exception as e:
+                 messagebox.showerror("Error", str(e))
+
+    def _export_rigid_body_non_g_components_data(self):
+         file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+         if file_path:
+             try:
+                 if not self.rigid_body_non_gravitational_components_ax.lines:
+                     raise ValueError("No data available to export.")
+                 with open(file_path, mode='w', newline='') as file:
+                     writer = csv.writer(file)
+                     writer.writerow(["Time (hours)", "X (g)", "Y (g)", "Z (g)"])
+                     time_data = self.rigid_body_non_gravitational_components_ax.lines[0].get_xdata()
+                     x_data = self.rigid_body_non_gravitational_components_ax.lines[0].get_ydata()
+                     y_data = self.rigid_body_non_gravitational_components_ax.lines[1].get_ydata()
+                     z_data = self.rigid_body_non_gravitational_components_ax.lines[2].get_ydata()
+                     for time, x, y, z in zip(time_data, x_data, y_data, z_data):
+                         writer.writerow([time, x, y, z])
+                 messagebox.showinfo("Success", "Data exported successfully.")
+             except Exception as e:
+                 messagebox.showerror("Error", str(e))
 
     def clear_rigid_body_tabs(self):
         self.rigid_body_gravitational_acceleration_ax.clear()
