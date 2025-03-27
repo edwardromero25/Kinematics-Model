@@ -134,8 +134,8 @@ class GUI:
         mode_label_frame.pack()
         self.mode_label = tk.Label(mode_label_frame, text="Mode", font=category_font_style)
         self.mode_label.pack(side=tk.LEFT)
-        self.mode_icon = tk.Label(mode_label_frame, image=self.info_icon, cursor="hand2")
-        self.mode_icon.pack(side=tk.LEFT, padx=(2, 0))
+        self.mode_icon = tk.Label(mode_label_frame, image=self.info_icon)
+        self.mode_icon.pack(side=tk.LEFT, padx=(1, 0))
         self.mode_icon.bind("<Button-1>", lambda e: self.open_info_link())
         ToolTip(self.mode_icon, "Reference")  
         self.mode_var = tk.StringVar(value="Spherical Coordinates")
@@ -382,7 +382,7 @@ class GUI:
         if mode in ["Spherical Coordinates", "3D Rigid Body Kinematics"]:
             self.mode_menu.master.config(text="Theoretical")
             self.mode_label.config(text="Mode")
-            self.mode_icon.pack(side=tk.LEFT, padx=(2, 0))  
+            self.mode_icon.pack(side=tk.LEFT, padx=(1, 0))  
         else:
             self.mode_menu.master.config(text=mode)
             self.mode_label.config(text="Mode")
@@ -709,7 +709,7 @@ class GUI:
 
         ax.legend([f"Distribution: {distribution_score}"])
         ani = animation.FuncAnimation(
-            ax.figure, update, frames=len(x_data), interval=75, blit=False  
+            ax.figure, update, frames=len(x_data), interval=100, blit=False  
         )
         canvas.draw()
 
