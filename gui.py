@@ -126,7 +126,7 @@ class GUI:
 
     def create_title_frame(self, parent, font_style):
         title_frame = tk.Frame(parent)
-        title_frame.pack(pady=(10, 0))
+        title_frame.pack(pady=(8, 0))
         nasa_label = tk.Label(title_frame, image=self.nasa_logo)
         nasa_label.pack(side=tk.LEFT, padx=1)
         nasa_label.bind("<Button-1>", lambda e: self.open_url("https://www.nasa.gov/"))
