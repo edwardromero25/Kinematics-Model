@@ -15,6 +15,7 @@ from spherical_coordinates import DataProcessor, PathVisualization
 from rigid_body import RigidBody
 import matplotlib.animation as animation
 import csv
+from matplotlib.backend_bases import MouseEvent
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -45,6 +46,35 @@ class CustomToolbar(NavigationToolbar2Tk):
              self.export_distribution_callback()
 
 
+class ToolTip:
+    def __init__(self, widget, text):
+        self.widget = widget
+        self.text = text
+        self.tip_window = None
+        self.widget.bind("<Enter>", self.show_tooltip)
+        self.widget.bind("<Leave>", self.hide_tooltip)
+
+    def show_tooltip(self, event):
+        if self.tip_window or not self.text:
+            return
+        x, y, _, _ = self.widget.bbox("insert")
+        x += self.widget.winfo_rootx() + 20
+        y += self.widget.winfo_rooty() + 0
+        self.tip_window = tw = tk.Toplevel(self.widget)
+        tw.wm_overrideredirect(True)
+        tw.wm_geometry(f"+{x}+{y}")
+        label = tk.Label(
+            tw, text=self.text, justify=tk.LEFT,
+            background="systembuttonface", relief=tk.SOLID, borderwidth=1,
+        )
+        label.pack(ipadx=1)
+
+    def hide_tooltip(self, event):
+        if self.tip_window:
+            self.tip_window.destroy()
+            self.tip_window = None
+
+
 class GUI:
     def __init__(self, master):
         self.master = master
@@ -52,8 +82,7 @@ class GUI:
         self.master.configure(bg="#f1f1f1")
         self.current_mode = "Spherical Coordinates"
         self.setup_gui_elements()
-        self.setup_plot_frames()
-        self.mode_label.config(text="Mode")   
+        self.setup_plot_frames()   
 
     def setup_gui_elements(self):
         self.load_images()
@@ -106,8 +135,9 @@ class GUI:
         self.mode_label = tk.Label(mode_label_frame, text="Mode", font=category_font_style)
         self.mode_label.pack(side=tk.LEFT)
         self.mode_icon = tk.Label(mode_label_frame, image=self.info_icon, cursor="hand2")
-        self.mode_icon.pack(side=tk.LEFT, padx=(2, 0))  
-        self.mode_icon.bind("<Button-1>", lambda e: self.open_info_link())  
+        self.mode_icon.pack(side=tk.LEFT, padx=(2, 0))
+        self.mode_icon.bind("<Button-1>", lambda e: self.open_info_link())
+        ToolTip(self.mode_icon, "Reference")  
         self.mode_var = tk.StringVar(value="Spherical Coordinates")
         menu_button = tk.Menubutton(mode_frame, text="Theoretical", font=font_style, bg="#aeb0b5", activebackground="#d6d7d9", relief=tk.RAISED, pady=6)
         self.mode_menu = tk.Menu(menu_button, tearoff=0)
