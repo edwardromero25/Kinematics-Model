@@ -7,13 +7,14 @@ block_cipher = None
 project_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 
 a = Analysis(
-    [os.path.join(project_dir, 'mssf_gui.py')],
+    [os.path.join(project_dir, 'gui.py')],
     pathex=[project_dir],
     binaries=[],
     datas=[
         (os.path.join(project_dir, 'images/favicon.ico'), 'images'),
         (os.path.join(project_dir, 'images/MSSF_logo.png'), 'images'),
         (os.path.join(project_dir, 'images/NASA_logo.png'), 'images'),
+        (os.path.join(project_dir, 'images/info.png'), 'images'),
         (os.path.join(project_dir, 'spherical_coordinates.py'), '.'),
         (os.path.join(project_dir, 'rigid_body.py'), '.')
     ],

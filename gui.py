@@ -53,6 +53,7 @@ class GUI:
         self.current_mode = "Spherical Coordinates"
         self.setup_gui_elements()
         self.setup_plot_frames()
+        self.mode_label.config(text="Mode")   
 
     def setup_gui_elements(self):
         self.load_images()
@@ -82,6 +83,8 @@ class GUI:
         mssf_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'MSSF_logo.png')).resize((65, 58), Image.LANCZOS)
         self.mssf_logo = ImageTk.PhotoImage(mssf_image)
         self.favicon = ImageTk.PhotoImage(file=os.path.join(SCRIPT_DIR, 'images', 'favicon.ico'))
+        info_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'info.png')).resize((16, 16), Image.LANCZOS)
+        self.info_icon = ImageTk.PhotoImage(info_image)
 
     def create_title_frame(self, parent, font_style):
         title_frame = tk.Frame(parent)
@@ -98,7 +101,13 @@ class GUI:
     def create_mode_frame(self, parent, font_style, category_font_style):
         mode_frame = tk.Frame(parent, padx=1, pady=1)
         mode_frame.grid(row=0, column=0, padx=20)
-        tk.Label(mode_frame, text="Mode", font=category_font_style).pack()
+        mode_label_frame = tk.Frame(mode_frame)
+        mode_label_frame.pack()
+        self.mode_label = tk.Label(mode_label_frame, text="Mode", font=category_font_style)
+        self.mode_label.pack(side=tk.LEFT)
+        self.mode_icon = tk.Label(mode_label_frame, image=self.info_icon, cursor="hand2")
+        self.mode_icon.pack(side=tk.LEFT, padx=(2, 0))  
+        self.mode_icon.bind("<Button-1>", lambda e: self.open_info_link())  
         self.mode_var = tk.StringVar(value="Spherical Coordinates")
         menu_button = tk.Menubutton(mode_frame, text="Theoretical", font=font_style, bg="#aeb0b5", activebackground="#d6d7d9", relief=tk.RAISED, pady=6)
         self.mode_menu = tk.Menu(menu_button, tearoff=0)
@@ -329,14 +338,26 @@ class GUI:
         })
         style.theme_use("yummy")
 
+    def open_info_link(self):
+        if self.current_mode == "Spherical Coordinates":
+            webbrowser.open("https://www.frontiersin.org/journals/space-technologies/articles/10.3389/frspt.2022.1032610/full")
+        elif self.current_mode == "3D Rigid Body Kinematics":
+            webbrowser.open("https://biomedical-engineering-online.biomedcentral.com/articles/10.1186/s12938-017-0337-8")
+
     def switch_mode(self, mode):
         if self.current_mode == mode:
             return
         self.current_mode = mode
+
         if mode in ["Spherical Coordinates", "3D Rigid Body Kinematics"]:
             self.mode_menu.master.config(text="Theoretical")
+            self.mode_label.config(text="Mode")
+            self.mode_icon.pack(side=tk.LEFT, padx=(2, 0))  
         else:
             self.mode_menu.master.config(text=mode)
+            self.mode_label.config(text="Mode")
+            self.mode_icon.pack_forget()  
+
         if mode == "Spherical Coordinates":
             self.show_spherical_inputs()
         elif mode == "Experimental":
