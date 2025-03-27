@@ -16,11 +16,13 @@ from rigid_body import RigidBody
 import matplotlib.animation as animation
 import csv
 from matplotlib.backend_bases import MouseEvent
+from matplotlib.animation import FFMpegWriter
+import matplotlib
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class CustomToolbar(NavigationToolbar2Tk):
-     def __init__(self, canvas, parent, export_callback=None, export_components_callback=None, export_distribution_callback=None):
+     def __init__(self, canvas, parent, export_callback=None, export_components_callback=None, export_distribution_callback=None, export_animation_callback=None):
          self.toolitems = list(NavigationToolbar2Tk.toolitems)
          if export_callback:
              self.toolitems.append(("ExportData", "Export data to CSV", "filesave", "export_data"))
@@ -28,10 +30,13 @@ class CustomToolbar(NavigationToolbar2Tk):
              self.toolitems.append(("ExportComponents", "Export data to CSV", "filesave", "export_components_data"))
          if export_distribution_callback:
              self.toolitems.append(("ExportDistribution", "Export data to CSV", "filesave", "export_distribution_data"))
+         if export_animation_callback:
+             self.toolitems.append(("ExportAnimation", "Export animation to MP4", "filesave", "export_animation_data"))
          super().__init__(canvas, parent)
          self.export_callback = export_callback
          self.export_components_callback = export_components_callback
          self.export_distribution_callback = export_distribution_callback
+         self.export_animation_callback = export_animation_callback
  
      def export_data(self):
          if self.export_callback:
@@ -44,6 +49,10 @@ class CustomToolbar(NavigationToolbar2Tk):
      def export_distribution_data(self):
          if self.export_distribution_callback:
              self.export_distribution_callback()
+     
+     def export_animation_data(self):
+         if self.export_animation_callback:
+             self.export_animation_callback()
 
 
 class ToolTip:
@@ -306,14 +315,96 @@ class GUI:
                 time_data = self.gravitational_acceleration_ax_left.lines[0].get_xdata()
                 with open(file_path, mode='w', newline='') as file:
                     writer = csv.writer(file)
-                    writer.writerow(["Time (hours)", "X", "Y", "Z"]) 
+                    writer.writerow(["Time (hours)", "X (g)", "Y (g)", "Z (g)"]) 
                     for time, x, y, z in zip(time_data, x_data, y_data, z_data):
                         writer.writerow([time, x, y, z])
             
                 messagebox.showinfo("Success", "Data exported successfully.")
             except Exception as e:
                 messagebox.showerror("Error", str(e))
+        
+    def _export_animation_data(self):
+        file_path = filedialog.asksaveasfilename(defaultextension=".mp4", filetypes=[("MP4 files", "*.mp4")])
+        if file_path:
+            try:
+                matplotlib.rcParams['animation.ffmpeg_path'] = r"ffmpeg\ffmpeg.exe"
+            
+                start_analysis = self.start_analysis_entry.get() if self.mode_var.get() != "Experimental" else self.start_analysis_exp_entry.get()
+                end_analysis = self.end_analysis_entry.get() if self.mode_var.get() != "Experimental" else self.end_analysis_exp_entry.get()
+                start_analysis = float(start_analysis) if start_analysis else None
+                end_analysis = float(end_analysis) if end_analysis else None
 
+                if self.mode_var.get() == "Spherical Coordinates":
+                    if not self.acceleration_distribution_ax_analysis.lines:
+                        raise ValueError("No data available to export.")
+                elif self.mode_var.get() == "3D Rigid Body Kinematics":
+                    if not self.rigid_body_acceleration_distribution_analysis_ax.lines:
+                        raise ValueError("No data available to export.")
+                elif self.mode_var.get() == "Experimental":
+                    if not self.acceleration_distribution_ax_analysis.lines:
+                        raise ValueError("No data available to export.")
+
+                if self.mode_var.get() == "Spherical Coordinates":
+                    inner_velocity = float(self.inner_velocity_entry.get())
+                    outer_velocity = float(self.outer_velocity_entry.get())
+                    simulation_duration = float(self.simulation_duration_entry.get())
+                    analysis = DataProcessor(inner_velocity, outer_velocity, simulation_duration, start_analysis, end_analysis)
+                    x_data, y_data, z_data = analysis.x, analysis.y, analysis.z
+                    time_data = [t / 3600 for t in analysis.time]
+                elif self.mode_var.get() == "Experimental":
+                    datetime_str = []
+                    x_data, y_data, z_data = [], [], []
+                    for k in range(0, len(self.experimental_data) - 4, 5):
+                        try:
+                            dt = parser.parse(self.experimental_data[k] + " " + self.experimental_data[k + 1])
+                        except ValueError:
+                            dt = parser.parse(self.experimental_data[k + 1] + " " + self.experimental_data[k])
+                        datetime_str.append(dt)
+                        x_data.append(float(self.experimental_data[k + 2]))
+                        y_data.append(float(self.experimental_data[k + 3]))
+                        z_data.append(float(self.experimental_data[k + 4]))
+                    time_data = [(dt - datetime_str[0]).total_seconds() / 3600 for dt in datetime_str]
+                elif self.mode_var.get() == "3D Rigid Body Kinematics":
+                    inner_rpm = float(self.inner_velocity_entry.get())
+                    outer_rpm = float(self.outer_velocity_entry.get())
+                    delta_cm = float(self.distance_entry.get())
+                    delta_m = delta_cm / 100
+                    duration_hours = float(self.simulation_duration_entry.get())
+                    rigid_body = RigidBody(inner_rpm, outer_rpm, delta_m, delta_m, delta_m, duration_hours)
+                    time_array, _, _, a_tot_array = rigid_body.calculate_acceleration()
+                    x_data, y_data, z_data = a_tot_array[0], a_tot_array[1], a_tot_array[2]
+                    time_data = time_array / 3600
+
+                start_index = next(i for i, t in enumerate(time_data) if t >= start_analysis)
+                end_index = next(i for i, t in enumerate(time_data) if t >= end_analysis)
+                sliced_x = np.array(x_data[start_index:end_index])  
+                sliced_y = np.array(y_data[start_index:end_index])  
+                sliced_z = np.array(z_data[start_index:end_index])  
+
+                if sliced_x.size == 0 or sliced_y.size == 0 or sliced_z.size == 0:
+                    raise ValueError("No data available to export.")
+
+                fig = plt.Figure(figsize=(8, 6), dpi=100)
+                ax = fig.add_subplot(111, projection='3d')
+                self.configure_3d_axes(ax, "Acceleration Distribution")
+
+                rcParams['font.family'] = 'Calibri'
+                rcParams['font.size'] = 10
+
+                def update(num):
+                    ax.clear()
+                    self.configure_3d_axes(ax, "Acceleration Distribution")
+                    ax.plot(sliced_x[:num], sliced_y[:num], sliced_z[:num], color='#ec1c24', linewidth=1)
+                    return ax,
+
+                ani = animation.FuncAnimation(fig, update, frames=len(sliced_x), interval=100, blit=False)
+                writer = FFMpegWriter(fps=10, metadata=dict(artist='NASA'), bitrate=1800)
+                ani.save(file_path, writer=writer)
+
+                plt.close(fig)
+                messagebox.showinfo("Success", "Animation exported successfully.")
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
 
     def setup_acceleration_distribution_plots(self):
         self.acceleration_distribution_frame_left = tk.Frame(self.acceleration_distribution_frame, borderwidth=1, relief=tk.SOLID)
@@ -342,7 +433,7 @@ class GUI:
 
         self.acceleration_distribution_toolbar = CustomToolbar(self.acceleration_distribution_canvas, self.acceleration_distribution_toolbar_frame_left, export_distribution_callback=self._export_distribution_data)
         self.acceleration_distribution_toolbar.update()
-        self.acceleration_distribution_analysis_toolbar = NavigationToolbar2Tk(self.acceleration_distribution_canvas_analysis, self.acceleration_distribution_toolbar_frame_right)
+        self.acceleration_distribution_analysis_toolbar = CustomToolbar(self.acceleration_distribution_canvas_analysis, self.acceleration_distribution_toolbar_frame_right, export_animation_callback=self._export_animation_data)
         self.acceleration_distribution_analysis_toolbar.update()
 
     def configure_3d_axes(self, ax, title):
@@ -517,7 +608,7 @@ class GUI:
             self.rigid_body_acceleration_distribution_analysis_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
             self.rigid_body_acceleration_distribution_toolbar = CustomToolbar(self.rigid_body_acceleration_distribution_canvas, self.rigid_body_acceleration_distribution_toolbar_frame_left, export_distribution_callback=self._export_rigid_body_distribution_data)
             self.rigid_body_acceleration_distribution_toolbar.update()
-            self.rigid_body_acceleration_distribution_analysis_toolbar = NavigationToolbar2Tk(self.rigid_body_acceleration_distribution_analysis_canvas, self.rigid_body_acceleration_distribution_toolbar_frame_right)
+            self.rigid_body_acceleration_distribution_analysis_toolbar = CustomToolbar(self.rigid_body_acceleration_distribution_analysis_canvas, self.rigid_body_acceleration_distribution_toolbar_frame_right, export_animation_callback=self._export_animation_data)
             self.rigid_body_acceleration_distribution_analysis_toolbar.update()
             self.rigid_body_tabs_created = True
         self.clear_rigid_body_tabs()

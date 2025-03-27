@@ -16,7 +16,16 @@ a = Analysis(
         (os.path.join(project_dir, 'images/NASA_logo.png'), 'images'),
         (os.path.join(project_dir, 'images/info.png'), 'images'),
         (os.path.join(project_dir, 'spherical_coordinates.py'), '.'),
-        (os.path.join(project_dir, 'rigid_body.py'), '.')
+        (os.path.join(project_dir, 'rigid_body.py'), '.'),
+        (os.path.join(project_dir, 'ffmpeg/avcodec-61.dll'), 'ffmpeg'),
+        (os.path.join(project_dir, 'ffmpeg/avdevice-61.dll'), 'ffmpeg'),
+        (os.path.join(project_dir, 'ffmpeg/avfilter-10.dll'), 'ffmpeg'),
+        (os.path.join(project_dir, 'ffmpeg/avformat-61.dll'), 'ffmpeg'),
+        (os.path.join(project_dir, 'ffmpeg/avutil-59.dll'), 'ffmpeg'),
+        (os.path.join(project_dir, 'ffmpeg/ffmpeg.exe'), 'ffmpeg'),
+        (os.path.join(project_dir, 'ffmpeg/postproc-58.dll'), 'ffmpeg'),
+        (os.path.join(project_dir, 'ffmpeg/swresample-5.dll'), 'ffmpeg'),
+        (os.path.join(project_dir, 'ffmpeg/swscale-8.dll'), 'ffmpeg')
     ],
     hiddenimports=[],
     hookspath=[],
