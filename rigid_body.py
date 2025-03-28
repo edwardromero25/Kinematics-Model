@@ -26,15 +26,15 @@ class RigidBody:
         theta_2 = outer_rad_sec * time_array  
 
         w = np.array([
-            inner_rad_sec * np.ones_like(time_array),          
-            outer_rad_sec * np.cos(theta_1),                   
-            outer_rad_sec * np.sin(theta_1)                    
+            outer_rad_sec * np.ones_like(time_array),          
+            inner_rad_sec * np.cos(theta_1),                   
+            inner_rad_sec * np.sin(theta_1)                    
         ]) 
 
         w_dot = np.array([
             np.zeros_like(time_array),                        
-            -inner_rad_sec * outer_rad_sec * np.sin(theta_1),  
-            inner_rad_sec * outer_rad_sec * np.cos(theta_1)   
+            -outer_rad_sec * inner_rad_sec * np.sin(theta_1),  
+            outer_rad_sec * inner_rad_sec * np.cos(theta_1)   
         ])  
 
         r = np.array([
@@ -60,8 +60,20 @@ class RigidBody:
             [np.zeros_like(theta_2), -np.sin(theta_2), np.cos(theta_2)]
         ]) 
 
-        a_prime = np.einsum('ijk,jk->ik', R_y_T, np.einsum('ijk,jk->ik', R_x_T, a)) / 9.8
-        g_prime = np.einsum('ijk,jk->ik', R_y_T, np.einsum('ijk,jk->ik', R_x_T, self.g)) / 9.8  
+        R_y_T_non_g = np.array([
+            [np.cos(theta_2), np.zeros_like(theta_2), -np.sin(theta_2)],
+            [np.zeros_like(theta_2), np.ones_like(theta_2), np.zeros_like(theta_2)],
+            [np.sin(theta_2), np.zeros_like(theta_2), np.cos(theta_2)]
+        ])  
+
+        R_x_T_non_g = np.array([
+            [np.ones_like(theta_1), np.zeros_like(theta_1), np.zeros_like(theta_1)],
+            [np.zeros_like(theta_1), np.cos(theta_1), np.sin(theta_1)],
+            [np.zeros_like(theta_1), -np.sin(theta_1), np.cos(theta_1)]
+        ]) 
+
+        a_prime = np.einsum('ijk,jk->ik', R_y_T_non_g, np.einsum('ijk,jk->ik', R_x_T_non_g, a)) / 9.8
+        g_prime = np.einsum('ijk,jk->ik', R_y_T, np.einsum('ijk,jk->ik', R_x_T, self.g)) / 9.8
 
         a_tot_prime = a_prime + g_prime 
 
