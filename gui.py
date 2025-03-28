@@ -376,8 +376,8 @@ class GUI:
                     delta_m = self.last_distance / 100
                     duration_hours = self.last_simulation_duration
                     rigid_body = RigidBody(inner_rpm, outer_rpm, delta_m, delta_m, delta_m, duration_hours)
-                    time_array, _, _, a_tot_array = rigid_body.calculate_acceleration()
-                    x_data, y_data, z_data = a_tot_array[0], a_tot_array[1], a_tot_array[2]
+                    time_array, g_array, _, _ = rigid_body.calculate_acceleration()
+                    x_data, y_data, z_data = g_array[0], g_array[1], g_array[2]
                     time_data = time_array / 3600
 
                 start_index = next(i for i, t in enumerate(time_data) if t >= start_analysis)
@@ -1032,7 +1032,7 @@ class GUI:
         delta_x, delta_y, delta_z = delta_m, delta_m, delta_m  
 
         rigid_body = RigidBody(inner_rpm, outer_rpm, delta_x, delta_y, delta_z, duration_hours)
-        time_array, g_array, a_array, a_tot_array = rigid_body.calculate_acceleration()
+        time_array, g_array, a_array, _ = rigid_body.calculate_acceleration()
         g_x_avg = np.cumsum(g_array[0]) / np.arange(1, len(g_array[0]) + 1)
         g_y_avg = np.cumsum(g_array[1]) / np.arange(1, len(g_array[1]) + 1)
         g_z_avg = np.cumsum(g_array[2]) / np.arange(1, len(g_array[2]) + 1)
@@ -1047,7 +1047,7 @@ class GUI:
         self.update_rigid_body_gravitational_components_plot(time_array, g_x_avg, g_y_avg, g_z_avg)
         self.update_rigid_body_non_gravitational_acceleration_plot(time_array, a_magnitude, avg_a_magnitude, a_x_avg, a_y_avg, a_z_avg)
         self.update_rigid_body_non_gravitational_components_plot(time_array, a_x_avg, a_y_avg, a_z_avg)
-        self.update_rigid_body_acceleration_distribution_plot(a_tot_array, time_array)
+        self.update_rigid_body_acceleration_distribution_plot(g_array, time_array)
 
     def update_rigid_body_gravitational_acceleration_plot(self, time_array, g_magnitude, avg_g_magnitude, g_x_avg, g_y_avg, g_z_avg):
         time_in_hours = time_array / 3600
@@ -1135,11 +1135,11 @@ class GUI:
         self.rigid_body_non_gravitational_components_ax.set_ylim(y_min, y_max)
         self.rigid_body_non_gravitational_components_canvas.draw()
 
-    def update_rigid_body_acceleration_distribution_plot(self, a_tot_array, time_array):
+    def update_rigid_body_acceleration_distribution_plot(self, g_array, time_array):
         self.rigid_body_acceleration_distribution_ax.clear()
-        self.rigid_body_acceleration_distribution_ax.plot(a_tot_array[0], a_tot_array[1], a_tot_array[2], color='#0066b2', linewidth=1)
+        self.rigid_body_acceleration_distribution_ax.plot(g_array[0], g_array[1], g_array[2], color='#0066b2', linewidth=1)
         self.configure_3d_axes(self.rigid_body_acceleration_distribution_ax, "Acceleration Distribution")
-        distribution_score = PathVisualization("rigid_body", a_tot_array[0], a_tot_array[1], a_tot_array[2]).get_distribution()
+        distribution_score = PathVisualization("rigid_body", g_array[0], g_array[1], g_array[2]).get_distribution()
         self.rigid_body_acceleration_distribution_ax.legend([f"Distribution: {distribution_score}"])
         self.rigid_body_acceleration_distribution_canvas.draw()
         self.rigid_body_acceleration_distribution_analysis_ax.clear()
@@ -1151,7 +1151,7 @@ class GUI:
             time_in_hours = time_array / 3600
             start_index = next(i for i, t in enumerate(time_in_hours) if t >= start_analysis)
             end_index = next(i for i, t in enumerate(time_in_hours) if t >= end_analysis)
-            sliced_x, sliced_y, sliced_z = a_tot_array[0][start_index:end_index], a_tot_array[1][start_index:end_index], a_tot_array[2][start_index:end_index]
+            sliced_x, sliced_y, sliced_z = g_array[0][start_index:end_index], g_array[1][start_index:end_index], g_array[2][start_index:end_index]
             path_vis_analysis = PathVisualization("rigid_body", sliced_x, sliced_y, sliced_z)
             distribution_score_analysis = path_vis_analysis.get_distribution()
             self.animate_distribution(
