@@ -92,6 +92,16 @@ class GUI:
         self.current_mode = "Spherical Coordinates"
         self.setup_gui_elements()
         self.setup_plot_frames()   
+        self.last_start_analysis = None
+        self.last_end_analysis = None
+        self.last_start_analysis_exp = None
+        self.last_end_analysis_exp = None
+        self.last_mode = None
+        self.last_inner_velocity = None
+        self.last_outer_velocity = None
+        self.last_simulation_duration = None
+        self.last_distance = None
+        self.last_experimental_data = None
 
     def setup_gui_elements(self):
         self.load_images()
@@ -328,48 +338,43 @@ class GUI:
         if file_path:
             try:
                 matplotlib.rcParams['animation.ffmpeg_path'] = r"ffmpeg\ffmpeg.exe"
-            
-                start_analysis = self.start_analysis_entry.get() if self.mode_var.get() != "Experimental" else self.start_analysis_exp_entry.get()
-                end_analysis = self.end_analysis_entry.get() if self.mode_var.get() != "Experimental" else self.end_analysis_exp_entry.get()
-                start_analysis = float(start_analysis) if start_analysis else None
-                end_analysis = float(end_analysis) if end_analysis else None
 
-                if self.mode_var.get() == "Spherical Coordinates":
+                start_analysis = self.last_start_analysis if self.mode_var.get() != "Experimental" else self.last_start_analysis_exp
+                end_analysis = self.last_end_analysis if self.mode_var.get() != "Experimental" else self.last_end_analysis_exp
+
+                if self.last_mode == "Spherical Coordinates":
                     if not self.acceleration_distribution_ax_analysis.lines:
                         raise ValueError("No data available to export.")
-                elif self.mode_var.get() == "3D Rigid Body Kinematics":
-                    if not self.rigid_body_acceleration_distribution_analysis_ax.lines:
-                        raise ValueError("No data available to export.")
-                elif self.mode_var.get() == "Experimental":
-                    if not self.acceleration_distribution_ax_analysis.lines:
-                        raise ValueError("No data available to export.")
-
-                if self.mode_var.get() == "Spherical Coordinates":
-                    inner_velocity = float(self.inner_velocity_entry.get())
-                    outer_velocity = float(self.outer_velocity_entry.get())
-                    simulation_duration = float(self.simulation_duration_entry.get())
+                    inner_velocity = self.last_inner_velocity
+                    outer_velocity = self.last_outer_velocity
+                    simulation_duration = self.last_simulation_duration
                     analysis = DataProcessor(inner_velocity, outer_velocity, simulation_duration, start_analysis, end_analysis)
                     x_data, y_data, z_data = analysis.x, analysis.y, analysis.z
                     time_data = [t / 3600 for t in analysis.time]
-                elif self.mode_var.get() == "Experimental":
+
+                elif self.last_mode == "Experimental":
+                    if not self.acceleration_distribution_ax_analysis.lines:
+                        raise ValueError("No data available to export.") 
                     datetime_str = []
                     x_data, y_data, z_data = [], [], []
-                    for k in range(0, len(self.experimental_data) - 4, 5):
+                    for k in range(0, len(self.last_experimental_data) - 4, 5):
                         try:
-                            dt = parser.parse(self.experimental_data[k] + " " + self.experimental_data[k + 1])
+                            dt = parser.parse(self.last_experimental_data[k] + " " + self.last_experimental_data[k + 1])
                         except ValueError:
-                            dt = parser.parse(self.experimental_data[k + 1] + " " + self.experimental_data[k])
+                            dt = parser.parse(self.last_experimental_data[k + 1] + " " + self.last_experimental_data[k])
                         datetime_str.append(dt)
-                        x_data.append(float(self.experimental_data[k + 2]))
-                        y_data.append(float(self.experimental_data[k + 3]))
-                        z_data.append(float(self.experimental_data[k + 4]))
+                        x_data.append(float(self.last_experimental_data[k + 2]))
+                        y_data.append(float(self.last_experimental_data[k + 3]))
+                        z_data.append(float(self.last_experimental_data[k + 4]))
                     time_data = [(dt - datetime_str[0]).total_seconds() / 3600 for dt in datetime_str]
-                elif self.mode_var.get() == "3D Rigid Body Kinematics":
-                    inner_rpm = float(self.inner_velocity_entry.get())
-                    outer_rpm = float(self.outer_velocity_entry.get())
-                    delta_cm = float(self.distance_entry.get())
-                    delta_m = delta_cm / 100
-                    duration_hours = float(self.simulation_duration_entry.get())
+
+                elif self.last_mode == "3D Rigid Body Kinematics":
+                    if not self.rigid_body_acceleration_distribution_analysis_ax.lines:
+                        raise ValueError("No data available to export.")
+                    inner_rpm = self.last_inner_velocity
+                    outer_rpm = self.last_outer_velocity
+                    delta_m = self.last_distance / 100
+                    duration_hours = self.last_simulation_duration
                     rigid_body = RigidBody(inner_rpm, outer_rpm, delta_m, delta_m, delta_m, duration_hours)
                     time_array, _, _, a_tot_array = rigid_body.calculate_acceleration()
                     x_data, y_data, z_data = a_tot_array[0], a_tot_array[1], a_tot_array[2]
@@ -377,9 +382,9 @@ class GUI:
 
                 start_index = next(i for i, t in enumerate(time_data) if t >= start_analysis)
                 end_index = next(i for i, t in enumerate(time_data) if t >= end_analysis)
-                sliced_x = np.array(x_data[start_index:end_index])  
-                sliced_y = np.array(y_data[start_index:end_index])  
-                sliced_z = np.array(z_data[start_index:end_index])  
+                sliced_x = np.array(x_data[start_index:end_index])
+                sliced_y = np.array(y_data[start_index:end_index])
+                sliced_z = np.array(z_data[start_index:end_index])
 
                 if sliced_x.size == 0 or sliced_y.size == 0 or sliced_z.size == 0:
                     raise ValueError("No data available to export.")
@@ -387,9 +392,6 @@ class GUI:
                 fig = plt.Figure(figsize=(8, 6), dpi=100)
                 ax = fig.add_subplot(111, projection='3d')
                 self.configure_3d_axes(ax, "Acceleration Distribution")
-
-                rcParams['font.family'] = 'Calibri'
-                rcParams['font.size'] = 10
 
                 def update(num):
                     ax.clear()
@@ -867,6 +869,18 @@ class GUI:
                 self.process_experimental_data_submission()
             elif self.mode_var.get() == "3D Rigid Body Kinematics":
                 self.process_rigid_body_data()
+
+            self.last_start_analysis = float(self.start_analysis_entry.get()) if self.start_analysis_entry.get() else None
+            self.last_end_analysis = float(self.end_analysis_entry.get()) if self.end_analysis_entry.get() else None
+            self.last_start_analysis_exp = float(self.start_analysis_exp_entry.get()) if self.start_analysis_exp_entry.get() else None
+            self.last_end_analysis_exp = float(self.end_analysis_exp_entry.get()) if self.end_analysis_exp_entry.get() else None
+            self.last_mode = self.mode_var.get()
+            self.last_inner_velocity = float(self.inner_velocity_entry.get()) if self.inner_velocity_entry.get() else None
+            self.last_outer_velocity = float(self.outer_velocity_entry.get()) if self.outer_velocity_entry.get() else None
+            self.last_simulation_duration = float(self.simulation_duration_entry.get()) if self.simulation_duration_entry.get() else None
+            self.last_distance = float(self.distance_entry.get()) if self.distance_entry.get() else None
+            self.last_experimental_data = getattr(self, 'experimental_data', None)
+
         except ValueError as ve:
             messagebox.showerror("Error", str(ve))
         except Exception as e:

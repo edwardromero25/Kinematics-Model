@@ -9,7 +9,7 @@ class RigidBody:
         self.delta_z = delta_z      
         self.duration_hours = duration_hours
         self.pi_over_30 = np.pi / 30 
-        self.g = np.array([[0], [0], [9.8]]) 
+        self.g = np.array([[0], [0], [-9.8]]) 
 
     def rpm_to_rad_sec(self, rpm):
         return rpm * self.pi_over_30
