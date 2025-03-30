@@ -1025,9 +1025,12 @@ class GUI:
         if duration_hours <= 0:
             raise ValueError("Simulation duration must be positive.")
         
+        delta_cm = float(self.distance_entry.get())
+        if delta_cm < 0:
+            raise ValueError("Distance must be positive.") 
+
         inner_rpm = float(self.inner_velocity_entry.get())
         outer_rpm = float(self.outer_velocity_entry.get())
-        delta_cm = float(self.distance_entry.get())  
         delta_m = delta_cm / 100  
         delta_x, delta_y, delta_z = delta_m, delta_m, delta_m  
 
