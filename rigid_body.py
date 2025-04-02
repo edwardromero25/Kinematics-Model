@@ -27,20 +27,20 @@ class RigidBody:
 
         w = np.array([
             outer_rad_sec * np.ones_like(time_array),          
-            inner_rad_sec * np.cos(theta_1),                   
-            inner_rad_sec * np.sin(theta_1)                    
+            inner_rad_sec * np.cos(theta_2),                   
+            inner_rad_sec * np.sin(theta_2)                    
         ]) 
 
         w_dot = np.array([
             np.zeros_like(time_array),                        
-            -outer_rad_sec * inner_rad_sec * np.sin(theta_1),  
-            outer_rad_sec * inner_rad_sec * np.cos(theta_1)   
+            -outer_rad_sec * inner_rad_sec * np.sin(theta_2),  
+            outer_rad_sec * inner_rad_sec * np.cos(theta_2)   
         ])  
 
         r = np.array([
-            self.delta_x * np.cos(theta_2) + self.delta_z * np.sin(theta_2),
-            self.delta_y * np.cos(theta_1) + self.delta_x * np.sin(theta_1) * np.sin(theta_2) - self.delta_z * np.sin(theta_1) * np.cos(theta_2),
-            self.delta_y * np.sin(theta_1) - self.delta_x * np.cos(theta_1) * np.sin(theta_2) + self.delta_z * np.cos(theta_1) * np.cos(theta_2)
+            self.delta_x * np.cos(theta_1) + self.delta_z * np.sin(theta_1),
+            self.delta_y * np.cos(theta_2) + self.delta_x * np.sin(theta_2) * np.sin(theta_1) - self.delta_z * np.sin(theta_2) * np.cos(theta_1),
+            self.delta_y * np.sin(theta_2) - self.delta_x * np.cos(theta_2) * np.sin(theta_1) + self.delta_z * np.cos(theta_2) * np.cos(theta_1)
         ])
 
         w_cross_r = np.cross(w.T, r.T).T
@@ -60,19 +60,7 @@ class RigidBody:
             [np.zeros_like(theta_2), -np.sin(theta_2), np.cos(theta_2)]
         ]) 
 
-        R_y_T_non_g = np.array([
-            [np.cos(theta_2), np.zeros_like(theta_2), -np.sin(theta_2)],
-            [np.zeros_like(theta_2), np.ones_like(theta_2), np.zeros_like(theta_2)],
-            [np.sin(theta_2), np.zeros_like(theta_2), np.cos(theta_2)]
-        ])  
-
-        R_x_T_non_g = np.array([
-            [np.ones_like(theta_1), np.zeros_like(theta_1), np.zeros_like(theta_1)],
-            [np.zeros_like(theta_1), np.cos(theta_1), np.sin(theta_1)],
-            [np.zeros_like(theta_1), -np.sin(theta_1), np.cos(theta_1)]
-        ]) 
-
-        a_prime = np.einsum('ijk,jk->ik', R_y_T_non_g, np.einsum('ijk,jk->ik', R_x_T_non_g, a)) / 9.8
+        a_prime = np.einsum('ijk,jk->ik', R_y_T, np.einsum('ijk,jk->ik', R_x_T, a)) 
         g_prime = np.einsum('ijk,jk->ik', R_y_T, np.einsum('ijk,jk->ik', R_x_T, self.g)) / 9.8
 
         a_tot_prime = a_prime + g_prime 
