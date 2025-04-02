@@ -89,9 +89,10 @@ class GUI:
         self.master = master
         self.master.title("Microgravity Simulation Support Facility - NASA")
         self.master.configure(bg="#f1f1f1")
-        self.current_mode = "Spherical Coordinates"
+        self.current_mode = "3D Rigid Body Kinematics"
         self.setup_gui_elements()
-        self.setup_plot_frames()   
+        self.setup_plot_frames()  
+        self.show_3d_rigid_body_inputs() 
         self.last_start_analysis = None
         self.last_end_analysis = None
         self.last_start_analysis_exp = None
@@ -99,6 +100,8 @@ class GUI:
         self.last_mode = None
         self.last_inner_velocity = None
         self.last_outer_velocity = None
+        self.last_inner_position = None
+        self.last_outer_position = None
         self.last_simulation_duration = None
         self.last_distance = None
         self.last_experimental_data = None
@@ -107,9 +110,9 @@ class GUI:
         self.load_images()
         self.master.iconphoto(False, self.favicon)
         self.create_custom_theme()
-        font_style = ("Calibri", 12)
-        title_font_style = ("Calibri", 20, "bold")
-        category_font_style = ("Calibri", 14, "bold")
+        font_style = ("Calibri", 11)
+        title_font_style = ("Calibri", 19, "bold")
+        category_font_style = ("Calibri", 13, "bold")
         input_frame = tk.Frame(self.master, padx=1, pady=1, bg="#f1f1f1")
         input_frame.pack(side=tk.TOP, anchor=tk.CENTER)
         self.create_title_frame(input_frame, title_font_style)
@@ -117,6 +120,7 @@ class GUI:
         center_frame.pack()
         self.create_mode_frame(center_frame, font_style, category_font_style)
         self.create_frame_velocities_frame(center_frame, font_style, category_font_style)
+        self.create_angular_positions_frame(center_frame, font_style, category_font_style)
         self.create_distance_frame(center_frame, font_style, category_font_style)
         self.create_simulation_duration_frame(center_frame, font_style, category_font_style)
         self.create_time_period_analysis_frame(center_frame, font_style, category_font_style)
@@ -126,9 +130,9 @@ class GUI:
         self.distance_frame.grid_remove()
 
     def load_images(self):
-        nasa_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'NASA_logo.png')).resize((69, 58), Image.LANCZOS)
+        nasa_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'NASA_logo.png')).resize((60, 50), Image.LANCZOS)
         self.nasa_logo = ImageTk.PhotoImage(nasa_image)
-        mssf_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'MSSF_logo.png')).resize((65, 58), Image.LANCZOS)
+        mssf_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'MSSF_logo.png')).resize((56, 50), Image.LANCZOS)
         self.mssf_logo = ImageTk.PhotoImage(mssf_image)
         self.favicon = ImageTk.PhotoImage(file=os.path.join(SCRIPT_DIR, 'images', 'favicon.ico'))
         info_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'info.png')).resize((16, 16), Image.LANCZOS)
@@ -137,72 +141,82 @@ class GUI:
     def create_title_frame(self, parent, font_style):
         title_frame = tk.Frame(parent)
         title_frame.pack(pady=(8, 0))
-        nasa_label = tk.Label(title_frame, image=self.nasa_logo)
+        nasa_label = tk.Label(title_frame, image=self.nasa_logo, cursor="hand2")
         nasa_label.pack(side=tk.LEFT, padx=1)
         nasa_label.bind("<Button-1>", lambda e: self.open_url("https://www.nasa.gov/"))
         title_label = tk.Label(title_frame, text="Computer Model", font=font_style)
         title_label.pack(side=tk.LEFT, padx=1)
-        mssf_label = tk.Label(title_frame, image=self.mssf_logo)
+        mssf_label = tk.Label(title_frame, image=self.mssf_logo, cursor="hand2")
         mssf_label.pack(side=tk.LEFT, padx=1)
         mssf_label.bind("<Button-1>", lambda e: self.open_url("https://public.ksc.nasa.gov/partnerships/capabilities-and-testing/testing-and-labs/microgravity-simulation-support-facility/"))
 
     def create_mode_frame(self, parent, font_style, category_font_style):
         mode_frame = tk.Frame(parent, padx=1, pady=1)
-        mode_frame.grid(row=0, column=0, padx=20)
+        mode_frame.grid(row=0, column=0, padx=15)
         mode_label_frame = tk.Frame(mode_frame)
         mode_label_frame.pack()
         self.mode_label = tk.Label(mode_label_frame, text="Mode", font=category_font_style)
         self.mode_label.pack(side=tk.LEFT)
-        self.mode_icon = tk.Label(mode_label_frame, image=self.info_icon)
+        self.mode_icon = tk.Label(mode_label_frame, image=self.info_icon, cursor="hand2")
         self.mode_icon.pack(side=tk.LEFT, padx=(1, 0))
         self.mode_icon.bind("<Button-1>", lambda e: self.open_info_link())
         ToolTip(self.mode_icon, "Reference")  
-        self.mode_var = tk.StringVar(value="Spherical Coordinates")
+        self.mode_var = tk.StringVar(value="3D Rigid Body Kinematics")
         menu_button = tk.Menubutton(mode_frame, text="Theoretical", font=font_style, bg="#aeb0b5", activebackground="#d6d7d9", relief=tk.RAISED, pady=6)
         self.mode_menu = tk.Menu(menu_button, tearoff=0)
-        self.mode_menu.config(font=("Calibri", 10), bg="#d6d7d9")
+        self.mode_menu.config(font=("Calibri", 9), bg="#d6d7d9")
         menu_button.config(menu=self.mode_menu)
-        theoretical_menu = tk.Menu(self.mode_menu, tearoff=0)
-        theoretical_menu.config(font=("Calibri", 10), bg="#d6d7d9")
-        self.mode_menu.add_cascade(label="Theoretical", menu=theoretical_menu)
-        theoretical_menu.add_command(label="Mathematical Model", command=None, font=("Calibri", 10, "bold"), foreground="black", activeforeground="black", activebackground="#d6d7d9")
-        theoretical_menu.add_radiobutton(label="Spherical Coordinates", variable=self.mode_var, value="Spherical Coordinates", command=lambda: self.switch_mode("Spherical Coordinates"))
-        theoretical_menu.add_radiobutton(label="3D Rigid Body Kinematics", variable=self.mode_var, value="3D Rigid Body Kinematics", command=lambda: self.switch_mode("3D Rigid Body Kinematics"))
+        self.mode_menu.add_radiobutton(label="Theoretical", variable=self.mode_var, value="3D Rigid Body Kinematics", command=lambda: self.switch_mode("3D Rigid Body Kinematics"))
         self.mode_menu.add_radiobutton(label="Experimental", variable=self.mode_var, value="Experimental", command=lambda: self.switch_mode("Experimental"))
         menu_button.pack()
 
     def create_frame_velocities_frame(self, parent, font_style, category_font_style):
         self.frame_velocities_frame = tk.Frame(parent, padx=1, pady=1)
-        self.frame_velocities_frame.grid(row=0, column=1, padx=20)
-        tk.Label(self.frame_velocities_frame, text="Frame Velocities (rpm)", font=category_font_style).pack()
+        self.frame_velocities_frame.grid(row=0, column=1, padx=15)
+        tk.Label(self.frame_velocities_frame, text="Angular Velocity (rpm)", font=category_font_style).pack()
         operating_input_frame = tk.Frame(self.frame_velocities_frame)
         operating_input_frame.pack()
         self.inner_velocity_label = tk.Label(operating_input_frame, text="Inner:", font=font_style)
         self.inner_velocity_label.pack(side=tk.LEFT)
-        self.inner_velocity_entry = tk.Entry(operating_input_frame, font=font_style, width=10)
+        self.inner_velocity_entry = tk.Entry(operating_input_frame, font=font_style, width=5)
         self.inner_velocity_entry.pack(side=tk.LEFT)
         self.outer_velocity_label = tk.Label(operating_input_frame, text="Outer:", font=font_style)
         self.outer_velocity_label.pack(side=tk.LEFT, padx=(10, 0))
-        self.outer_velocity_entry = tk.Entry(operating_input_frame, font=font_style, width=10)
+        self.outer_velocity_entry = tk.Entry(operating_input_frame, font=font_style, width=5)
         self.outer_velocity_entry.pack(side=tk.LEFT)
+    
+    def create_angular_positions_frame(self, parent, font_style, category_font_style):
+        self.angular_positions_frame = tk.Frame(parent, padx=1, pady=1)
+        self.angular_positions_frame.grid(row=0, column=2, padx=15)
+        tk.Label(self.angular_positions_frame, text="Initial Angular Position (deg)", font=category_font_style).pack()
+        initial_position_input_frame = tk.Frame(self.angular_positions_frame)
+        initial_position_input_frame.pack()
+        self.inner_position_label = tk.Label(initial_position_input_frame, text="Inner:", font=font_style)
+        self.inner_position_label.pack(side=tk.LEFT)
+        self.inner_position_entry = tk.Entry(initial_position_input_frame, font=font_style, width=5)
+        self.inner_position_entry.pack(side=tk.LEFT)
+        self.outer_position_label = tk.Label(initial_position_input_frame, text="Outer:", font=font_style)
+        self.outer_position_label.pack(side=tk.LEFT, padx=(10, 0))
+        self.outer_position_entry = tk.Entry(initial_position_input_frame, font=font_style, width=5)
+        self.outer_position_entry.pack(side=tk.LEFT)
 
     def create_distance_frame(self, parent, font_style, category_font_style):
         self.distance_frame = tk.Frame(parent, padx=1, pady=1)
-        self.distance_frame.grid(row=0, column=2, padx=20)
+        self.distance_frame.grid(row=0, column=3, padx=15)
         tk.Label(self.distance_frame, text="Distance from Center (cm)", font=category_font_style).pack()
-        self.distance_entry = tk.Entry(self.distance_frame, font=font_style)
+        self.distance_entry = tk.Entry(self.distance_frame, font=font_style, width=20)
         self.distance_entry.pack()
 
     def create_simulation_duration_frame(self, parent, font_style, category_font_style):
         self.simulation_duration_frame = tk.Frame(parent, padx=1, pady=1)
-        self.simulation_duration_frame.grid(row=0, column=3, padx=20)
+        self.simulation_duration_frame.grid(row=0, column=4, padx=15)
         tk.Label(self.simulation_duration_frame, text="Simulation Duration (hours)", font=category_font_style).pack()
-        self.simulation_duration_entry = tk.Entry(self.simulation_duration_frame, font=font_style)
+        self.simulation_duration_entry = tk.Entry(self.simulation_duration_frame, font=font_style, width=20)
         self.simulation_duration_entry.pack()
 
     def create_time_period_analysis_frame(self, parent, font_style, category_font_style):
         self.time_period_analysis_frame = tk.Frame(parent, padx=1, pady=1)
-        self.time_period_analysis_frame.grid(row=0, column=4, padx=20)
+        self.time_period_analysis_frame.grid(row=0, column=5, padx=15)
         tk.Label(self.time_period_analysis_frame, text="Time Period of Analysis (hours)", font=category_font_style).pack()
         analysis_period_frame = tk.Frame(self.time_period_analysis_frame)
         analysis_period_frame.pack()
@@ -214,7 +228,7 @@ class GUI:
 
     def create_time_period_analysis_exp_frame(self, parent, font_style, category_font_style):
         self.time_period_analysis_exp_frame = tk.Frame(parent, padx=1, pady=1)
-        self.time_period_analysis_exp_frame.grid(row=0, column=5, padx=20)
+        self.time_period_analysis_exp_frame.grid(row=0, column=5, padx=15)
         self.time_period_analysis_exp_frame.grid_remove()
         tk.Label(self.time_period_analysis_exp_frame, text="Time Period of Analysis (hours)", font=category_font_style).pack()
         analysis_period_frame_exp = tk.Frame(self.time_period_analysis_exp_frame)
@@ -227,7 +241,7 @@ class GUI:
 
     def create_start_button(self, parent, font_style):
         self.start_button = tk.Button(parent, text="Start", command=self.start_simulation, font=font_style, bg="#0066b2", fg="#ffffff", activebackground="#3380cc", activeforeground="#ffffff")
-        self.start_button.grid(row=1, column=0, columnspan=5, pady=(10, 5))
+        self.start_button.grid(row=1, column=0, columnspan=6, pady=(10, 5))
 
     def create_accelerometer_data_frame(self, parent, font_style, category_font_style):
         self.accelerometer_data_frame = tk.Frame(parent, padx=1, pady=1)
@@ -245,7 +259,7 @@ class GUI:
         self.notebook.add(self.gravitational_acceleration_frame, text="Gravitational Acceleration")
         self.notebook.add(self.acceleration_distribution_frame, text="Acceleration Distribution")
         rcParams['font.family'] = 'Calibri'
-        rcParams['font.size'] = 10
+        rcParams['font.size'] = 9
         self.setup_gravitational_acceleration_plot()
         self.setup_acceleration_distribution_plots()
         self.clear_plots()
@@ -373,9 +387,11 @@ class GUI:
                         raise ValueError("No data available to export.")
                     inner_rpm = self.last_inner_velocity
                     outer_rpm = self.last_outer_velocity
+                    theta_1_init = self.last_inner_position if self.last_inner_position is not None else 0.0
+                    theta_2_init = self.last_outer_position if self.last_outer_position is not None else 0.0
                     delta_m = self.last_distance / 100
                     duration_hours = self.last_simulation_duration
-                    rigid_body = RigidBody(inner_rpm, outer_rpm, delta_m, delta_m, delta_m, duration_hours)
+                    rigid_body = RigidBody(inner_rpm, outer_rpm, delta_m, delta_m, delta_m, duration_hours, theta_1_init, theta_2_init)
                     time_array, g_array, _, _ = rigid_body.calculate_acceleration()
                     x_data, y_data, z_data = g_array[0], g_array[1], g_array[2]
                     time_data = time_array / 3600
@@ -439,9 +455,9 @@ class GUI:
         self.acceleration_distribution_analysis_toolbar.update()
 
     def configure_3d_axes(self, ax, title):
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
+        ax.set_xlabel('X (g)')
+        ax.set_ylabel('Y (g)')
+        ax.set_zlabel('Z (g)')
         ax.set_xlim(-1, 1)
         ax.set_ylim(1, -1)
         ax.set_zlim(-1, 1)
@@ -455,7 +471,7 @@ class GUI:
         style.theme_create("yummy", parent="alt", settings={
             "TNotebook": {"configure": {"tabmargins": [1, 0, 0, 0], "background": "#f1f1f1"}},
             "TNotebook.Tab": {
-                "configure": {"padding": [5, 1], "background": "#aeb0b5", "font": ("Calibri", 12), "focuscolor": ""},
+                "configure": {"padding": [5, 1], "background": "#aeb0b5", "font": ("Calibri", 11), "focuscolor": ""},
                 "map": {"background": [("selected", "#d6d7d9")], "expand": [("selected", [1, 1, 1, 0])]}
             }
         })
@@ -508,11 +524,12 @@ class GUI:
 
     def show_experimental_inputs(self):
         self.frame_velocities_frame.grid_remove()
+        self.angular_positions_frame.grid_remove()
         self.distance_frame.grid_remove()
         self.simulation_duration_frame.grid_remove()
         self.time_period_analysis_frame.grid_remove()
-        self.time_period_analysis_exp_frame.grid(row=0, column=2, padx=20)
-        self.accelerometer_data_frame.grid(row=0, column=1, padx=20)
+        self.time_period_analysis_exp_frame.grid(row=0, column=2, padx=15)
+        self.accelerometer_data_frame.grid(row=0, column=1, padx=15)
         self.start_button.grid(row=1, column=0, columnspan=3, pady=(10, 5))
         if hasattr(self, 'rigid_body_tabs_created') and self.rigid_body_tabs_created:
             self.notebook.forget(self.rigid_body_gravitational_acceleration_frame)
@@ -526,12 +543,13 @@ class GUI:
 
     def show_3d_rigid_body_inputs(self):
         self.frame_velocities_frame.grid()
+        self.angular_positions_frame.grid()
         self.distance_frame.grid()
         self.simulation_duration_frame.grid()
         self.time_period_analysis_frame.grid()
         self.time_period_analysis_exp_frame.grid_remove()
         self.accelerometer_data_frame.grid_remove()
-        self.start_button.grid(row=1, column=0, columnspan=5, pady=(10, 5))
+        self.start_button.grid(row=1, column=0, columnspan=6, pady=(10, 5))
         self.notebook.forget(self.gravitational_acceleration_frame)
         self.notebook.forget(self.acceleration_distribution_frame)
         if not hasattr(self, 'rigid_body_tabs_created') or not self.rigid_body_tabs_created:
@@ -695,7 +713,7 @@ class GUI:
                 time_data = self.rigid_body_non_gravitational_acceleration_ax.lines[0].get_xdata()
                 with open(file_path, mode='w', newline='') as file:
                     writer = csv.writer(file)
-                    writer.writerow(["Time (hours)", "X", "Y", "Z"]) 
+                    writer.writerow(["Time (hours)", "X (g)", "Y (g)", "Z (g)"]) 
                     for time, x, y, z in zip(time_data, x_data, y_data, z_data):
                         writer.writerow([time, x, y, z])
             
@@ -877,6 +895,8 @@ class GUI:
             self.last_mode = self.mode_var.get()
             self.last_inner_velocity = float(self.inner_velocity_entry.get()) if self.inner_velocity_entry.get() else None
             self.last_outer_velocity = float(self.outer_velocity_entry.get()) if self.outer_velocity_entry.get() else None
+            self.last_inner_position = float(self.inner_position_entry.get()) if self.inner_position_entry.get() else None
+            self.last_outer_position = float(self.outer_position_entry.get()) if self.outer_position_entry.get() else None
             self.last_simulation_duration = float(self.simulation_duration_entry.get()) if self.simulation_duration_entry.get() else None
             self.last_distance = float(self.distance_entry.get()) if self.distance_entry.get() else None
             self.last_experimental_data = getattr(self, 'experimental_data', None)
@@ -1031,10 +1051,12 @@ class GUI:
 
         inner_rpm = float(self.inner_velocity_entry.get())
         outer_rpm = float(self.outer_velocity_entry.get())
+        theta_1_init = float(self.inner_position_entry.get()) if self.inner_position_entry.get() else 0.0
+        theta_2_init = float(self.outer_position_entry.get()) if self.outer_position_entry.get() else 0.0
         delta_m = delta_cm / 100  
         delta_x, delta_y, delta_z = delta_m, delta_m, delta_m  
 
-        rigid_body = RigidBody(inner_rpm, outer_rpm, delta_x, delta_y, delta_z, duration_hours)
+        rigid_body = RigidBody(inner_rpm, outer_rpm, delta_x, delta_y, delta_z, duration_hours, theta_1_init, theta_2_init)
         time_array, g_array, a_array, _ = rigid_body.calculate_acceleration()
         g_x_avg = np.cumsum(g_array[0]) / np.arange(1, len(g_array[0]) + 1)
         g_y_avg = np.cumsum(g_array[1]) / np.arange(1, len(g_array[1]) + 1)
