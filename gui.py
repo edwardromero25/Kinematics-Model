@@ -2,6 +2,7 @@
 
 import csv
 import os
+import re
 import webbrowser
 import matplotlib
 import matplotlib.animation as animation
@@ -17,9 +18,14 @@ import tkinter.ttk as ttk
 from tkinter import messagebox, filedialog
 from math_model import MathModel
 from path_visualization import PathVisualization
-from input_validation import validate_float, validate_positive_float
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
+
+def validate_float(value):
+    return re.fullmatch(r"-?\d*\.?\d*", value) is not None
+
+def validate_positive_float(value):
+    return re.fullmatch(r"\d*\.?\d*", value) is not None
 
 class CustomToolbar(NavigationToolbar2Tk):
     def __init__(self, canvas, parent, export_magnitude_callback=None, export_components_callback=None, export_distribution_callback=None, export_animation_callback=None):
@@ -925,7 +931,7 @@ class GUI:
         end_analysis = float(end_analysis) if end_analysis else None
         if start_analysis and end_analysis:
             if end_analysis <= start_analysis:
-                raise ValueError("Upper bound for time period of analysis must be greater than the lower bound.")
+                raise ValueError("Lower bound for time period of analysis must be < the upper bound.")
             datetime_str = []
             for k in range(0, len(self.experimental_data) - 4, 5):
                 try:
@@ -935,7 +941,7 @@ class GUI:
                 datetime_str.append(dt)
             time_in_hours = [(dt - datetime_str[0]).total_seconds() / 3600 for dt in datetime_str]
             if end_analysis > max(time_in_hours):
-                raise ValueError("Upper bound for time period of analysis exceeds the final timestamp in the CSV.")
+                raise ValueError("Upper bound for time period of analysis exceeds the final timestamp available in the CSV.")
         self.process_experimental_data(self.experimental_data, start_analysis, end_analysis)
 
     def process_theoretical_data(self):
@@ -946,6 +952,14 @@ class GUI:
 
         if not all([self.inner_velocity_entry.get(), self.outer_velocity_entry.get(), self.simulation_duration_entry.get()]):
             raise ValueError("Set angular velocities and simulation duration.")
+        
+        if start_analysis is not None and end_analysis is not None:
+            if end_analysis <= start_analysis:
+                raise ValueError("Lower bound for time period of analysis must be < the upper bound.")
+            
+            simulation_duration = float(self.simulation_duration_entry.get())
+            if end_analysis > simulation_duration:
+                raise ValueError("Upper bound for time period of analysis must be ≤ the simulation duration.")
 
         duration_hours = float(self.simulation_duration_entry.get())
         delta_cm = float(self.distance_entry.get()) if self.distance_entry.get() else 0.0  
