@@ -17,6 +17,7 @@ import tkinter.ttk as ttk
 from tkinter import messagebox, filedialog
 from math_model import MathModel
 from path_visualization import PathVisualization
+from input_validation import validate_float, validate_positive_float
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -84,6 +85,7 @@ class GUI:
         self.master.title("Microgravity Simulation Support Facility - NASA")
         self.master.configure(bg="#f1f1f1")
         self.current_mode = "Theoretical"
+        self.register_validations()
         self.setup_gui_elements()
         self.setup_plot_frames()
         self.show_theoretical_inputs()
@@ -167,6 +169,10 @@ class GUI:
         self.mode_menu.add_radiobutton(label="Experimental", variable=self.mode_var, value="Experimental", command=lambda: self.switch_mode("Experimental"))
         menu_button.pack()
 
+    def register_validations(self):
+        self.validate_float_cmd = self.master.register(validate_float)
+        self.validate_positive_float_cmd = self.master.register(validate_positive_float)
+
     def create_theoretical_input_frames(self, parent, font_style, category_font_style):
         self.theoretical_angular_velocity_frame = tk.Frame(parent, padx=1, pady=1)
         self.theoretical_angular_velocity_frame.grid(row=0, column=1, padx=15)
@@ -175,11 +181,11 @@ class GUI:
         velocity_input_frame.pack()
         self.inner_velocity_label = tk.Label(velocity_input_frame, text="Inner:", font=font_style)
         self.inner_velocity_label.pack(side=tk.LEFT)
-        self.inner_velocity_entry = tk.Entry(velocity_input_frame, font=font_style, width=5)
+        self.inner_velocity_entry = tk.Entry(velocity_input_frame, font=font_style, width=5, validate="key", validatecommand=(self.validate_float_cmd, "%P"))
         self.inner_velocity_entry.pack(side=tk.LEFT)
         self.outer_velocity_label = tk.Label(velocity_input_frame, text="Outer:", font=font_style)
         self.outer_velocity_label.pack(side=tk.LEFT, padx=(10, 0))
-        self.outer_velocity_entry = tk.Entry(velocity_input_frame, font=font_style, width=5)
+        self.outer_velocity_entry = tk.Entry(velocity_input_frame, font=font_style, width=5, validate="key", validatecommand=(self.validate_float_cmd, "%P"))
         self.outer_velocity_entry.pack(side=tk.LEFT)
 
         self.theoretical_angular_position_frame = tk.Frame(parent, padx=1, pady=1)
@@ -189,23 +195,23 @@ class GUI:
         position_input_frame.pack()
         self.inner_position_label = tk.Label(position_input_frame, text="Inner:", font=font_style)
         self.inner_position_label.pack(side=tk.LEFT)
-        self.inner_position_entry = tk.Entry(position_input_frame, font=font_style, width=5)
+        self.inner_position_entry = tk.Entry(position_input_frame, font=font_style, width=5, validate="key", validatecommand=(self.validate_float_cmd, "%P"))
         self.inner_position_entry.pack(side=tk.LEFT)
         self.outer_position_label = tk.Label(position_input_frame, text="Outer:", font=font_style)
         self.outer_position_label.pack(side=tk.LEFT, padx=(10, 0))
-        self.outer_position_entry = tk.Entry(position_input_frame, font=font_style, width=5)
+        self.outer_position_entry = tk.Entry(position_input_frame, font=font_style, width=5, validate="key", validatecommand=(self.validate_float_cmd, "%P"))
         self.outer_position_entry.pack(side=tk.LEFT)
 
         self.theoretical_distance_frame = tk.Frame(parent, padx=1, pady=1)
         self.theoretical_distance_frame.grid(row=0, column=3, padx=15)
         tk.Label(self.theoretical_distance_frame, text="Distance from Center (cm)", font=category_font_style).pack()
-        self.distance_entry = tk.Entry(self.theoretical_distance_frame, font=font_style, width=20)
+        self.distance_entry = tk.Entry(self.theoretical_distance_frame, font=font_style, width=20, validate="key", validatecommand=(self.validate_positive_float_cmd, "%P"))
         self.distance_entry.pack()
 
         self.theoretical_duration_frame = tk.Frame(parent, padx=1, pady=1)
         self.theoretical_duration_frame.grid(row=0, column=4, padx=15)
         tk.Label(self.theoretical_duration_frame, text="Simulation Duration (hours)", font=category_font_style).pack()
-        self.simulation_duration_entry = tk.Entry(self.theoretical_duration_frame, font=font_style, width=20)
+        self.simulation_duration_entry = tk.Entry(self.theoretical_duration_frame, font=font_style, width=20, validate="key", validatecommand=(self.validate_positive_float_cmd, "%P"))
         self.simulation_duration_entry.pack()
 
         self.theoretical_analysis_period_frame = tk.Frame(parent, padx=1, pady=1)
@@ -213,10 +219,10 @@ class GUI:
         tk.Label(self.theoretical_analysis_period_frame, text="Time Period of Analysis (hours)", font=category_font_style).pack()
         analysis_period_frame = tk.Frame(self.theoretical_analysis_period_frame)
         analysis_period_frame.pack()
-        self.start_analysis_theo_entry = tk.Entry(analysis_period_frame, font=font_style, width=10)
+        self.start_analysis_theo_entry = tk.Entry(analysis_period_frame, font=font_style, width=10, validate="key", validatecommand=(self.validate_positive_float_cmd, "%P"))
         self.start_analysis_theo_entry.pack(side=tk.LEFT)
         tk.Label(analysis_period_frame, text="-", font=font_style).pack(side=tk.LEFT)
-        self.end_analysis_theo_entry = tk.Entry(analysis_period_frame, font=font_style, width=10)
+        self.end_analysis_theo_entry = tk.Entry(analysis_period_frame, font=font_style, width=10, validate="key", validatecommand=(self.validate_positive_float_cmd, "%P"))
         self.end_analysis_theo_entry.pack(side=tk.LEFT)
 
     def create_experimental_input_frames(self, parent, font_style, category_font_style):
@@ -231,10 +237,10 @@ class GUI:
         tk.Label(self.experimental_analysis_period_frame, text="Time Period of Analysis (hours)", font=category_font_style).pack()
         analysis_period_frame_exp = tk.Frame(self.experimental_analysis_period_frame)
         analysis_period_frame_exp.pack()
-        self.start_analysis_exp_entry = tk.Entry(analysis_period_frame_exp, font=font_style, width=10)
+        self.start_analysis_exp_entry = tk.Entry(analysis_period_frame_exp, font=font_style, width=10, validate="key", validatecommand=(self.validate_positive_float_cmd, "%P"))
         self.start_analysis_exp_entry.pack(side=tk.LEFT)
         tk.Label(analysis_period_frame_exp, text="-", font=font_style).pack(side=tk.LEFT)
-        self.end_analysis_exp_entry = tk.Entry(analysis_period_frame_exp, font=font_style, width=10)
+        self.end_analysis_exp_entry = tk.Entry(analysis_period_frame_exp, font=font_style, width=10, validate="key", validatecommand=(self.validate_positive_float_cmd, "%P"))
         self.end_analysis_exp_entry.pack(side=tk.LEFT)
 
     def create_start_button(self, parent, font_style):
@@ -918,10 +924,8 @@ class GUI:
         start_analysis = float(start_analysis) if start_analysis else None
         end_analysis = float(end_analysis) if end_analysis else None
         if start_analysis and end_analysis:
-            if start_analysis < 0 or end_analysis < 0:
-                raise ValueError("Time values must be positive.")
             if end_analysis <= start_analysis:
-                raise ValueError("Upper bound for analysis period must be greater than the lower bound.")
+                raise ValueError("Upper bound for time period of analysis must be greater than the lower bound.")
             datetime_str = []
             for k in range(0, len(self.experimental_data) - 4, 5):
                 try:
@@ -931,7 +935,7 @@ class GUI:
                 datetime_str.append(dt)
             time_in_hours = [(dt - datetime_str[0]).total_seconds() / 3600 for dt in datetime_str]
             if end_analysis > max(time_in_hours):
-                raise ValueError("Upper bound for analysis period exceeds the final timestamp in the CSV.")
+                raise ValueError("Upper bound for time period of analysis exceeds the final timestamp in the CSV.")
         self.process_experimental_data(self.experimental_data, start_analysis, end_analysis)
 
     def process_theoretical_data(self):
@@ -940,25 +944,11 @@ class GUI:
         start_analysis = float(start_analysis) if start_analysis else None
         end_analysis = float(end_analysis) if end_analysis else None
 
-        if start_analysis and end_analysis:
-            if start_analysis < 0 or end_analysis < 0:
-                raise ValueError("Time values must be positive.")
-            if end_analysis <= start_analysis:
-                raise ValueError("Upper bound for analysis period must be greater than the lower bound.")
-            if end_analysis > float(self.simulation_duration_entry.get()):
-                raise ValueError("Upper bound for analysis period must be less than or equal to the simulation duration.")
-
         if not all([self.inner_velocity_entry.get(), self.outer_velocity_entry.get(), self.distance_entry.get(), self.simulation_duration_entry.get()]):
-            raise ValueError("Set frame velocities, distance, and simulation duration.")
+            raise ValueError("Set angular velocities, distance from center, and simulation duration.")
 
         duration_hours = float(self.simulation_duration_entry.get())
-        if duration_hours <= 0:
-            raise ValueError("Simulation duration must be positive.")
-
         delta_cm = float(self.distance_entry.get())
-        if delta_cm < 0:
-            raise ValueError("Distance must be positive.")
-
         inner_rpm = float(self.inner_velocity_entry.get())
         outer_rpm = float(self.outer_velocity_entry.get())
         theta_1_init = float(self.inner_position_entry.get()) if self.inner_position_entry.get() else 0.0
