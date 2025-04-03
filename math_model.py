@@ -1,6 +1,6 @@
 import numpy as np
 
-class RigidBody:
+class MathModel:
     def __init__(self, inner_rpm, outer_rpm, delta_x, delta_y, delta_z, duration_hours, theta_1_init, theta_2_init):
         self.inner_rpm = inner_rpm  
         self.outer_rpm = outer_rpm 
@@ -13,19 +13,19 @@ class RigidBody:
         self.pi_over_30 = np.pi / 30 
         self.g = np.array([[0], [0], [-9.8]]) 
 
-    def rpm_to_rad_sec(self, rpm):
-        return rpm * self.pi_over_30
-    
     def deg_to_rad(self, degrees):
         return np.radians(degrees)
+    
+    def rpm_to_rad_sec(self, rpm):
+        return rpm * self.pi_over_30
 
     def calculate_acceleration(self):
-        inner_rad_sec = self.rpm_to_rad_sec(self.inner_rpm) 
-        outer_rad_sec = self.rpm_to_rad_sec(self.outer_rpm)  
-
         start_time_in_seconds = 0
         end_time_in_seconds = int(self.duration_hours * 3600) 
         time_array = np.arange(start_time_in_seconds, end_time_in_seconds + 1)
+
+        inner_rad_sec = self.rpm_to_rad_sec(self.inner_rpm) 
+        outer_rad_sec = self.rpm_to_rad_sec(self.outer_rpm)  
 
         theta_1 = inner_rad_sec * time_array + self.theta_1_init  
         theta_2 = outer_rad_sec * time_array + self.theta_2_init 
@@ -68,6 +68,4 @@ class RigidBody:
         a_prime = np.einsum('ijk,jk->ik', R_y_T, np.einsum('ijk,jk->ik', R_x_T, a)) / 9.8
         g_prime = np.einsum('ijk,jk->ik', R_y_T, np.einsum('ijk,jk->ik', R_x_T, self.g)) / 9.8
 
-        a_tot_prime = a_prime + g_prime 
-
-        return time_array, g_prime, a_prime, a_tot_prime
+        return time_array, g_prime, a_prime

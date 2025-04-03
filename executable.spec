@@ -2,12 +2,12 @@
 
 import os
 import sys
-block_cipher = None
 
+block_cipher = None
 project_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 
 a = Analysis(
-    [os.path.join(project_dir, 'gui.py')],
+    scripts=[os.path.join(project_dir, 'gui.py')],
     pathex=[project_dir],
     binaries=[],
     datas=[
@@ -16,7 +16,7 @@ a = Analysis(
         (os.path.join(project_dir, 'images/NASA_logo.png'), 'images'),
         (os.path.join(project_dir, 'images/info.png'), 'images'),
         (os.path.join(project_dir, 'spherical_coordinates.py'), '.'),
-        (os.path.join(project_dir, 'rigid_body.py'), '.'),
+        (os.path.join(project_dir, 'math_model.py'), '.'),
         (os.path.join(project_dir, 'ffmpeg/avcodec-61.dll'), 'ffmpeg'),
         (os.path.join(project_dir, 'ffmpeg/avdevice-61.dll'), 'ffmpeg'),
         (os.path.join(project_dir, 'ffmpeg/avfilter-10.dll'), 'ffmpeg'),
@@ -35,6 +35,7 @@ a = Analysis(
     win_private_assemblies=False,
     cipher=block_cipher,
 )
+
 pyz = PYZ(a.pure)
 
 exe = EXE(

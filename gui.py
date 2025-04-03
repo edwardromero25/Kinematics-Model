@@ -12,7 +12,7 @@ from matplotlib import rcParams
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from PIL import Image, ImageTk
 from spherical_coordinates import DataProcessor, PathVisualization
-from rigid_body import RigidBody
+from math_model import MathModel
 import matplotlib.animation as animation
 import csv
 from matplotlib.backend_bases import MouseEvent
@@ -391,7 +391,7 @@ class GUI:
                     theta_2_init = self.last_outer_position if self.last_outer_position is not None else 0.0
                     delta_m = self.last_distance / 100
                     duration_hours = self.last_simulation_duration
-                    rigid_body = RigidBody(inner_rpm, outer_rpm, delta_m, delta_m, delta_m, duration_hours, theta_1_init, theta_2_init)
+                    rigid_body = MathModel(inner_rpm, outer_rpm, delta_m, delta_m, delta_m, duration_hours, theta_1_init, theta_2_init)
                     time_array, g_array, _, _ = rigid_body.calculate_acceleration()
                     x_data, y_data, z_data = g_array[0], g_array[1], g_array[2]
                     time_data = time_array / 3600
@@ -1056,8 +1056,8 @@ class GUI:
         delta_m = delta_cm / 100  
         delta_x, delta_y, delta_z = delta_m, delta_m, delta_m  
 
-        rigid_body = RigidBody(inner_rpm, outer_rpm, delta_x, delta_y, delta_z, duration_hours, theta_1_init, theta_2_init)
-        time_array, g_array, a_array, _ = rigid_body.calculate_acceleration()
+        rigid_body = MathModel(inner_rpm, outer_rpm, delta_x, delta_y, delta_z, duration_hours, theta_1_init, theta_2_init)
+        time_array, g_array, a_array = rigid_body.calculate_acceleration()
         g_x_avg = np.cumsum(g_array[0]) / np.arange(1, len(g_array[0]) + 1)
         g_y_avg = np.cumsum(g_array[1]) / np.arange(1, len(g_array[1]) + 1)
         g_z_avg = np.cumsum(g_array[2]) / np.arange(1, len(g_array[2]) + 1)
