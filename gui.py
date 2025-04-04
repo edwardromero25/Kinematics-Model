@@ -9,6 +9,7 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from matplotlib.animation import FFMpegWriter
+from matplotlib.ticker import ScalarFormatter
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import numpy as np
 from dateutil import parser
@@ -61,9 +62,11 @@ class CustomToolbar(NavigationToolbar2Tk):
             self.export_animation_callback()
 
 class ToolTip:
-    def __init__(self, widget, text):
+    def __init__(self, widget, text, x_offset, y_offset):
         self.widget = widget
         self.text = text
+        self.x_offset = x_offset
+        self.y_offset = y_offset
         self.tip_window = None
         self.widget.bind("<Enter>", self.show_tooltip)
         self.widget.bind("<Leave>", self.hide_tooltip)
@@ -72,8 +75,8 @@ class ToolTip:
         if self.tip_window or not self.text:
             return
         x, y, _, _ = self.widget.bbox("insert")
-        x += self.widget.winfo_rootx() + 20
-        y += self.widget.winfo_rooty() + 0
+        x += self.widget.winfo_rootx() + self.x_offset
+        y += self.widget.winfo_rooty() + self.y_offset
         self.tip_window = tw = tk.Toplevel(self.widget)
         tw.wm_overrideredirect(True)
         tw.wm_geometry(f"+{x}+{y}")
@@ -140,6 +143,8 @@ class GUI:
         self.favicon = ImageTk.PhotoImage(file=os.path.join(SCRIPT_DIR, 'images', 'favicon.ico'))
         info_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'info.png')).resize((16, 16), Image.LANCZOS)
         self.info_icon = ImageTk.PhotoImage(info_image)
+        asterisk_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'asterisk.png')).resize((9, 10), Image.LANCZOS)
+        self.asterisk_icon = ImageTk.PhotoImage(asterisk_image)
 
     def create_title_frame(self, parent, font_style):
         title_frame = tk.Frame(parent)
@@ -164,9 +169,9 @@ class GUI:
         self.mode_label.pack(side=tk.LEFT)
 
         self.mode_icon = tk.Label(mode_label_frame, image=self.info_icon, cursor="hand2")
-        self.mode_icon.pack(side=tk.LEFT, padx=(1, 0))
+        self.mode_icon.pack(side=tk.LEFT, padx=(0, 0))
         self.mode_icon.bind("<Button-1>", lambda e: self.open_info_link())
-        ToolTip(self.mode_icon, "Reference")
+        ToolTip(self.mode_icon, "Reference", x_offset=20, y_offset=0)
 
         self.mode_var = tk.StringVar(value="Theoretical")
         menu_button = tk.Menubutton(mode_frame, text="Theoretical", font=font_style, bg="#aeb0b5", activebackground="#d6d7d9", relief=tk.RAISED, pady=6)
@@ -184,7 +189,15 @@ class GUI:
     def create_theoretical_input_frames(self, parent, font_style, category_font_style):
         self.theoretical_angular_velocity_frame = tk.Frame(parent, padx=1, pady=1)
         self.theoretical_angular_velocity_frame.grid(row=0, column=1, padx=15)
-        tk.Label(self.theoretical_angular_velocity_frame, text="Angular Velocity (rpm)", font=category_font_style).pack()
+        
+        velocity_label_frame = tk.Frame(self.theoretical_angular_velocity_frame)
+        velocity_label_frame.pack()
+        tk.Label(velocity_label_frame, text="Angular Velocity (rpm)", font=category_font_style).pack(side=tk.LEFT)
+        
+        velocity_asterisk_icon = tk.Label(velocity_label_frame, image=self.asterisk_icon)
+        velocity_asterisk_icon.pack(side=tk.LEFT, padx=(0, 0))
+        ToolTip(velocity_asterisk_icon, "Required", x_offset=13, y_offset=-3)
+        
         velocity_input_frame = tk.Frame(self.theoretical_angular_velocity_frame)
         velocity_input_frame.pack()
         self.inner_velocity_label = tk.Label(velocity_input_frame, text="Inner:", font=font_style)
@@ -218,7 +231,14 @@ class GUI:
 
         self.theoretical_duration_frame = tk.Frame(parent, padx=1, pady=1)
         self.theoretical_duration_frame.grid(row=0, column=4, padx=15)
-        tk.Label(self.theoretical_duration_frame, text="Simulation Duration (h)", font=category_font_style).pack()
+        duration_label_frame = tk.Frame(self.theoretical_duration_frame)
+        duration_label_frame.pack()
+        tk.Label(duration_label_frame, text="Simulation Duration (h)", font=category_font_style).pack(side=tk.LEFT)
+       
+        duration_asterisk_icon = tk.Label(duration_label_frame, image=self.asterisk_icon)
+        duration_asterisk_icon.pack(side=tk.LEFT, padx=(0, 0))
+        ToolTip(duration_asterisk_icon, "Required", x_offset=13, y_offset=-3)
+        
         self.simulation_duration_entry = tk.Entry(self.theoretical_duration_frame, font=font_style, width=20, validate="key", validatecommand=(self.validate_positive_float_cmd, "%P"))
         self.simulation_duration_entry.pack()
 
@@ -235,7 +255,16 @@ class GUI:
 
     def create_experimental_input_frames(self, parent, font_style, category_font_style):
         self.experimental_data_frame = tk.Frame(parent, padx=1, pady=1)
-        tk.Label(self.experimental_data_frame, text="Accelerometer Data", font=category_font_style).pack()
+        self.experimental_data_frame.grid(row=0, column=1, padx=15)
+        
+        data_label_frame = tk.Frame(self.experimental_data_frame)
+        data_label_frame.pack()
+        tk.Label(data_label_frame, text="Accelerometer Data", font=category_font_style).pack(side=tk.LEFT)
+        
+        data_asterisk_icon = tk.Label(data_label_frame, image=self.asterisk_icon)
+        data_asterisk_icon.pack(side=tk.LEFT, padx=(0, 0))
+        ToolTip(data_asterisk_icon, "Required", x_offset=13, y_offset=-3)
+        
         self.upload_file_button = tk.Button(self.experimental_data_frame, text="Upload File (CSV)", command=self.import_data, font=font_style, bg="#aeb0b5", activebackground="#d6d7d9")
         self.upload_file_button.pack()
 
@@ -1060,14 +1089,14 @@ class GUI:
             avg_a_magnitude_analysis = np.mean(a_magnitude[start_index:end_index])
             self.theoretical_non_g_acceleration_ax.plot(time_in_hours[start_index:end_index], a_magnitude[start_index:end_index], color='#EC1C24', label=f"Magnitude: {avg_a_magnitude_analysis:.3g}")
 
-        y_min = np.min(a_magnitude)
-        y_max = np.max(a_magnitude)
-        self.theoretical_non_g_acceleration_ax.set_ylim(y_min, y_max)
         self.theoretical_non_g_acceleration_ax.legend()
         self.theoretical_non_g_acceleration_ax.set_xlim(left=0, right=time_in_hours[-1])
         self.theoretical_non_g_acceleration_ax.set_xlabel('Time (h)')
         self.theoretical_non_g_acceleration_ax.set_ylabel('Acceleration (g)')
-        self.theoretical_non_g_acceleration_ax.yaxis.set_major_formatter(plt.ScalarFormatter(useMathText=True))
+        formatter = ScalarFormatter(useMathText=True)
+        formatter.set_scientific(True)
+        formatter.set_useOffset(False)
+        self.theoretical_non_g_acceleration_ax.yaxis.set_major_formatter(formatter)
         self.theoretical_non_g_acceleration_ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
         self.theoretical_non_g_acceleration_canvas.draw()
 
@@ -1082,11 +1111,11 @@ class GUI:
         self.theoretical_non_g_components_ax.set_xlim(left=0, right=time_in_hours[-1])
         self.theoretical_non_g_components_ax.set_xlabel('Time (h)')
         self.theoretical_non_g_components_ax.set_ylabel('Acceleration (g)')
-        self.theoretical_non_g_components_ax.yaxis.set_major_formatter(plt.ScalarFormatter(useMathText=True))
+        formatter = ScalarFormatter(useMathText=True)
+        formatter.set_scientific(True)
+        formatter.set_useOffset(False)
+        self.theoretical_non_g_components_ax.yaxis.set_major_formatter(formatter)
         self.theoretical_non_g_components_ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
-        y_min = min(np.min(a_x_avg), np.min(a_y_avg), np.min(a_z_avg))
-        y_max = max(np.max(a_x_avg), np.max(a_y_avg), np.max(a_z_avg))
-        self.theoretical_non_g_components_ax.set_ylim(y_min, y_max)
         self.theoretical_non_g_components_canvas.draw()
 
     def update_theoretical_acceleration_distribution_plot(self, g_array, time_array):

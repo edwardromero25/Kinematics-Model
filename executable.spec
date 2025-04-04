@@ -15,6 +15,7 @@ a = Analysis(
         (os.path.join(project_dir, 'images/MSSF_logo.png'), 'images'),
         (os.path.join(project_dir, 'images/NASA_logo.png'), 'images'),
         (os.path.join(project_dir, 'images/info.png'), 'images'),
+        (os.path.join(project_dir, 'images/asterisk.png'), 'images'),
         (os.path.join(project_dir, 'path_visualization.py'), '.'),
         (os.path.join(project_dir, 'math_model.py'), '.'),
         (os.path.join(project_dir, 'ffmpeg/avcodec-61.dll'), 'ffmpeg'),
