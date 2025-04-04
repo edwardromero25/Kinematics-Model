@@ -980,7 +980,23 @@ class GUI:
                     raise ValueError("Lower bound for time period of analysis must be < the upper bound.")
 
             self.process_experimental_data(self.experimental_data, start_analysis, end_analysis)
-        except (ValueError, IndexError) as e:
+        except ValueError as ve:
+            if "Upload a CSV file" in str(ve):
+                messagebox.showerror("Error", str(ve))
+            elif "Upper bound for time period of analysis" in str(ve):
+                messagebox.showerror("Error", str(ve))
+            elif "Lower bound for time period of analysis" in str(ve):
+                messagebox.showerror("Error", str(ve))
+            else:
+                messagebox.showerror(
+                    "Error",
+                    "Invalid CSV file format. Expected:\n"
+                    "Date (M-D-Y), Time (H:M:S), X, Y, Z\n"
+                    "\n"
+                    "Example:\n"
+                    "11-21-2001, 12:00:00, 0.5, 0.5, 0.5"
+                )
+        except IndexError:
             messagebox.showerror(
                 "Error",
                 "Invalid CSV file format. Expected:\n"
