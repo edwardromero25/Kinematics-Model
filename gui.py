@@ -954,30 +954,43 @@ class GUI:
             messagebox.showerror("Error", str(e))
 
     def process_experimental_data_submission(self):
-        if not hasattr(self, 'experimental_data') or not self.experimental_data:
-            raise ValueError("Upload a CSV file.")
-        start_analysis = self.start_analysis_exp_entry.get()
-        end_analysis = self.end_analysis_exp_entry.get()
-        start_analysis = float(start_analysis) if start_analysis else None
-        end_analysis = float(end_analysis) if end_analysis else None
+        try:
+            if not hasattr(self, 'experimental_data') or not self.experimental_data:
+                raise ValueError("Upload a CSV file.")
+            
+            start_analysis = self.start_analysis_exp_entry.get()
+            end_analysis = self.end_analysis_exp_entry.get()
+            start_analysis = float(start_analysis) if start_analysis else None
+            end_analysis = float(end_analysis) if end_analysis else None
 
-        datetime_str = []
-        for k in range(0, len(self.experimental_data) - 4, 5):
-            try:
-                dt = parser.parse(self.experimental_data[k] + " " + self.experimental_data[k + 1])
-            except ValueError:
-                dt = parser.parse(self.experimental_data[k + 1] + " " + self.experimental_data[k])
-            datetime_str.append(dt)
-        time_in_hours = [(dt - datetime_str[0]).total_seconds() / 3600 for dt in datetime_str]
+            datetime_str = []
+            for k in range(0, len(self.experimental_data) - 4, 5):
+                try:
+                    dt = parser.parse(self.experimental_data[k] + " " + self.experimental_data[k + 1])
+                except ValueError:
+                    dt = parser.parse(self.experimental_data[k + 1] + " " + self.experimental_data[k])
+                datetime_str.append(dt)
+            time_in_hours = [(dt - datetime_str[0]).total_seconds() / 3600 for dt in datetime_str]
 
-        if end_analysis is not None:
-            if end_analysis > max(time_in_hours):
-                raise ValueError("Upper bound for time period of analysis exceeds the final timestamp available in the CSV.")
-        if start_analysis is not None and end_analysis is not None:
-            if end_analysis <= start_analysis:
-                raise ValueError("Lower bound for time period of analysis must be < the upper bound.")
+            if end_analysis is not None:
+                if end_analysis > max(time_in_hours):
+                    raise ValueError("Upper bound for time period of analysis exceeds the final timestamp available in the CSV.")
+            if start_analysis is not None and end_analysis is not None:
+                if end_analysis <= start_analysis:
+                    raise ValueError("Lower bound for time period of analysis must be < the upper bound.")
 
-        self.process_experimental_data(self.experimental_data, start_analysis, end_analysis)
+            self.process_experimental_data(self.experimental_data, start_analysis, end_analysis)
+        except (ValueError, IndexError) as e:
+            messagebox.showerror(
+                "Error",
+                "Invalid CSV file format. Expected:\n"
+                "Date (M-D-Y), Time (H:M:S), X, Y, Z\n"
+                "\n"
+                "Example:\n"
+                "11-21-2001, 12:00:00, 0.5, 0.5, 0.5"
+            )
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
 
     def process_theoretical_data(self):
         start_analysis = self.start_analysis_theo_entry.get()
