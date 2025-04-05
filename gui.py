@@ -864,7 +864,6 @@ class GUI:
     def update_experimental_plots(self, x, y, z, time_in_hours, start_analysis, end_analysis, distribution_score):
         self.experimental_g_acceleration_ax_left.clear()
         self.experimental_g_acceleration_ax_left.set_title("Time-Averaged Gravitational Acceleration")
-        self.experimental_g_acceleration_ax_left.set_xlim(left=0, right=time_in_hours[-1])
 
         x_time_avg = np.cumsum(x) / np.arange(1, len(x) + 1)
         y_time_avg = np.cumsum(y) / np.arange(1, len(y) + 1)
@@ -885,9 +884,6 @@ class GUI:
         self.experimental_g_acceleration_ax_left.legend()
         self.experimental_g_acceleration_ax_left.set_xlabel('Time (h)')
         self.experimental_g_acceleration_ax_left.set_ylabel('Acceleration (g)')
-        y_min = np.min(magnitude)
-        y_max = np.max(magnitude)
-        self.experimental_g_acceleration_ax_left.set_ylim(y_min, y_max)
         self.experimental_g_acceleration_canvas_left.draw()
 
         self.experimental_g_acceleration_ax_right.clear()
@@ -895,12 +891,8 @@ class GUI:
         self.experimental_g_acceleration_ax_right.plot(time_in_hours, x_time_avg, label='X', color='#6EAE39')
         self.experimental_g_acceleration_ax_right.plot(time_in_hours, y_time_avg, label='Y', color='#EF7A35')
         self.experimental_g_acceleration_ax_right.plot(time_in_hours, z_time_avg, label='Z', color='mediumorchid')
-        self.experimental_g_acceleration_ax_right.set_xlim(left=0, right=time_in_hours[-1])
         self.experimental_g_acceleration_ax_right.set_xlabel('Time (h)')
         self.experimental_g_acceleration_ax_right.set_ylabel('Acceleration (g)')
-        y_min = min(np.min(x_time_avg), np.min(y_time_avg), np.min(z_time_avg))
-        y_max = max(np.max(x_time_avg), np.max(y_time_avg), np.max(z_time_avg))
-        self.experimental_g_acceleration_ax_right.set_ylim(y_min, y_max)
         self.experimental_g_acceleration_ax_right.legend()
         self.experimental_g_acceleration_canvas_right.draw()
 
@@ -1074,11 +1066,7 @@ class GUI:
             avg_g_magnitude_analysis = np.mean(g_magnitude[start_index:end_index])
             self.theoretical_g_acceleration_ax.plot(time_in_hours[start_index:end_index], g_magnitude[start_index:end_index], color='#EC1C24', label=f"Magnitude: {avg_g_magnitude_analysis:.3g}")
 
-        y_min = np.min(g_magnitude)
-        y_max = np.max(g_magnitude)
-        self.theoretical_g_acceleration_ax.set_ylim(y_min, y_max)
         self.theoretical_g_acceleration_ax.legend()
-        self.theoretical_g_acceleration_ax.set_xlim(left=0, right=time_in_hours[-1])
         self.theoretical_g_acceleration_ax.set_xlabel('Time (h)')
         self.theoretical_g_acceleration_ax.set_ylabel('Acceleration (g)')
         self.theoretical_g_acceleration_canvas.draw()
@@ -1091,12 +1079,8 @@ class GUI:
         self.theoretical_g_components_ax.plot(time_in_hours, g_y_avg, label='Y', color='#EF7A35')
         self.theoretical_g_components_ax.plot(time_in_hours, g_z_avg, label='Z', color='mediumorchid')
         self.theoretical_g_components_ax.legend()
-        self.theoretical_g_components_ax.set_xlim(left=0, right=time_in_hours[-1])
         self.theoretical_g_components_ax.set_xlabel('Time (h)')
         self.theoretical_g_components_ax.set_ylabel('Acceleration (g)')
-        y_min = min(np.min(g_x_avg), np.min(g_y_avg), np.min(g_z_avg))
-        y_max = max(np.max(g_x_avg), np.max(g_y_avg), np.max(g_z_avg))
-        self.theoretical_g_components_ax.set_ylim(y_min, y_max)
         self.theoretical_g_components_canvas.draw()
 
     def update_theoretical_non_g_acceleration_plot(self, time_array, a_magnitude, avg_a_magnitude):
@@ -1119,7 +1103,6 @@ class GUI:
             self.theoretical_non_g_acceleration_ax.plot(time_in_hours[start_index:end_index], a_magnitude[start_index:end_index], color='#EC1C24', label=f"Magnitude: {avg_a_magnitude_analysis:.3g}")
 
         self.theoretical_non_g_acceleration_ax.legend()
-        self.theoretical_non_g_acceleration_ax.set_xlim(left=0, right=time_in_hours[-1])
         self.theoretical_non_g_acceleration_ax.set_xlabel('Time (h)')
         self.theoretical_non_g_acceleration_ax.set_ylabel('Acceleration (g)')
         formatter = ScalarFormatter(useMathText=True)
@@ -1136,7 +1119,6 @@ class GUI:
         self.theoretical_non_g_components_ax.plot(time_in_hours, a_y_avg, label='Y', color='#EF7A35')
         self.theoretical_non_g_components_ax.plot(time_in_hours, a_z_avg, label='Z', color='mediumorchid')
         self.theoretical_non_g_components_ax.legend()
-        self.theoretical_non_g_components_ax.set_xlim(left=0, right=time_in_hours[-1])
         self.theoretical_non_g_components_ax.set_xlabel('Time (h)')
         self.theoretical_non_g_components_ax.set_ylabel('Acceleration (g)')
         formatter = ScalarFormatter(useMathText=True)

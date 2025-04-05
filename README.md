@@ -12,7 +12,7 @@
   <img src="images/example.png" alt="example" style="max-width: 100%; height: auto;">
 </div>
 
-I developed this Python-based GUI application to enable space biology investigators to validate that their ground-based simulators achieve microgravity and partial gravity.
+I developed this Python-based GUI application to enable space biology investigators to validate that their ground-based simulators achieve microgravity, partial gravity, and hypergravity.
 
 ## Built With
 
