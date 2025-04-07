@@ -265,7 +265,7 @@ class GUI:
         data_asterisk_icon.pack(side=tk.LEFT, padx=(0, 0))
         ToolTip(data_asterisk_icon, "Required", x_offset=13, y_offset=-3)
         
-        self.upload_file_button = tk.Button(self.experimental_data_frame, text="Upload File (CSV)", command=self.import_data, font=font_style, bg="#aeb0b5", activebackground="#d6d7d9")
+        self.upload_file_button = tk.Button(self.experimental_data_frame, text="Upload CSV File", command=self.import_data, font=font_style, bg="#aeb0b5", activebackground="#d6d7d9")
         self.upload_file_button.pack()
 
         self.experimental_analysis_period_frame = tk.Frame(parent, padx=1, pady=1)
