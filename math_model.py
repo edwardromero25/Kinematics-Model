@@ -11,7 +11,7 @@ class MathModel:
         self.theta_1_init = self.deg_to_rad(theta_1_init)  
         self.theta_2_init = self.deg_to_rad(theta_2_init)  
         self.pi_over_30 = np.pi / 30 
-        self.g = np.array([[0], [0], [-9.8]]) 
+        self.g = np.array([[0], [0], [9.8]]) 
 
     def deg_to_rad(self, degrees):
         return np.radians(degrees)
