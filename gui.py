@@ -503,7 +503,7 @@ class GUI:
 
     def open_info_link(self):
         if self.current_mode == "Theoretical":
-            webbrowser.open("https://biomedical-engineering-online.biomedcentral.com/articles/10.1186/s12938-017-0337-8")
+            webbrowser.open("https://rdcu.be/eg58N")
 
     def switch_mode(self, mode):
         if self.current_mode == mode:
