@@ -32,13 +32,13 @@ class CustomToolbar(NavigationToolbar2Tk):
     def __init__(self, canvas, parent, export_magnitude_callback=None, export_components_callback=None, export_distribution_callback=None, export_animation_callback=None):
         self.toolitems = list(NavigationToolbar2Tk.toolitems)
         if export_magnitude_callback:
-            self.toolitems.append(("ExportMagnitude", "Export data to CSV", "csv", "export_magnitude_data"))
+            self.toolitems.append(("ExportMagnitude", "Export data to CSV file", "csv", "export_magnitude_data"))
         if export_components_callback:
-            self.toolitems.append(("ExportComponents", "Export data to CSV", "csv", "export_components_data"))
+            self.toolitems.append(("ExportComponents", "Export data to CSV file", "csv", "export_components_data"))
         if export_distribution_callback:
-            self.toolitems.append(("ExportDistribution", "Export data to CSV", "csv", "export_distribution_data"))
+            self.toolitems.append(("ExportDistribution", "Export data to CSV file", "csv", "export_distribution_data"))
         if export_animation_callback:
-            self.toolitems.append(("ExportAnimation", "Export animation to MP4", "mp4", "export_animation_data"))
+            self.toolitems.append(("ExportAnimation", "Export animation to MP4 file", "mp4", "export_animation_data"))
         super().__init__(canvas, parent)
         self.export_magnitude_callback = export_magnitude_callback
         self.export_components_callback = export_components_callback
@@ -718,18 +718,22 @@ class GUI:
                 elif self.last_mode == "Experimental":
                     if not self.experimental_acceleration_distribution_analysis_ax.lines:
                         raise ValueError("No data available to export.")
-                    datetime_str = []
-                    x_data, y_data, z_data = [], [], []
-                    for k in range(0, len(self.last_experimental_data) - 4, 5):
-                        try:
-                            dt = parser.parse(self.last_experimental_data[k] + " " + self.last_experimental_data[k + 1])
-                        except ValueError:
-                            dt = parser.parse(self.last_experimental_data[k + 1] + " " + self.last_experimental_data[k])
-                        datetime_str.append(dt)
-                        x_data.append(float(self.last_experimental_data[k + 2]))
-                        y_data.append(float(self.last_experimental_data[k + 3]))
-                        z_data.append(float(self.last_experimental_data[k + 4]))
-                    time_data = [(dt - datetime_str[0]).total_seconds() / 3600 for dt in datetime_str]
+                    
+                    if isinstance(self.last_experimental_data, tuple): 
+                        time_data, x_data, y_data, z_data = self.last_experimental_data
+                    else: 
+                        datetime_str = []
+                        x_data, y_data, z_data = [], [], []
+                        for k in range(0, len(self.last_experimental_data) - 4, 5):
+                            try:
+                                dt = parser.parse(self.last_experimental_data[k] + " " + self.last_experimental_data[k + 1])
+                            except ValueError:
+                                dt = parser.parse(self.last_experimental_data[k + 1] + " " + self.last_experimental_data[k])
+                            datetime_str.append(dt)
+                            x_data.append(float(self.last_experimental_data[k + 2]))
+                            y_data.append(float(self.last_experimental_data[k + 3]))
+                            z_data.append(float(self.last_experimental_data[k + 4]))
+                        time_data = [(dt - datetime_str[0]).total_seconds() / 3600 for dt in datetime_str]
 
                 start_index = next(i for i, t in enumerate(time_data) if t >= start_analysis)
                 end_index = next(i for i, t in enumerate(time_data) if t >= end_analysis)
@@ -817,32 +821,83 @@ class GUI:
         file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
         if file_path:
             try:
-                with open(file_path, 'r') as file:
-                    main_array = file.read().replace("   ", " ").replace('\t', ' ').replace('\n', ' ').replace(',', ' ').split(' ')
-                self.experimental_data = main_array
-                messagebox.showinfo("Success", "CSV file uploaded successfully.")
+                try:
+                    self.experimental_data = import_sci_spinner_format_data(file_path)
+                    messagebox.showinfo("Success", "CSV file uploaded successfully.")
+                except ValueError:
+                    with open(file_path, 'r') as file:
+                        main_array = file.read().replace("   ", " ").replace('\t', ' ').replace('\n', ' ').replace(',', ' ').split(' ')
+                    self.experimental_data = main_array
+                    messagebox.showinfo("Success", "CSV file uploaded successfully.")
             except FileNotFoundError:
                 messagebox.showerror("File Error", f"File not found: {file_path}")
             except Exception as e:
                 messagebox.showerror("Error", str(e))
 
-    def process_experimental_data(self, main_array, start_analysis, end_analysis):
-        datetime_str = []
-        x, y, z = [], [], []
-        for k in range(0, len(main_array) - 4, 5):
-            try:
-                dt = parser.parse(main_array[k] + " " + main_array[k + 1])
-            except ValueError:
-                dt = parser.parse(main_array[k + 1] + " " + main_array[k])
-            datetime_str.append(dt)
-            x.append(float(main_array[k + 2]))
-            y.append(float(main_array[k + 3]))
-            z.append(float(main_array[k + 4]))
-        time_in_seconds = [(dt - datetime_str[0]).total_seconds() for dt in datetime_str]
-        time_in_hours = [t / 3600 for t in time_in_seconds]
+    def process_experimental_data(self, main_array, start_analysis, end_analysis, is_sci_spinner_format=False):
+        if is_sci_spinner_format:
+            time_in_hours, x, y, z = main_array
+        else:
+            datetime_str = []
+            x, y, z = [], [], []
+            for k in range(0, len(main_array) - 4, 5):
+                try:
+                    dt = parser.parse(main_array[k] + " " + main_array[k + 1])
+                except ValueError:
+                    dt = parser.parse(main_array[k + 1] + " " + main_array[k])
+                datetime_str.append(dt)
+                x.append(float(main_array[k + 2]))
+                y.append(float(main_array[k + 3]))
+                z.append(float(main_array[k + 4]))
+            time_in_seconds = [(dt - datetime_str[0]).total_seconds() for dt in datetime_str]
+            time_in_hours = [t / 3600 for t in time_in_seconds]
+
+        if end_analysis is not None:
+            if end_analysis > max(time_in_hours):
+                raise ValueError("Upper bound for time period of analysis exceeds the final timestamp available in the CSV file.")
+        if start_analysis is not None and end_analysis is not None:
+            if end_analysis <= start_analysis:
+                raise ValueError("Lower bound for time period of analysis must be < the upper bound.")
+
         path_vis = PathVisualization("experimental", x, y, z)
         distribution_score = path_vis.get_distribution()
         self.update_experimental_plots(x, y, z, time_in_hours, start_analysis, end_analysis, distribution_score)
+
+    def process_experimental_data_submission(self):
+        try:
+            if not hasattr(self, 'experimental_data') or not self.experimental_data:
+                raise ValueError("Upload a CSV file.")
+
+            start_analysis = self.start_analysis_exp_entry.get()
+            end_analysis = self.end_analysis_exp_entry.get()
+            start_analysis = float(start_analysis) if start_analysis else None
+            end_analysis = float(end_analysis) if end_analysis else None
+
+            if isinstance(self.experimental_data, tuple): 
+                self.process_experimental_data(self.experimental_data, start_analysis, end_analysis, is_sci_spinner_format=True)
+            else:
+                self.process_experimental_data(self.experimental_data, start_analysis, end_analysis)
+
+        except ValueError as ve:
+            if "Upload a CSV file" in str(ve):
+                messagebox.showerror("Error", str(ve))
+            elif "Upper bound for time period of analysis" in str(ve):
+                messagebox.showerror("Error", str(ve))
+            elif "Lower bound for time period of analysis" in str(ve):
+                messagebox.showerror("Error", str(ve))
+            else:
+                messagebox.showerror(
+                    "Error",
+                    "Invalid CSV file format.\n\n"
+                    "Accepts:\n"
+                    "(1) Date (yyyy-mm-dd), Time (hh:mm:ss), X, Y, Z\n"
+                    "    Example: 2001-11-21, 12:00:00, 0.5, 0.5, 0.5\n\n"
+                    "OR\n\n"
+                    "(2) Time (s), X, Y, Z\n"
+                    "    Example: 3600, 0.5, 0.5, 0.5"
+                )
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
 
     def animate_distribution(self, ax, canvas, x_data, y_data, z_data, color, label):
         ax.clear()
@@ -942,61 +997,6 @@ class GUI:
 
         except ValueError as ve:
             messagebox.showerror("Error", str(ve))
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
-
-    def process_experimental_data_submission(self):
-        try:
-            if not hasattr(self, 'experimental_data') or not self.experimental_data:
-                raise ValueError("Upload a CSV file.")
-            
-            start_analysis = self.start_analysis_exp_entry.get()
-            end_analysis = self.end_analysis_exp_entry.get()
-            start_analysis = float(start_analysis) if start_analysis else None
-            end_analysis = float(end_analysis) if end_analysis else None
-
-            datetime_str = []
-            for k in range(0, len(self.experimental_data) - 4, 5):
-                try:
-                    dt = parser.parse(self.experimental_data[k] + " " + self.experimental_data[k + 1])
-                except ValueError:
-                    dt = parser.parse(self.experimental_data[k + 1] + " " + self.experimental_data[k])
-                datetime_str.append(dt)
-            time_in_hours = [(dt - datetime_str[0]).total_seconds() / 3600 for dt in datetime_str]
-
-            if end_analysis is not None:
-                if end_analysis > max(time_in_hours):
-                    raise ValueError("Upper bound for time period of analysis exceeds the final timestamp available in the CSV.")
-            if start_analysis is not None and end_analysis is not None:
-                if end_analysis <= start_analysis:
-                    raise ValueError("Lower bound for time period of analysis must be < the upper bound.")
-
-            self.process_experimental_data(self.experimental_data, start_analysis, end_analysis)
-        except ValueError as ve:
-            if "Upload a CSV file" in str(ve):
-                messagebox.showerror("Error", str(ve))
-            elif "Upper bound for time period of analysis" in str(ve):
-                messagebox.showerror("Error", str(ve))
-            elif "Lower bound for time period of analysis" in str(ve):
-                messagebox.showerror("Error", str(ve))
-            else:
-                messagebox.showerror(
-                    "Error",
-                    "Invalid CSV file format. Expected:\n"
-                    "Date (M-D-Y), Time (H:M:S), X, Y, Z\n"
-                    "\n"
-                    "Example:\n"
-                    "11-21-2001, 12:00:00, 0.5, 0.5, 0.5"
-                )
-        except IndexError:
-            messagebox.showerror(
-                "Error",
-                "Invalid CSV file format. Expected:\n"
-                "Date (M-D-Y), Time (H:M:S), X, Y, Z\n"
-                "\n"
-                "Example:\n"
-                "11-21-2001, 12:00:00, 0.5, 0.5, 0.5"
-            )
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
@@ -1161,6 +1161,45 @@ class GUI:
 
     def open_url(self, url):
         webbrowser.open_new(url)
+
+def import_sci_spinner_format_data(file_path):
+    try:
+        time_in_seconds = []
+        x = []
+        y = []
+        z = []
+
+        with open(file_path, 'r') as file:
+            csv_reader = csv.DictReader(file)
+            for row in csv_reader:
+                time_in_seconds.append(float(row['timestamp']))
+                x.append(float(row['x_acc']))
+                y.append(float(row['y_acc']))
+                z.append(float(row['z_acc']))
+
+        time_in_hours = [t / 3600 for t in time_in_seconds]
+
+        def normalize_vectors(x, y, z):
+            g_const = 9.80665
+            normalized_x = np.array(x) / g_const
+            normalized_y = np.array(y) / g_const
+            normalized_z = np.array(z) / g_const
+            return normalized_x, normalized_y, normalized_z
+
+        x, y, z = normalize_vectors(x, y, z)
+        return time_in_hours, x, y, z
+
+    except KeyError:
+        raise ValueError(
+            "Error",
+            "Invalid CSV file format.\n\n"
+            "Accepts:\n"
+            "(1) Date (yyyy-mm-dd), Time (hh:mm:ss), X, Y, Z\n"
+            "    Example: 2001-11-21, 12:00:00, 0.5, 0.5, 0.5\n\n"
+            "OR\n\n"
+            "(2) Time (s), X, Y, Z\n"
+            "    Example: 3600, 0.5, 0.5, 0.5"
+        )
 
 if __name__ == "__main__":
     root = tk.Tk()
