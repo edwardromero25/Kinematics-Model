@@ -852,6 +852,19 @@ class GUI:
             time_in_seconds = [(dt - datetime_str[0]).total_seconds() for dt in datetime_str]
             time_in_hours = [t / 3600 for t in time_in_seconds]
 
+        if not time_in_hours or not any(x) or not any(y) or not any(z):
+            messagebox.showerror(
+                "Error",
+                "Invalid CSV file format.\n\n"
+                "Supported CSV file formats:\n"
+                "(1) Date (yyyy-mm-dd), Time (hh:mm:ss), X, Y, Z\n"
+                "     Example: 2001-11-21, 12:00:00, 0.5, 0.5, 0.5\n\n"
+                "OR\n\n"
+                "(2) Time (s), X, Y, Z\n"
+                "     Example: 3600, 0.5, 0.5, 0.5"
+            )
+            return
+
         if end_analysis is not None:
             if end_analysis > max(time_in_hours):
                 raise ValueError("Upper bound for time period of analysis exceeds the final timestamp available in the CSV file.")
@@ -891,10 +904,10 @@ class GUI:
                     "Invalid CSV file format.\n\n"
                     "Supported CSV file formats:\n"
                     "(1) Date (yyyy-mm-dd), Time (hh:mm:ss), X, Y, Z\n"
-                    "    Example: 2001-11-21, 12:00:00, 0.5, 0.5, 0.5\n\n"
+                    "     Example: 2001-11-21, 12:00:00, 0.5, 0.5, 0.5\n\n"
                     "OR\n\n"
                     "(2) Time (s), X, Y, Z\n"
-                    "    Example: 3600, 0.5, 0.5, 0.5"
+                    "     Example: 3600, 0.5, 0.5, 0.5"
                 )
         except Exception as e:
             messagebox.showerror("Error", str(e))
@@ -1195,10 +1208,10 @@ def import_sci_spinner_format_data(file_path):
             "Invalid CSV file format.\n\n"
             "Supported CSV file formats:\n"
             "(1) Date (yyyy-mm-dd), Time (hh:mm:ss), X, Y, Z\n"
-            "    Example: 2001-11-21, 12:00:00, 0.5, 0.5, 0.5\n\n"
+            "     Example: 2001-11-21, 12:00:00, 0.5, 0.5, 0.5\n\n"
             "OR\n\n"
             "(2) Time (s), X, Y, Z\n"
-            "    Example: 3600, 0.5, 0.5, 0.5"
+            "     Example: 3600, 0.5, 0.5, 0.5"
         )
 
 if __name__ == "__main__":
