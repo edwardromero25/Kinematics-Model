@@ -889,7 +889,7 @@ class GUI:
                 messagebox.showerror(
                     "Error",
                     "Invalid CSV file format.\n\n"
-                    "Accepts:\n"
+                    "Supported CSV file formats:\n"
                     "(1) Date (yyyy-mm-dd), Time (hh:mm:ss), X, Y, Z\n"
                     "    Example: 2001-11-21, 12:00:00, 0.5, 0.5, 0.5\n\n"
                     "OR\n\n"
@@ -1193,7 +1193,7 @@ def import_sci_spinner_format_data(file_path):
         raise ValueError(
             "Error",
             "Invalid CSV file format.\n\n"
-            "Accepts:\n"
+            "Supported CSV file formats:\n"
             "(1) Date (yyyy-mm-dd), Time (hh:mm:ss), X, Y, Z\n"
             "    Example: 2001-11-21, 12:00:00, 0.5, 0.5, 0.5\n\n"
             "OR\n\n"
