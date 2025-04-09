@@ -708,7 +708,7 @@ class GUI:
                     outer_rpm = self.last_outer_velocity
                     theta_1_init = self.last_inner_position if self.last_inner_position is not None else 0.0
                     theta_2_init = self.last_outer_position if self.last_outer_position is not None else 0.0
-                    delta_m = self.last_distance / 100
+                    delta_m = self.last_distance / 100 if self.last_distance is not None else 0.0
                     duration_hours = self.last_simulation_duration
                     theoretical_model = MathModel(inner_rpm, outer_rpm, delta_m, delta_m, delta_m, duration_hours, theta_1_init, theta_2_init)
                     time_array, g_array, _ = theoretical_model.calculate_acceleration()
