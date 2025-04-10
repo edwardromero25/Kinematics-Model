@@ -482,7 +482,7 @@ class GUI:
         ax.set_xlabel('X (g)')
         ax.set_ylabel('Y (g)')
         ax.set_zlabel('Z (g)')
-        ax.set_xlim(-1, 1)
+        ax.set_xlim(1, -1)
         ax.set_ylim(1, -1)
         ax.set_zlim(-1, 1)
         ax.set_xticks([-1, -0.5, 0, 0.5, 1])
@@ -490,6 +490,18 @@ class GUI:
         ax.set_zticks([-1, -0.5, 0, 0.5, 1])
         ax.set_title(title)
         ax.set_box_aspect([1, 1, 1])
+        ax.grid(False)
+
+        ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0)) 
+        ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))  
+        ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))  
+
+        u = np.linspace(0, 2 * np.pi, 25)
+        v = np.linspace(0, np.pi, 25)
+        x = np.outer(np.cos(u), np.sin(v))
+        y = np.outer(np.sin(u), np.sin(v))
+        z = np.outer(np.ones(np.size(u)), np.cos(v))
+        ax.plot_wireframe(x, y, z, color='#aeb0b5', linewidth=0.5, alpha=0.5, label='_nolegend_')
 
     def create_custom_theme(self):
         style = ttk.Style()
