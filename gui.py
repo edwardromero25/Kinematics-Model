@@ -38,7 +38,7 @@ class CustomToolbar(NavigationToolbar2Tk):
         if export_distribution_callback:
             self.toolitems.append(("ExportDistribution", "Export the data to a CSV file", "export", "export_distribution_data"))
         if export_animation_callback:
-            self.toolitems.append(("ExportAnimation", "Export the animation to a MP4 file", "export", "export_animation_data"))
+            self.toolitems.append(("ExportAnimation", "Export the animation to an MP4 file", "export", "export_animation_data"))
         super().__init__(canvas, parent)
         self.export_magnitude_callback = export_magnitude_callback
         self.export_components_callback = export_components_callback
