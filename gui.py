@@ -305,7 +305,7 @@ class GUI:
 
         self.notebook.add(self.theoretical_g_acceleration_frame, text="Gravitational Acceleration")
         self.notebook.add(self.theoretical_non_g_acceleration_frame, text="Non-Gravitational Acceleration")
-        self.notebook.add(self.theoretical_acceleration_distribution_frame, text="Acceleration Distribution")
+        self.notebook.add(self.theoretical_acceleration_distribution_frame, text="Orientation Distribution")
 
         self.theoretical_g_acceleration_frame_left = tk.Frame(self.theoretical_g_acceleration_frame, borderwidth=1, relief=tk.SOLID)
         self.theoretical_g_acceleration_frame_left.grid(row=0, column=0, sticky="nsew")
@@ -393,13 +393,13 @@ class GUI:
 
         self.theoretical_acceleration_distribution_figure = plt.Figure()
         self.theoretical_acceleration_distribution_ax = self.theoretical_acceleration_distribution_figure.add_subplot(1, 1, 1, projection='3d')
-        self.configure_3d_axes(self.theoretical_acceleration_distribution_ax, "Acceleration Distribution")
+        self.configure_3d_axes(self.theoretical_acceleration_distribution_ax, "Orientation Distribution")
         self.theoretical_acceleration_distribution_canvas = FigureCanvasTkAgg(self.theoretical_acceleration_distribution_figure, self.theoretical_acceleration_distribution_frame_left)
         self.theoretical_acceleration_distribution_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
         self.theoretical_acceleration_distribution_analysis_figure = plt.Figure()
         self.theoretical_acceleration_distribution_analysis_ax = self.theoretical_acceleration_distribution_analysis_figure.add_subplot(1, 1, 1, projection='3d')
-        self.configure_3d_axes(self.theoretical_acceleration_distribution_analysis_ax, "Acceleration Distribution")
+        self.configure_3d_axes(self.theoretical_acceleration_distribution_analysis_ax, "Orientation Distribution")
         self.theoretical_acceleration_distribution_analysis_canvas = FigureCanvasTkAgg(self.theoretical_acceleration_distribution_analysis_figure, self.theoretical_acceleration_distribution_frame_right)
         self.theoretical_acceleration_distribution_analysis_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
@@ -463,13 +463,13 @@ class GUI:
 
         self.experimental_acceleration_distribution_figure = plt.Figure()
         self.experimental_acceleration_distribution_ax = self.experimental_acceleration_distribution_figure.add_subplot(1, 1, 1, projection='3d')
-        self.configure_3d_axes(self.experimental_acceleration_distribution_ax, "Acceleration Distribution")
+        self.configure_3d_axes(self.experimental_acceleration_distribution_ax, "Orientation Distribution")
         self.experimental_acceleration_distribution_canvas = FigureCanvasTkAgg(self.experimental_acceleration_distribution_figure, self.experimental_acceleration_distribution_frame_left)
         self.experimental_acceleration_distribution_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
         self.experimental_acceleration_distribution_analysis_figure = plt.Figure()
         self.experimental_acceleration_distribution_analysis_ax = self.experimental_acceleration_distribution_analysis_figure.add_subplot(1, 1, 1, projection='3d')
-        self.configure_3d_axes(self.experimental_acceleration_distribution_analysis_ax, "Acceleration Distribution")
+        self.configure_3d_axes(self.experimental_acceleration_distribution_analysis_ax, "Orientation Distribution")
         self.experimental_acceleration_distribution_analysis_canvas = FigureCanvasTkAgg(self.experimental_acceleration_distribution_analysis_figure, self.experimental_acceleration_distribution_frame_right)
         self.experimental_acceleration_distribution_analysis_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
@@ -548,7 +548,7 @@ class GUI:
 
         self.notebook.add(self.theoretical_g_acceleration_frame, text="Gravitational Acceleration")
         self.notebook.add(self.theoretical_non_g_acceleration_frame, text="Non-Gravitational Acceleration")
-        self.notebook.add(self.theoretical_acceleration_distribution_frame, text="Acceleration Distribution")
+        self.notebook.add(self.theoretical_acceleration_distribution_frame, text="Orientation Distribution")
         self.clear_theoretical_plots()
 
     def show_experimental_inputs(self):
@@ -565,7 +565,7 @@ class GUI:
             self.notebook.forget(0)
 
         self.notebook.add(self.experimental_g_acceleration_frame, text="Gravitational Acceleration")
-        self.notebook.add(self.experimental_acceleration_distribution_frame, text="Acceleration Distribution")
+        self.notebook.add(self.experimental_acceleration_distribution_frame, text="Orientation Distribution")
         self.clear_experimental_plots()
 
     def export_theoretical_g_magnitude_data(self):
@@ -759,11 +759,11 @@ class GUI:
 
                 fig = plt.Figure(figsize=(8, 6), dpi=100)
                 ax = fig.add_subplot(111, projection='3d')
-                self.configure_3d_axes(ax, "Acceleration Distribution")
+                self.configure_3d_axes(ax, "Orientation Distribution")
 
                 def update(num):
                     ax.clear()
-                    self.configure_3d_axes(ax, "Acceleration Distribution")
+                    self.configure_3d_axes(ax, "Orientation Distribution")
                     ax.plot(sliced_x[:num], sliced_y[:num], sliced_z[:num], color='#ec1c24', linewidth=1)
                     return ax,
 
@@ -802,11 +802,11 @@ class GUI:
         self.theoretical_non_g_components_canvas.draw()
 
         self.theoretical_acceleration_distribution_ax.clear()
-        self.configure_3d_axes(self.theoretical_acceleration_distribution_ax, "Acceleration Distribution")
+        self.configure_3d_axes(self.theoretical_acceleration_distribution_ax, "Orientation Distribution")
         self.theoretical_acceleration_distribution_canvas.draw()
 
         self.theoretical_acceleration_distribution_analysis_ax.clear()
-        self.configure_3d_axes(self.theoretical_acceleration_distribution_analysis_ax, "Acceleration Distribution")
+        self.configure_3d_axes(self.theoretical_acceleration_distribution_analysis_ax, "Orientation Distribution")
         self.theoretical_acceleration_distribution_analysis_canvas.draw()
 
     def clear_experimental_plots(self):
@@ -823,11 +823,11 @@ class GUI:
         self.experimental_g_acceleration_canvas_right.draw()
 
         self.experimental_acceleration_distribution_ax.clear()
-        self.configure_3d_axes(self.experimental_acceleration_distribution_ax, "Acceleration Distribution")
+        self.configure_3d_axes(self.experimental_acceleration_distribution_ax, "Orientation Distribution")
         self.experimental_acceleration_distribution_canvas.draw()
 
         self.experimental_acceleration_distribution_analysis_ax.clear()
-        self.configure_3d_axes(self.experimental_acceleration_distribution_analysis_ax, "Acceleration Distribution")
+        self.configure_3d_axes(self.experimental_acceleration_distribution_analysis_ax, "Orientation Distribution")
         self.experimental_acceleration_distribution_analysis_canvas.draw()
 
     def import_data(self):
@@ -927,7 +927,7 @@ class GUI:
 
     def animate_distribution(self, ax, canvas, x_data, y_data, z_data, color, label):
         ax.clear()
-        self.configure_3d_axes(ax, "Acceleration Distribution")
+        self.configure_3d_axes(ax, "Orientation Distribution")
         line, = ax.plot([], [], [], color=color, linewidth=1)
 
         path_vis = PathVisualization("animated", x_data, y_data, z_data)
@@ -979,7 +979,7 @@ class GUI:
 
         self.experimental_acceleration_distribution_ax.clear()
         self.experimental_acceleration_distribution_ax.plot(x, y, z, color='#0066b2', linewidth=1)
-        self.configure_3d_axes(self.experimental_acceleration_distribution_ax, "Acceleration Distribution")
+        self.configure_3d_axes(self.experimental_acceleration_distribution_ax, "Orientation Distribution")
         self.experimental_acceleration_distribution_ax.legend([f"Distribution: {distribution_score}"])
         self.experimental_acceleration_distribution_canvas.draw()
 
@@ -998,7 +998,7 @@ class GUI:
                 label=f"Distribution: {distribution_score_analysis}"
             )
         else:
-            self.configure_3d_axes(self.experimental_acceleration_distribution_analysis_ax, "Acceleration Distribution")
+            self.configure_3d_axes(self.experimental_acceleration_distribution_analysis_ax, "Orientation Distribution")
             self.experimental_acceleration_distribution_analysis_canvas.draw()
 
     def start_simulation(self):
@@ -1156,7 +1156,7 @@ class GUI:
     def update_theoretical_acceleration_distribution_plot(self, g_array, time_array):
         self.theoretical_acceleration_distribution_ax.clear()
         self.theoretical_acceleration_distribution_ax.plot(g_array[0], g_array[1], g_array[2], color='#0066b2', linewidth=1)
-        self.configure_3d_axes(self.theoretical_acceleration_distribution_ax, "Acceleration Distribution")
+        self.configure_3d_axes(self.theoretical_acceleration_distribution_ax, "Orientation Distribution")
         distribution_score = PathVisualization("theoretical", g_array[0], g_array[1], g_array[2]).get_distribution()
         self.theoretical_acceleration_distribution_ax.legend([f"Distribution: {distribution_score}"])
         self.theoretical_acceleration_distribution_canvas.draw()
@@ -1182,7 +1182,7 @@ class GUI:
                 label=f"Distribution: {distribution_score_analysis}"
             )
         else:
-            self.configure_3d_axes(self.theoretical_acceleration_distribution_analysis_ax, "Acceleration Distribution")
+            self.configure_3d_axes(self.theoretical_acceleration_distribution_analysis_ax, "Orientation Distribution")
             self.theoretical_acceleration_distribution_analysis_canvas.draw()
 
     def open_url(self, url):
