@@ -704,8 +704,8 @@ class GUI:
                 if self.last_mode == "Theoretical":
                     if not self.theoretical_acceleration_distribution_analysis_ax.lines:
                         raise ValueError("No data available to export.")
-                    inner_rpm = self.last_inner_velocity
-                    outer_rpm = self.last_outer_velocity
+                    inner_rpm = self.last_inner_velocity if self.last_inner_velocity is not None else 0.0
+                    outer_rpm = self.last_outer_velocity if self.last_outer_velocity is not None else 0.0
                     theta_1_init = self.last_inner_position if self.last_inner_position is not None else 0.0
                     theta_2_init = self.last_outer_position if self.last_outer_position is not None else 0.0
                     delta_m = self.last_distance / 100 if self.last_distance is not None else 0.0
@@ -1019,7 +1019,7 @@ class GUI:
         start_analysis = float(start_analysis) if start_analysis else None
         end_analysis = float(end_analysis) if end_analysis else None
 
-        if not all([self.inner_velocity_entry.get(), self.outer_velocity_entry.get(), self.simulation_duration_entry.get()]):
+        if not self.simulation_duration_entry.get() or not any([self.inner_velocity_entry.get(), self.outer_velocity_entry.get()]):
             raise ValueError("Set angular velocities and simulation duration.")
         
         if start_analysis is not None and end_analysis is not None:
@@ -1032,8 +1032,8 @@ class GUI:
 
         duration_hours = float(self.simulation_duration_entry.get())
         delta_cm = float(self.distance_entry.get()) if self.distance_entry.get() else 0.0  
-        inner_rpm = float(self.inner_velocity_entry.get())
-        outer_rpm = float(self.outer_velocity_entry.get())
+        inner_rpm = float(self.inner_velocity_entry.get()) if self.inner_velocity_entry.get() else 0.0
+        outer_rpm = float(self.outer_velocity_entry.get()) if self.outer_velocity_entry.get() else 0.0
         theta_1_init = float(self.inner_position_entry.get()) if self.inner_position_entry.get() else 0.0
         theta_2_init = float(self.outer_position_entry.get()) if self.outer_position_entry.get() else 0.0
         delta_m = delta_cm / 100
