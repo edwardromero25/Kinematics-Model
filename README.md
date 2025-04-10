@@ -1,4 +1,3 @@
-<!-- PROJECT LOGO -->
 <br />
 <div align="center">
   <a href="https://public.ksc.nasa.gov/partnerships/capabilities-and-testing/testing-and-labs/microgravity-simulation-support-facility/">
@@ -12,7 +11,7 @@
   <img src="images/example.png" alt="example" style="max-width: 100%; height: auto;">
 </div>
 
-I developed this Python-based GUI application to enable space biology investigators to validate that their ground-based simulators achieve microgravity, partial gravity, and hypergravity.
+I developed this GUI application to enable space biology investigators to validate that their ground-based simulators achieve microgravity, partial gravity, and hypergravity.
 
 ## Built With
 
@@ -42,8 +41,8 @@ I developed this Python-based GUI application to enable space biology investigat
 
    After creating the executable file, you can run it directly from the output directory (usually `dist/`).
 
-## Acknowledgments
+## References
 
-This project was inspired by:
+1. Kim, Y.J., Jeong, A.J., Kim, M. _et al_. Time-averaged simulated microgravity (taSMG) inhibits proliferation of lymphoma cells, L-540 and HDLM-2, using a 3D clinostat. _BioMed Eng OnLine_ **16**, 48 (2017). https://doi.org/10.1186/s12938-017-0337-8
 
-Kim, Y.J., Jeong, A.J., Kim, M. _et al_. Time-averaged simulated microgravity (taSMG) inhibits proliferation of lymphoma cells, L-540 and HDLM-2, using a 3D clinostat. _BioMed Eng OnLine_ **16**, 48 (2017). https://doi.org/10.1186/s12938-017-0337-8
+2. Clary JL, France CS, Lind K, Shi R, Alexander JS, Richards JT, Scott RS, Wang J, Lu X-H, and Harrison L (2022), Development of an inexpensive 3D clinostat and comparison with other microgravity simulators using Mycobacterium marinum. _Front. Space Technol._ 3:1032610. [doi: 10.3389/frspt.2022.1032610](https://doi.org/10.3389/frspt.2022.1032610)
