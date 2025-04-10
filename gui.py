@@ -489,6 +489,7 @@ class GUI:
         ax.set_yticks([-1, -0.5, 0, 0.5, 1])
         ax.set_zticks([-1, -0.5, 0, 0.5, 1])
         ax.set_title(title)
+        ax.set_box_aspect([1, 1, 1])
 
     def create_custom_theme(self):
         style = ttk.Style()
