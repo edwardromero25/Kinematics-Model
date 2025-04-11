@@ -99,7 +99,7 @@ class GUI:
         self.setup_gui_elements()
         self.setup_plot_frames()
         self.show_theoretical_inputs()
-        self.last_mode = None
+        self.last_mode = "Theoretical"
         self.last_inner_velocity = None
         self.last_outer_velocity = None
         self.last_inner_position = None
