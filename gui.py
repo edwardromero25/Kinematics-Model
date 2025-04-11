@@ -9,7 +9,6 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from matplotlib.animation import FFMpegWriter
-from matplotlib.ticker import ScalarFormatter
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import numpy as np
 from dateutil import parser
@@ -767,7 +766,7 @@ class GUI:
                     ax.plot(sliced_x[:num], sliced_y[:num], sliced_z[:num], color='#ec1c24', linewidth=1)
                     return ax,
 
-                ani = animation.FuncAnimation(fig, update, frames=len(sliced_x), interval=100, blit=False)
+                ani = animation.FuncAnimation(fig, update, frames=len(sliced_x), interval=10, blit=False)
                 writer = FFMpegWriter(fps=10, metadata=dict(artist='NASA'), bitrate=1800)
                 ani.save(file_path, writer=writer)
 
@@ -939,7 +938,7 @@ class GUI:
             return line,
 
         ax.legend([f"Distribution: {distribution_score}"])
-        ani = animation.FuncAnimation(ax.figure, update, frames=len(x_data), interval=100, blit=False)
+        ani = animation.FuncAnimation(ax.figure, update, frames=len(x_data), interval=10, blit=False)
         canvas.draw()
 
     def update_experimental_plots(self, x, y, z, time_in_hours, start_analysis, end_analysis, distribution_score):
@@ -1131,10 +1130,6 @@ class GUI:
         self.theoretical_non_g_acceleration_ax.legend()
         self.theoretical_non_g_acceleration_ax.set_xlabel('Time (h)')
         self.theoretical_non_g_acceleration_ax.set_ylabel('Acceleration (g)')
-        formatter = ScalarFormatter(useMathText=True)
-        formatter.set_scientific(True)
-        self.theoretical_non_g_acceleration_ax.yaxis.set_major_formatter(formatter)
-        self.theoretical_non_g_acceleration_ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
         self.theoretical_non_g_acceleration_canvas.draw()
 
     def update_theoretical_non_g_components_plot(self, time_array, a_x_avg, a_y_avg, a_z_avg):
@@ -1147,10 +1142,6 @@ class GUI:
         self.theoretical_non_g_components_ax.legend()
         self.theoretical_non_g_components_ax.set_xlabel('Time (h)')
         self.theoretical_non_g_components_ax.set_ylabel('Acceleration (g)')
-        formatter = ScalarFormatter(useMathText=True)
-        formatter.set_scientific(True)
-        self.theoretical_non_g_components_ax.yaxis.set_major_formatter(formatter)
-        self.theoretical_non_g_components_ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
         self.theoretical_non_g_components_canvas.draw()
 
     def update_theoretical_acceleration_distribution_plot(self, g_array, time_array):

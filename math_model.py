@@ -1,4 +1,5 @@
 import numpy as np
+import math as m
 
 class MathModel:
     def __init__(self, inner_rpm, outer_rpm, delta_x, delta_y, delta_z, duration_hours, theta_1_init, theta_2_init):
@@ -22,7 +23,7 @@ class MathModel:
     def calculate_acceleration(self):
         start_time_in_seconds = 0
         end_time_in_seconds = int(self.duration_hours * 3600) 
-        time_array = np.arange(start_time_in_seconds, end_time_in_seconds + 1)
+        time_array = np.linspace(start_time_in_seconds, end_time_in_seconds, m.floor(end_time_in_seconds / 0.1) + 1)
 
         inner_rad_sec = self.rpm_to_rad_sec(self.inner_rpm) 
         outer_rad_sec = self.rpm_to_rad_sec(self.outer_rpm)  
