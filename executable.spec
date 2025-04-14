@@ -45,7 +45,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='Computational Model',
+    name='Kinematics Model',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

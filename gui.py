@@ -151,7 +151,7 @@ class GUI:
         nasa_label = tk.Label(title_frame, image=self.nasa_logo, cursor="hand2")
         nasa_label.pack(side=tk.LEFT, padx=1)
         nasa_label.bind("<Button-1>", lambda e: self.open_url("https://www.nasa.gov/"))
-        title_label = tk.Label(title_frame, text="Computational Model", font=font_style)
+        title_label = tk.Label(title_frame, text="Kinematics Model", font=font_style)
         title_label.pack(side=tk.LEFT, padx=1)
         mssf_label = tk.Label(title_frame, image=self.mssf_logo, cursor="hand2")
         mssf_label.pack(side=tk.LEFT, padx=1)
