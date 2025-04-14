@@ -5,7 +5,7 @@
   </a>
 </div>
 
-## Overview
+## Introduction
 
 <div align="center">
   <img src="images/example.png" alt="example" style="max-width: 100%; height: auto;">
@@ -13,9 +13,9 @@
 
 The Microgravity Simulation Support Facility (MSSF) at the National Aeronautics and Space Administration
 (NASA) John F. Kennedy Space Center (KSC) contains an array of devices that negate the directional
-influence of the “g” vector to simulate micro- and partial-gravity. The MSSF has developed a graphical user
-interface (GUI) application for visualizing the accelerations felt by a sample when rotating in these devices to
-allow scientists to evaluate the quality of their simulations.
+influence of the “g” vector to simulate micro- and partial-gravity. The MSSF has developed a graphical
+user interface (GUI) application for visualizing the accelerations felt by a sample when rotating in these
+devices to allow scientists to evaluate the quality of their ground-based simulations.
 
 ## Built With
 
@@ -23,7 +23,7 @@ allow scientists to evaluate the quality of their simulations.
 
 [python-logo]: https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white
 
-## Usage
+## Getting Started
 
 1. Install the necessary dependencies by running:
 
