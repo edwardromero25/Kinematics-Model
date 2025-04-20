@@ -71,6 +71,6 @@ class MathModel:
         a_local_2 = np.einsum('ijk,jk->ik', R_y_T, np.einsum('ijk,jk->ik', R_x_T, a)) 
         g_local_2 = np.einsum('ijk,jk->ik', R_y_T, np.einsum('ijk,jk->ik', R_x_T, self.g))
 
-        a_tot_local_2 = a_local_2 + g_local_2 
+        a_tot_local_2 = g_local_2 + a_local_2
 
         return time_array, g_local_2, a_local_2, a_tot_local_2

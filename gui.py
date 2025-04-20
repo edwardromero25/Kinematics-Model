@@ -1048,11 +1048,10 @@ class GUI:
         outer_rpm = float(self.outer_velocity_entry.get()) if self.outer_velocity_entry.get() else 0.0
         theta_1_init = float(self.inner_position_entry.get()) if self.inner_position_entry.get() else 0.0
         theta_2_init = float(self.outer_position_entry.get()) if self.outer_position_entry.get() else 0.0
-        delta_m = delta_cm / 100
-        delta_x, delta_y, delta_z = delta_m, delta_m, delta_m
+        delta_x, delta_y, delta_z = delta_cm, delta_cm, delta_cm
 
-        theoretical_model = MathModel(inner_rpm, outer_rpm, delta_x, delta_y, delta_z, duration_hours, theta_1_init, theta_2_init)
-        time_array, g_array, a_array = theoretical_model.calculate_acceleration()
+        theoretical_model = MathModel(inner_rpm, outer_rpm, theta_1_init, theta_2_init, delta_x, delta_y, delta_z, duration_hours)
+        time_array, g_array, a_array, _ = theoretical_model.calculate_acceleration()
 
         g_x_avg = np.cumsum(g_array[0]) / np.arange(1, len(g_array[0]) + 1)
         g_y_avg = np.cumsum(g_array[1]) / np.arange(1, len(g_array[1]) + 1)

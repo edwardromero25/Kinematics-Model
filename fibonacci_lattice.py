@@ -13,7 +13,7 @@ class FibonacciLattice:
 
     def __createSphere(self):
         golden_r = (np.sqrt(5.0) + 1.0) / 2.0
-        golden_a = (2.0 - golden_r) * (2.0 * np.pi) 
+        golden_a = (2.0 - golden_r) * (2.0 * np.pi)
 
         Xs, Ys, Zs = [], [], []
         
@@ -102,18 +102,18 @@ class FibonacciLattice:
 
         for pathRow in self.pathCoords:
             pathOctant = self.__getPathOctant(pathRow)
-            sphereCoordsSplit = octants[pathOctant]
+            sphereCoordsSplit = octants[pathOctant] 
             distDict = {}
             repeatTime += 1
 
             for sphereRow in sphereCoordsSplit:
-                dist = self.__getDistanceBetween(pathRow, sphereRow) 
-                distDict[sphereRow] = dist 
+                dist = self.__getDistanceBetween(pathRow, sphereRow)
+                distDict[sphereRow] = dist
                     
-            rankedDist = sorted(distDict.items(), key=lambda x:x[1]) 
+            rankedDist = sorted(distDict.items(), key=lambda x:x[1])
             segmentVertices = (rankedDist[0][0], rankedDist[1][0], rankedDist[2][0])
             
-            pathMap[segmentVertices] = pathMap.get(segmentVertices, []) + [repeatTime]
+            pathMap[segmentVertices] = pathMap.get(segmentVertices, []) + [repeatTime] 
         
         return(len(pathMap))
 
