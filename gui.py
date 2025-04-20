@@ -18,74 +18,11 @@ import tkinter.ttk as ttk
 from tkinter import messagebox, filedialog
 from math_model import MathModel
 from fibonacci_lattice import FibonacciLattice
+from custom_toolbar import CustomToolbar
+from input_validation import is_valid_float, is_valid_positive_float
+from tooltip import Tooltip
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
-
-def validate_float(value):
-    return re.fullmatch(r"-?\d*\.?\d*", value) is not None
-
-def validate_positive_float(value):
-    return re.fullmatch(r"\d*\.?\d*", value) is not None
-
-class CustomToolbar(NavigationToolbar2Tk):
-    def __init__(self, canvas, parent, export_magnitude_callback=None, export_components_callback=None, export_distribution_callback=None, export_animation_callback=None):
-        self.toolitems = list(NavigationToolbar2Tk.toolitems)
-        if export_magnitude_callback:
-            self.toolitems.append(("ExportMagnitude", "Export the data to a CSV file", "export", "export_magnitude_data"))
-        if export_components_callback:
-            self.toolitems.append(("ExportComponents", "Export the data to a CSV file", "export", "export_components_data"))
-        if export_distribution_callback:
-            self.toolitems.append(("ExportDistribution", "Export the data to a CSV file", "export", "export_distribution_data"))
-        if export_animation_callback:
-            self.toolitems.append(("ExportAnimation", "Export the animation to an MP4 file", "export", "export_animation_data"))
-        super().__init__(canvas, parent)
-        self.export_magnitude_callback = export_magnitude_callback
-        self.export_components_callback = export_components_callback
-        self.export_distribution_callback = export_distribution_callback
-        self.export_animation_callback = export_animation_callback
-
-    def export_magnitude_data(self):
-        if self.export_magnitude_callback:
-            self.export_magnitude_callback()
-
-    def export_components_data(self):
-        if self.export_components_callback:
-            self.export_components_callback()
-
-    def export_distribution_data(self):
-        if self.export_distribution_callback:
-            self.export_distribution_callback()
-
-    def export_animation_data(self):
-        if self.export_animation_callback:
-            self.export_animation_callback()
-
-class ToolTip:
-    def __init__(self, widget, text, x_offset, y_offset):
-        self.widget = widget
-        self.text = text
-        self.x_offset = x_offset
-        self.y_offset = y_offset
-        self.tip_window = None
-        self.widget.bind("<Enter>", self.show_tooltip)
-        self.widget.bind("<Leave>", self.hide_tooltip)
-
-    def show_tooltip(self, event):
-        if self.tip_window or not self.text:
-            return
-        x, y, _, _ = self.widget.bbox("insert")
-        x += self.widget.winfo_rootx() + self.x_offset
-        y += self.widget.winfo_rooty() + self.y_offset
-        self.tip_window = tw = tk.Toplevel(self.widget)
-        tw.wm_overrideredirect(True)
-        tw.wm_geometry(f"+{x}+{y}")
-        label = tk.Label(tw, text=self.text, justify=tk.LEFT, background="systembuttonface", relief=tk.SOLID, borderwidth=1)
-        label.pack(ipadx=1)
-
-    def hide_tooltip(self, event):
-        if self.tip_window:
-            self.tip_window.destroy()
-            self.tip_window = None
 
 class GUI:
     def __init__(self, master):
@@ -170,7 +107,7 @@ class GUI:
         self.mode_icon = tk.Label(mode_label_frame, image=self.info_icon, cursor="hand2")
         self.mode_icon.pack(side=tk.LEFT, padx=(0, 0))
         self.mode_icon.bind("<Button-1>", lambda e: self.open_info_link())
-        ToolTip(self.mode_icon, "Reference", x_offset=20, y_offset=0)
+        Tooltip(self.mode_icon, "Reference", x_offset=20, y_offset=0)
 
         self.mode_var = tk.StringVar(value="Theoretical")
         menu_button = tk.Menubutton(mode_frame, text="Theoretical", font=font_style, bg="#aeb0b5", activebackground="#d6d7d9", relief=tk.RAISED, pady=6)
@@ -182,8 +119,8 @@ class GUI:
         menu_button.pack()
 
     def register_validations(self):
-        self.validate_float_cmd = self.master.register(validate_float)
-        self.validate_positive_float_cmd = self.master.register(validate_positive_float)
+        self.validate_float_cmd = self.master.register(is_valid_float)
+        self.validate_positive_float_cmd = self.master.register(is_valid_positive_float)
 
     def create_theoretical_input_frames(self, parent, font_style, category_font_style):
         self.theoretical_angular_velocity_frame = tk.Frame(parent, padx=1, pady=1)
@@ -195,7 +132,7 @@ class GUI:
         
         velocity_asterisk_icon = tk.Label(velocity_label_frame, image=self.asterisk_icon)
         velocity_asterisk_icon.pack(side=tk.LEFT, padx=(0, 0))
-        ToolTip(velocity_asterisk_icon, "Required", x_offset=13, y_offset=-3)
+        Tooltip(velocity_asterisk_icon, "Required", x_offset=13, y_offset=-3)
         
         velocity_input_frame = tk.Frame(self.theoretical_angular_velocity_frame)
         velocity_input_frame.pack()
@@ -236,7 +173,7 @@ class GUI:
        
         duration_asterisk_icon = tk.Label(duration_label_frame, image=self.asterisk_icon)
         duration_asterisk_icon.pack(side=tk.LEFT, padx=(0, 0))
-        ToolTip(duration_asterisk_icon, "Required", x_offset=13, y_offset=-3)
+        Tooltip(duration_asterisk_icon, "Required", x_offset=13, y_offset=-3)
         
         self.simulation_duration_entry = tk.Entry(self.theoretical_duration_frame, font=font_style, width=20, validate="key", validatecommand=(self.validate_positive_float_cmd, "%P"))
         self.simulation_duration_entry.pack()
@@ -262,7 +199,7 @@ class GUI:
         
         data_asterisk_icon = tk.Label(data_label_frame, image=self.asterisk_icon)
         data_asterisk_icon.pack(side=tk.LEFT, padx=(0, 0))
-        ToolTip(data_asterisk_icon, "Required", x_offset=13, y_offset=-3)
+        Tooltip(data_asterisk_icon, "Required", x_offset=13, y_offset=-3)
         
         self.upload_file_button = tk.Button(self.experimental_data_frame, text="Upload CSV File", command=self.import_data, font=font_style, bg="#aeb0b5", activebackground="#d6d7d9")
         self.upload_file_button.pack()
@@ -336,9 +273,17 @@ class GUI:
         self.theoretical_g_components_canvas = FigureCanvasTkAgg(self.theoretical_g_components_figure, self.theoretical_g_acceleration_frame_right)
         self.theoretical_g_components_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        self.theoretical_g_acceleration_toolbar = CustomToolbar(self.theoretical_g_acceleration_canvas, self.theoretical_g_acceleration_toolbar_frame_left, self.export_theoretical_g_magnitude_data)
+        self.theoretical_g_acceleration_toolbar = CustomToolbar(
+            self.theoretical_g_acceleration_canvas,
+            self.theoretical_g_acceleration_toolbar_frame_left,
+            on_export_magnitude=self.export_theoretical_g_magnitude_data
+        )
         self.theoretical_g_acceleration_toolbar.update()
-        self.theoretical_g_components_toolbar = CustomToolbar(self.theoretical_g_components_canvas, self.theoretical_g_acceleration_toolbar_frame_right, export_components_callback=self.export_theoretical_g_components_data)
+        self.theoretical_g_components_toolbar = CustomToolbar(
+            self.theoretical_g_components_canvas,
+            self.theoretical_g_acceleration_toolbar_frame_right,
+            on_export_components=self.export_theoretical_g_components_data
+        )
         self.theoretical_g_components_toolbar.update()
 
         self.theoretical_non_g_acceleration_frame_left = tk.Frame(self.theoretical_non_g_acceleration_frame, borderwidth=1, relief=tk.SOLID)
@@ -371,9 +316,17 @@ class GUI:
         self.theoretical_non_g_components_canvas = FigureCanvasTkAgg(self.theoretical_non_g_components_figure, self.theoretical_non_g_acceleration_frame_right)
         self.theoretical_non_g_components_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        self.theoretical_non_g_acceleration_toolbar = CustomToolbar(self.theoretical_non_g_acceleration_canvas, self.theoretical_non_g_acceleration_toolbar_frame_left, self.export_theoretical_non_g_magnitude_data)
+        self.theoretical_non_g_acceleration_toolbar = CustomToolbar(
+            self.theoretical_non_g_acceleration_canvas,
+            self.theoretical_non_g_acceleration_toolbar_frame_left,
+            on_export_magnitude=self.export_theoretical_non_g_magnitude_data
+        )
         self.theoretical_non_g_acceleration_toolbar.update()
-        self.theoretical_non_g_components_toolbar = CustomToolbar(self.theoretical_non_g_components_canvas, self.theoretical_non_g_acceleration_toolbar_frame_right, export_components_callback=self.export_theoretical_non_g_components_data)
+        self.theoretical_non_g_components_toolbar = CustomToolbar(
+            self.theoretical_non_g_components_canvas,
+            self.theoretical_non_g_acceleration_toolbar_frame_right,
+            on_export_components=self.export_theoretical_non_g_components_data
+        )
         self.theoretical_non_g_components_toolbar.update()
 
         self.theoretical_acceleration_distribution_frame_left = tk.Frame(self.theoretical_acceleration_distribution_frame, borderwidth=1, relief=tk.SOLID)
@@ -402,9 +355,17 @@ class GUI:
         self.theoretical_acceleration_distribution_analysis_canvas = FigureCanvasTkAgg(self.theoretical_acceleration_distribution_analysis_figure, self.theoretical_acceleration_distribution_frame_right)
         self.theoretical_acceleration_distribution_analysis_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        self.theoretical_acceleration_distribution_toolbar = CustomToolbar(self.theoretical_acceleration_distribution_canvas, self.theoretical_acceleration_distribution_toolbar_frame_left, export_distribution_callback=self.export_theoretical_distribution_data)
+        self.theoretical_acceleration_distribution_toolbar = CustomToolbar(
+            self.theoretical_acceleration_distribution_canvas,
+            self.theoretical_acceleration_distribution_toolbar_frame_left,
+            on_export_distribution=self.export_theoretical_distribution_data
+        )
         self.theoretical_acceleration_distribution_toolbar.update()
-        self.theoretical_acceleration_distribution_analysis_toolbar = CustomToolbar(self.theoretical_acceleration_distribution_analysis_canvas, self.theoretical_acceleration_distribution_toolbar_frame_right, export_animation_callback=self.export_animation_data)
+        self.theoretical_acceleration_distribution_analysis_toolbar = CustomToolbar(
+            self.theoretical_acceleration_distribution_analysis_canvas,
+            self.theoretical_acceleration_distribution_toolbar_frame_right,
+            on_export_animation=self.export_animation_data
+        )
         self.theoretical_acceleration_distribution_analysis_toolbar.update()
 
     def setup_experimental_plot_frames(self):
@@ -441,9 +402,17 @@ class GUI:
         self.experimental_g_acceleration_canvas_right = FigureCanvasTkAgg(self.experimental_g_acceleration_figure_right, self.experimental_g_acceleration_frame_right)
         self.experimental_g_acceleration_canvas_right.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        self.experimental_g_acceleration_toolbar_left = CustomToolbar(self.experimental_g_acceleration_canvas_left, self.experimental_g_acceleration_toolbar_frame_left, self.export_experimental_g_magnitude_data)
+        self.experimental_g_acceleration_toolbar_left = CustomToolbar(
+            self.experimental_g_acceleration_canvas_left,
+            self.experimental_g_acceleration_toolbar_frame_left,
+            on_export_magnitude=self.export_experimental_g_magnitude_data
+        )
         self.experimental_g_acceleration_toolbar_left.update()
-        self.experimental_g_acceleration_toolbar_right = CustomToolbar(self.experimental_g_acceleration_canvas_right, self.experimental_g_acceleration_toolbar_frame_right, export_components_callback=self.export_experimental_g_components_data)
+        self.experimental_g_acceleration_toolbar_right = CustomToolbar(
+            self.experimental_g_acceleration_canvas_right,
+            self.experimental_g_acceleration_toolbar_frame_right,
+            on_export_components=self.export_experimental_g_components_data
+        )
         self.experimental_g_acceleration_toolbar_right.update()
 
         self.experimental_acceleration_distribution_frame_left = tk.Frame(self.experimental_acceleration_distribution_frame, borderwidth=1, relief=tk.SOLID)
@@ -472,9 +441,17 @@ class GUI:
         self.experimental_acceleration_distribution_analysis_canvas = FigureCanvasTkAgg(self.experimental_acceleration_distribution_analysis_figure, self.experimental_acceleration_distribution_frame_right)
         self.experimental_acceleration_distribution_analysis_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        self.experimental_acceleration_distribution_toolbar = CustomToolbar(self.experimental_acceleration_distribution_canvas, self.experimental_acceleration_distribution_toolbar_frame_left, export_distribution_callback=self.export_experimental_distribution_data)
+        self.experimental_acceleration_distribution_toolbar = CustomToolbar(
+            self.experimental_acceleration_distribution_canvas,
+            self.experimental_acceleration_distribution_toolbar_frame_left,
+            on_export_distribution=self.export_experimental_distribution_data
+        )
         self.experimental_acceleration_distribution_toolbar.update()
-        self.experimental_acceleration_distribution_analysis_toolbar = CustomToolbar(self.experimental_acceleration_distribution_analysis_canvas, self.experimental_acceleration_distribution_toolbar_frame_right, export_animation_callback=self.export_animation_data)
+        self.experimental_acceleration_distribution_analysis_toolbar = CustomToolbar(
+            self.experimental_acceleration_distribution_analysis_canvas,
+            self.experimental_acceleration_distribution_toolbar_frame_right,
+            on_export_animation=self.export_animation_data
+        )
         self.experimental_acceleration_distribution_analysis_toolbar.update()
 
     def configure_3d_axes(self, ax, title):
