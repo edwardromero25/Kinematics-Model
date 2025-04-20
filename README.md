@@ -1,7 +1,6 @@
-<br />
 <div align="center">
   <a href="https://public.ksc.nasa.gov/partnerships/capabilities-and-testing/testing-and-labs/microgravity-simulation-support-facility/">
-    <img src="images/NASA_logo.svg" alt="Logo" width="100" height="100">
+    <img src="images/nasa_logo.svg" alt="Logo" width="100" height="100">
   </a>
 </div>
 
@@ -11,11 +10,7 @@
   <img src="images/example.png" alt="example" style="max-width: 100%; height: auto;">
 </div>
 
-The Microgravity Simulation Support Facility (MSSF) at the National Aeronautics and Space Administration
-(NASA) John F. Kennedy Space Center (KSC) contains an array of devices that negate the directional
-influence of the “g” vector to simulate micro- and partial-gravity. The MSSF has developed a graphical
-user interface (GUI) application for visualizing the accelerations felt by a sample when rotating in these
-devices to allow scientists to evaluate the quality of their ground-based simulations.
+The Microgravity Simulation Support Facility (MSSF) at the National Aeronautics and Space Administration (NASA) John F. Kennedy Space Center (KSC) contains an array of devices that negate the directional influence of the gravity vector to simulate microgravity. The MSSF has created a graphical user interface (GUI) application with Python for analyzing and visualizing the accelerations felt by a sample when rotating in these devices to enable scientists to validate that these low-gravity environments are being achieved. The application has two modes: theoretical and experimental. The efficacy of a given operating condition in simulating microgravity is evaluated using a kinematics model for theoretical mode or data from an onboard accelerometer for experimental mode.
 
 ## Built With
 
@@ -25,28 +20,39 @@ devices to allow scientists to evaluate the quality of their ground-based simula
 
 ## Getting Started
 
-1. Install the necessary dependencies by running:
+Ensure the following are installed:
+
+- **Python**: [python.org/downloads](https://www.python.org/downloads/)
+- **Git**: [git-scm.com/downloads](https://git-scm.com/downloads)
+
+Open a terminal, and run the following commands:
+
+1. Clone the repository.
+
+   ```bash
+   git clone https://github.com/edwardromero25/Kinematics-Model.git
+   ```
+
+2. Navigate to the project directory.
+
+   ```bash
+   cd Kinematics-Model
+   ```
+
+3. Install dependencies.
 
    ```bash
    pip install -r requirements.txt
    ```
 
-2. Open the graphical user interface (GUI) by running:
+4. Launch the application.
 
    ```bash
    python gui.py
    ```
 
-   or, if you prefer to create an executable file, you can do so by running:
-
-   ```bash
-   python -m PyInstaller executable.spec
-   ```
-
-   After creating the executable file, you can run it directly from the output directory (usually `dist/`).
-
 ## References
 
-1. Kim, Y.J., Jeong, A.J., Kim, M. _et al_. Time-averaged simulated microgravity (taSMG) inhibits proliferation of lymphoma cells, L-540 and HDLM-2, using a 3D clinostat. _BioMed Eng OnLine_ **16**, 48 (2017). https://doi.org/10.1186/s12938-017-0337-8
+1. Kim, Y. J., Jeong, A. J., Kim, M., Lee, C., Ye, S.-K., and Kim, S. (2017). Time-averaged simulated microgravity (taSMG) inhibits proliferation of lymphoma cells, L-540 and HDLM-2, using a 3D clinostat. _Biomed. Eng. OnLine_, 16, 48. [doi:10.1186/s12938-017-0337-8](https://doi.org/10.1186/s12938-017-0337-8)
 
-2. Clary JL, France CS, Lind K, Shi R, Alexander JS, Richards JT, Scott RS, Wang J, Lu X-H and Harrison L (2022) Development of an inexpensive 3D clinostat and comparison with other microgravity simulators using _Mycobacterium marinum. Front. Space Technol_. 3:1032610. https://doi.org/10.3389/frspt.2022.1032610
+2. Clary, J. L., France, C. S., Lind, K., Shi, R., Alexander, J. S., Richards, J. T., Scott, R. S., Wang, J., Lu, X.-H., and Harrison, L. (2022). Development of an inexpensive 3D clinostat and comparison with other microgravity simulators using _Mycobacterium marinum_. _Front. Space Technol._, 3, 1032610. [doi:10.3389/frspt.2022.1032610](https://doi.org/10.3389/frspt.2022.1032610)

@@ -1,4 +1,4 @@
-# Author: Edward Romero, OSTEM Intern, NASA Kennedy Space Center, Spring 2025
+# Author: Eduardo A. Romero, OSTEM Intern, Spring 2025, NASA Kennedy Space Center
 
 import csv
 import os
@@ -17,7 +17,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox, filedialog
 from math_model import MathModel
-from path_visualization import PathVisualization
+from fibonacci_lattice import FibonacciLattice
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -91,7 +91,7 @@ class GUI:
     def __init__(self, master):
         self.master = master
         self.master.title("Microgravity Simulation Support Facility - NASA")
-        self.master.configure(bg="#f1f1f1")
+        self.master.configure()
         self.master.state('zoomed')
         self.master.wm_minsize(1280, 720)
         self.current_mode = "Theoretical"
@@ -121,12 +121,12 @@ class GUI:
         title_font_style = ("Calibri", 19, "bold")
         category_font_style = ("Calibri", 13, "bold")
 
-        input_frame = tk.Frame(self.master, padx=1, pady=1, bg="#f1f1f1")
+        input_frame = tk.Frame(self.master, padx=1, pady=1)
         input_frame.pack(side=tk.TOP, anchor=tk.CENTER)
 
         self.create_title_frame(input_frame, title_font_style)
 
-        center_frame = tk.Frame(input_frame, bg="#f1f1f1")
+        center_frame = tk.Frame(input_frame)
         center_frame.pack()
 
         self.create_mode_frame(center_frame, font_style, category_font_style)
@@ -135,9 +135,9 @@ class GUI:
         self.create_start_button(center_frame, font_style)
 
     def load_images(self):
-        nasa_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'NASA_logo.png')).resize((60, 50), Image.LANCZOS)
+        nasa_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'nasa_logo.png')).resize((60, 50), Image.LANCZOS)
         self.nasa_logo = ImageTk.PhotoImage(nasa_image)
-        mssf_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'MSSF_logo.png')).resize((56, 50), Image.LANCZOS)
+        mssf_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'mssf_logo.png')).resize((56, 50), Image.LANCZOS)
         self.mssf_logo = ImageTk.PhotoImage(mssf_image)
         self.favicon = ImageTk.PhotoImage(file=os.path.join(SCRIPT_DIR, 'images', 'favicon.ico'))
         info_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'info.png')).resize((16, 16), Image.LANCZOS)
@@ -284,7 +284,7 @@ class GUI:
         self.start_button.grid(row=1, column=0, columnspan=6, pady=(10, 5))
 
     def setup_plot_frames(self):
-        plot_frame = tk.Frame(self.master, padx=5, pady=5, bg="#f1f1f1")
+        plot_frame = tk.Frame(self.master, padx=5, pady=5)
         plot_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True, padx=(5, 5), pady=(0, 5))
 
         self.notebook = ttk.Notebook(plot_frame)
@@ -505,7 +505,7 @@ class GUI:
     def create_custom_theme(self):
         style = ttk.Style()
         style.theme_create("yummy", parent="alt", settings={
-            "TNotebook": {"configure": {"tabmargins": [1, 0, 0, 0], "background": "#f1f1f1"}},
+            "TNotebook": {"configure": {"tabmargins": [1, 0, 0, 0], "background": "SystemButtonFace"}},
             "TNotebook.Tab": {
                 "configure": {"padding": [5, 1], "background": "#aeb0b5", "font": ("Calibri", 11), "focuscolor": ""},
                 "map": {"background": [("selected", "#d6d7d9")], "expand": [("selected", [1, 1, 1, 0])]}
@@ -515,7 +515,7 @@ class GUI:
 
     def open_info_link(self):
         if self.current_mode == "Theoretical":
-            webbrowser.open("https://rdcu.be/eg58N")
+            webbrowser.open("https://biomedical-engineering-online.biomedcentral.com/articles/10.1186/s12938-017-0337-8")
 
     def switch_mode(self, mode):
         if self.current_mode == mode:
@@ -884,8 +884,8 @@ class GUI:
             if end_analysis <= start_analysis:
                 raise ValueError("Lower bound for time period of analysis must be < the upper bound.")
 
-        path_vis = PathVisualization("experimental", x, y, z)
-        distribution_score = path_vis.get_distribution()
+        path_vis = FibonacciLattice("experimental", x, y, z)
+        distribution_score = path_vis.getDistribution()
         self.update_experimental_plots(x, y, z, time_in_hours, start_analysis, end_analysis, distribution_score)
 
     def process_experimental_data_submission(self):
@@ -929,8 +929,8 @@ class GUI:
         self.configure_3d_axes(ax, "Orientation Distribution")
         line, = ax.plot([], [], [], color=color, linewidth=1)
 
-        path_vis = PathVisualization("animated", x_data, y_data, z_data)
-        distribution_score = path_vis.get_distribution()
+        path_vis = FibonacciLattice("animated", x_data, y_data, z_data)
+        distribution_score = path_vis.getDistribution()
 
         def update(num):
             line.set_data(x_data[:num], y_data[:num])
@@ -987,8 +987,8 @@ class GUI:
             start_seg = next(i for i, t in enumerate(time_in_hours) if t >= start_analysis)
             end_seg = next(i for i, t in enumerate(time_in_hours) if t >= end_analysis)
             sliced_x, sliced_y, sliced_z = x[start_seg:end_seg], y[start_seg:end_seg], z[start_seg:end_seg]
-            path_vis_analysis = PathVisualization("experimental", sliced_x, sliced_y, sliced_z)
-            distribution_score_analysis = path_vis_analysis.get_distribution()
+            path_vis_analysis = FibonacciLattice("experimental", sliced_x, sliced_y, sliced_z)
+            distribution_score_analysis = path_vis_analysis.getDistribution()
             self.animate_distribution(
                 self.experimental_acceleration_distribution_analysis_ax,
                 self.experimental_acceleration_distribution_analysis_canvas,
@@ -1148,7 +1148,7 @@ class GUI:
         self.theoretical_acceleration_distribution_ax.clear()
         self.theoretical_acceleration_distribution_ax.plot(g_array[0], g_array[1], g_array[2], color='#0066b2', linewidth=1)
         self.configure_3d_axes(self.theoretical_acceleration_distribution_ax, "Orientation Distribution")
-        distribution_score = PathVisualization("theoretical", g_array[0], g_array[1], g_array[2]).get_distribution()
+        distribution_score = FibonacciLattice("theoretical", g_array[0], g_array[1], g_array[2]).getDistribution()
         self.theoretical_acceleration_distribution_ax.legend([f"Distribution: {distribution_score}"])
         self.theoretical_acceleration_distribution_canvas.draw()
 
@@ -1163,8 +1163,8 @@ class GUI:
             start_index = next(i for i, t in enumerate(time_in_hours) if t >= start_analysis)
             end_index = next(i for i, t in enumerate(time_in_hours) if t >= end_analysis)
             sliced_x, sliced_y, sliced_z = g_array[0][start_index:end_index], g_array[1][start_index:end_index], g_array[2][start_index:end_index]
-            path_vis_analysis = PathVisualization("theoretical", sliced_x, sliced_y, sliced_z)
-            distribution_score_analysis = path_vis_analysis.get_distribution()
+            path_vis_analysis = FibonacciLattice("theoretical", sliced_x, sliced_y, sliced_z)
+            distribution_score_analysis = path_vis_analysis.getDistribution()
             self.animate_distribution(
                 self.theoretical_acceleration_distribution_analysis_ax,
                 self.theoretical_acceleration_distribution_analysis_canvas,
