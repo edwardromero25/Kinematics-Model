@@ -10,15 +10,13 @@ class MathModel:
         self.x = x / 100      
         self.y = y / 100     
         self.z = z / 100     
-        self.duration_hours = duration_hours  
-        self.pi_over_30 = np.pi / 30 
-        self.g = np.array([[0], [0], [1]]) 
-
-    def deg_to_rad(self, degrees):
-        return np.radians(degrees)
+        self.duration_hours = duration_hours 
     
     def rpm_to_rad_sec(self, rpm):
-        return rpm * self.pi_over_30
+        return rpm * np.pi / 30
+    
+    def deg_to_rad(self, degrees):
+        return np.radians(degrees)
 
     def calculate_acceleration(self):
         end_time_in_seconds = int(self.duration_hours * 3600) 
@@ -54,7 +52,9 @@ class MathModel:
         omega_cross_r = np.cross(omega_tot.T, r.T).T
         omega_cross_omega_cross_r = np.cross(omega_tot.T, omega_cross_r.T).T
         omega_dot_cross_r = np.cross(omega_tot_dot.T, r.T).T
-        a = -(omega_dot_cross_r + omega_cross_omega_cross_r)  
+        a = -(omega_dot_cross_r + omega_cross_omega_cross_r) 
+
+        g = np.array([[0], [0], [1]]) 
 
         R_y_T = np.array([
             [np.cos(beta_t), np.zeros_like(beta_t), -np.sin(beta_t)],
@@ -68,8 +68,9 @@ class MathModel:
             [np.zeros_like(alpha_t), -np.sin(alpha_t), np.cos(alpha_t)]
         ]) 
 
-        a_local_2 = np.einsum('ijk,jk->ik', R_y_T, np.einsum('ijk,jk->ik', R_x_T, a)) 
-        g_local_2 = np.einsum('ijk,jk->ik', R_y_T, np.einsum('ijk,jk->ik', R_x_T, self.g))
+        a_local_2 = np.einsum('ijk,jk->ik', R_y_T, np.einsum('ijk,jk->ik', R_x_T, a))
+
+        g_local_2 = np.einsum('ijk,jk->ik', R_y_T, np.einsum('ijk,jk->ik', R_x_T, g))
 
         a_tot_local_2 = g_local_2 + a_local_2
 

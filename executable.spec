@@ -14,8 +14,8 @@ a = Analysis(
         (os.path.join(images_dir, 'asterisk.png'), 'images'),
         (os.path.join(images_dir, 'favicon.ico'), 'images'),
         (os.path.join(images_dir, 'info.png'), 'images'),
-        (os.path.join(images_dir, 'mssf_logo.png'), 'images'),
-        (os.path.join(images_dir, 'nasa_logo.png'), 'images'),
+        (os.path.join(images_dir, 'MSSF_logo.png'), 'images'),
+        (os.path.join(images_dir, 'NASA_logo.png'), 'images'),
 
         (os.path.join(project_dir, 'fibonacci_lattice.py'), '.'),
         (os.path.join(project_dir, 'math_model.py'), '.'),

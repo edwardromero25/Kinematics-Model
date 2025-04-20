@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://public.ksc.nasa.gov/partnerships/capabilities-and-testing/testing-and-labs/microgravity-simulation-support-facility/">
-    <img src="images/nasa_logo.svg" alt="Logo" width="100" height="100">
+    <img src="images/NASA_logo.svg" alt="Logo" width="100" height="100">
   </a>
 </div>
 
@@ -22,8 +22,8 @@ The Microgravity Simulation Support Facility (MSSF) at the National Aeronautics 
 
 Ensure the following are installed:
 
-- **Python**: [python.org/downloads](https://www.python.org/downloads/)
-- **Git**: [git-scm.com/downloads](https://git-scm.com/downloads)
+- [Python](https://www.python.org/downloads/)
+- [Git](https://git-scm.com/downloads)
 
 Open a terminal, and run the following commands:
 

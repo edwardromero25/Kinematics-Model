@@ -102,7 +102,7 @@ class FibonacciLattice:
 
         for pathRow in self.pathCoords:
             pathOctant = self.__getPathOctant(pathRow)
-            sphereCoordsSplit = octants[pathOctant] 
+            sphereCoordsSplit = octants[pathOctant]
             distDict = {}
             repeatTime += 1
 
@@ -113,7 +113,7 @@ class FibonacciLattice:
             rankedDist = sorted(distDict.items(), key=lambda x:x[1])
             segmentVertices = (rankedDist[0][0], rankedDist[1][0], rankedDist[2][0])
             
-            pathMap[segmentVertices] = pathMap.get(segmentVertices, []) + [repeatTime] 
+            pathMap[segmentVertices] = pathMap.get(segmentVertices, []) + [repeatTime]
         
         return(len(pathMap))
 
