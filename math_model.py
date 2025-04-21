@@ -8,8 +8,8 @@ class MathModel:
         self.alpha_0 = alpha_0_deg
         self.beta_0 = beta_0_deg 
         self.x = x / 100      
-        self.y = y / 100     
-        self.z = z / 100     
+        self.y = y / 100   
+        self.z = z / 100    
         self.duration_hours = duration_hours 
     
     def rpm_to_rad_sec(self, rpm):
@@ -68,7 +68,7 @@ class MathModel:
             [np.zeros_like(alpha_t), -np.sin(alpha_t), np.cos(alpha_t)]
         ]) 
 
-        a_local_2 = np.einsum('ijk,jk->ik', R_y_T, np.einsum('ijk,jk->ik', R_x_T, a))
+        a_local_2 = np.einsum('ijk,jk->ik', R_y_T, np.einsum('ijk,jk->ik', R_x_T, a)) / 9.8
 
         g_local_2 = np.einsum('ijk,jk->ik', R_y_T, np.einsum('ijk,jk->ik', R_x_T, g))
 
