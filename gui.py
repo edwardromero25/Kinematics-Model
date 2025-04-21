@@ -1,4 +1,4 @@
-# Author: Eduardo A. Romero, OSTEM Intern, Spring 2025, NASA Kennedy Space Center
+# Author: Edward Romero, OSTEM Intern, NASA Kennedy Space Center, Spring 2025
 
 import csv
 import os
@@ -18,17 +18,124 @@ import tkinter.ttk as ttk
 from tkinter import messagebox, filedialog
 from math_model import MathModel
 from fibonacci_lattice import FibonacciLattice
-from custom_toolbar import CustomToolbar
-from input_validation import is_valid_float, is_valid_positive_float
-from tooltip import Tooltip
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
+
+def validate_float(value):
+    return re.fullmatch(r"-?\d*\.?\d*", value) is not None
+
+def validate_positive_float(value):
+    return re.fullmatch(r"\d*\.?\d*", value) is not None
+
+class CustomToolbar(NavigationToolbar2Tk):
+    def __init__(
+        self,
+        canvas,
+        parent,
+        on_export_magnitude=None,
+        on_export_components=None,
+        on_export_distribution=None,
+        on_export_animation=None
+    ):
+        self.toolitems = list(NavigationToolbar2Tk.toolitems)
+
+        if on_export_magnitude:
+            self.toolitems.append((
+                "Export Magnitude",
+                "Export the data to a CSV file",
+                "qt4_editor_options",
+                "handle_export_magnitude"
+            ))
+
+        if on_export_components:
+            self.toolitems.append((
+                "Export Components",
+                "Export the data to a CSV file",
+                "qt4_editor_options",
+                "handle_export_components"
+            ))
+
+        if on_export_distribution:
+            self.toolitems.append((
+                "Export Distribution",
+                "Export the data to a CSV file",
+                "qt4_editor_options",
+                "handle_export_distribution"
+            ))
+
+        if on_export_animation:
+            self.toolitems.append((
+                "Export Animation",
+                "Export the animation to an MP4 file",
+                "qt4_editor_options",
+                "handle_export_animation"
+            ))
+
+        super().__init__(canvas, parent)
+
+        self.on_export_magnitude = on_export_magnitude
+        self.on_export_components = on_export_components
+        self.on_export_distribution = on_export_distribution
+        self.on_export_animation = on_export_animation
+
+    def handle_export_magnitude(self):
+        if self.on_export_magnitude:
+            self.on_export_magnitude()
+
+    def handle_export_components(self):
+        if self.on_export_components:
+            self.on_export_components()
+
+    def handle_export_distribution(self):
+        if self.on_export_distribution:
+            self.on_export_distribution()
+
+    def handle_export_animation(self):
+        if self.on_export_animation:
+            self.on_export_animation()
+
+class ToolTip:
+    def __init__(self, widget, text, x_offset, y_offset):
+        self.widget = widget
+        self.text = text
+        self.x_offset = x_offset
+        self.y_offset = y_offset
+        self.tip_window = None
+        self.widget.bind("<Enter>", self.show_tooltip)
+        self.widget.bind("<Leave>", self.hide_tooltip)
+
+    def show_tooltip(self, event):
+        if self.tip_window or not self.text:
+            return
+
+        x, y, _, _ = self.widget.bbox("insert")
+        x += self.widget.winfo_rootx() + self.x_offset
+        y += self.widget.winfo_rooty() + self.y_offset
+
+        self.tip_window = tw = tk.Toplevel(self.widget)
+        tw.wm_overrideredirect(True)
+        tw.wm_geometry(f"+{x}+{y}")
+
+        label = tk.Label(
+            tw,
+            text=self.text,
+            justify=tk.LEFT,
+            background="SystemButtonFace",
+            relief=tk.SOLID,
+            borderwidth=1
+        )
+        label.pack(ipadx=1)
+
+    def hide_tooltip(self, event):
+        if self.tip_window:
+            self.tip_window.destroy()
+            self.tip_window = None
 
 class GUI:
     def __init__(self, master):
         self.master = master
         self.master.title("Microgravity Simulation Support Facility - NASA")
-        self.master.configure()
+        self.master.configure(bg="#f1f1f1")
         self.master.state('zoomed')
         self.master.wm_minsize(1280, 720)
         self.current_mode = "Theoretical"
@@ -58,12 +165,12 @@ class GUI:
         title_font_style = ("Calibri", 19, "bold")
         category_font_style = ("Calibri", 13, "bold")
 
-        input_frame = tk.Frame(self.master, padx=1, pady=1)
+        input_frame = tk.Frame(self.master, padx=1, pady=1, bg="#f1f1f1")
         input_frame.pack(side=tk.TOP, anchor=tk.CENTER)
 
         self.create_title_frame(input_frame, title_font_style)
 
-        center_frame = tk.Frame(input_frame)
+        center_frame = tk.Frame(input_frame, bg="#f1f1f1")
         center_frame.pack()
 
         self.create_mode_frame(center_frame, font_style, category_font_style)
@@ -72,9 +179,9 @@ class GUI:
         self.create_start_button(center_frame, font_style)
 
     def load_images(self):
-        nasa_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'nasa_logo.png')).resize((60, 50), Image.LANCZOS)
+        nasa_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'NASA_logo.png')).resize((60, 50), Image.LANCZOS)
         self.nasa_logo = ImageTk.PhotoImage(nasa_image)
-        mssf_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'mssf_logo.png')).resize((56, 50), Image.LANCZOS)
+        mssf_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'MSSF_logo.png')).resize((56, 50), Image.LANCZOS)
         self.mssf_logo = ImageTk.PhotoImage(mssf_image)
         self.favicon = ImageTk.PhotoImage(file=os.path.join(SCRIPT_DIR, 'images', 'favicon.ico'))
         info_image = Image.open(os.path.join(SCRIPT_DIR, 'images', 'info.png')).resize((16, 16), Image.LANCZOS)
@@ -107,7 +214,7 @@ class GUI:
         self.mode_icon = tk.Label(mode_label_frame, image=self.info_icon, cursor="hand2")
         self.mode_icon.pack(side=tk.LEFT, padx=(0, 0))
         self.mode_icon.bind("<Button-1>", lambda e: self.open_info_link())
-        Tooltip(self.mode_icon, "Reference", x_offset=20, y_offset=0)
+        ToolTip(self.mode_icon, "Reference", x_offset=20, y_offset=0)
 
         self.mode_var = tk.StringVar(value="Theoretical")
         menu_button = tk.Menubutton(mode_frame, text="Theoretical", font=font_style, bg="#aeb0b5", activebackground="#d6d7d9", relief=tk.RAISED, pady=6)
@@ -119,8 +226,8 @@ class GUI:
         menu_button.pack()
 
     def register_validations(self):
-        self.validate_float_cmd = self.master.register(is_valid_float)
-        self.validate_positive_float_cmd = self.master.register(is_valid_positive_float)
+        self.validate_float_cmd = self.master.register(validate_float)
+        self.validate_positive_float_cmd = self.master.register(validate_positive_float)
 
     def create_theoretical_input_frames(self, parent, font_style, category_font_style):
         self.theoretical_angular_velocity_frame = tk.Frame(parent, padx=1, pady=1)
@@ -132,7 +239,7 @@ class GUI:
         
         velocity_asterisk_icon = tk.Label(velocity_label_frame, image=self.asterisk_icon)
         velocity_asterisk_icon.pack(side=tk.LEFT, padx=(0, 0))
-        Tooltip(velocity_asterisk_icon, "Required", x_offset=13, y_offset=-3)
+        ToolTip(velocity_asterisk_icon, "Required", x_offset=13, y_offset=-3)
         
         velocity_input_frame = tk.Frame(self.theoretical_angular_velocity_frame)
         velocity_input_frame.pack()
@@ -173,7 +280,7 @@ class GUI:
        
         duration_asterisk_icon = tk.Label(duration_label_frame, image=self.asterisk_icon)
         duration_asterisk_icon.pack(side=tk.LEFT, padx=(0, 0))
-        Tooltip(duration_asterisk_icon, "Required", x_offset=13, y_offset=-3)
+        ToolTip(duration_asterisk_icon, "Required", x_offset=13, y_offset=-3)
         
         self.simulation_duration_entry = tk.Entry(self.theoretical_duration_frame, font=font_style, width=20, validate="key", validatecommand=(self.validate_positive_float_cmd, "%P"))
         self.simulation_duration_entry.pack()
@@ -199,7 +306,7 @@ class GUI:
         
         data_asterisk_icon = tk.Label(data_label_frame, image=self.asterisk_icon)
         data_asterisk_icon.pack(side=tk.LEFT, padx=(0, 0))
-        Tooltip(data_asterisk_icon, "Required", x_offset=13, y_offset=-3)
+        ToolTip(data_asterisk_icon, "Required", x_offset=13, y_offset=-3)
         
         self.upload_file_button = tk.Button(self.experimental_data_frame, text="Upload CSV File", command=self.import_data, font=font_style, bg="#aeb0b5", activebackground="#d6d7d9")
         self.upload_file_button.pack()
@@ -221,7 +328,7 @@ class GUI:
         self.start_button.grid(row=1, column=0, columnspan=6, pady=(10, 5))
 
     def setup_plot_frames(self):
-        plot_frame = tk.Frame(self.master, padx=5, pady=5)
+        plot_frame = tk.Frame(self.master, padx=5, pady=5, bg="#f1f1f1")
         plot_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True, padx=(5, 5), pady=(0, 5))
 
         self.notebook = ttk.Notebook(plot_frame)
@@ -273,17 +380,9 @@ class GUI:
         self.theoretical_g_components_canvas = FigureCanvasTkAgg(self.theoretical_g_components_figure, self.theoretical_g_acceleration_frame_right)
         self.theoretical_g_components_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        self.theoretical_g_acceleration_toolbar = CustomToolbar(
-            self.theoretical_g_acceleration_canvas,
-            self.theoretical_g_acceleration_toolbar_frame_left,
-            on_export_magnitude=self.export_theoretical_g_magnitude_data
-        )
+        self.theoretical_g_acceleration_toolbar = CustomToolbar(self.theoretical_g_acceleration_canvas, self.theoretical_g_acceleration_toolbar_frame_left, self.export_theoretical_g_magnitude_data)
         self.theoretical_g_acceleration_toolbar.update()
-        self.theoretical_g_components_toolbar = CustomToolbar(
-            self.theoretical_g_components_canvas,
-            self.theoretical_g_acceleration_toolbar_frame_right,
-            on_export_components=self.export_theoretical_g_components_data
-        )
+        self.theoretical_g_components_toolbar = CustomToolbar(self.theoretical_g_components_canvas, self.theoretical_g_acceleration_toolbar_frame_right, on_export_components=self.export_theoretical_g_components_data)
         self.theoretical_g_components_toolbar.update()
 
         self.theoretical_non_g_acceleration_frame_left = tk.Frame(self.theoretical_non_g_acceleration_frame, borderwidth=1, relief=tk.SOLID)
@@ -316,17 +415,9 @@ class GUI:
         self.theoretical_non_g_components_canvas = FigureCanvasTkAgg(self.theoretical_non_g_components_figure, self.theoretical_non_g_acceleration_frame_right)
         self.theoretical_non_g_components_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        self.theoretical_non_g_acceleration_toolbar = CustomToolbar(
-            self.theoretical_non_g_acceleration_canvas,
-            self.theoretical_non_g_acceleration_toolbar_frame_left,
-            on_export_magnitude=self.export_theoretical_non_g_magnitude_data
-        )
+        self.theoretical_non_g_acceleration_toolbar = CustomToolbar(self.theoretical_non_g_acceleration_canvas, self.theoretical_non_g_acceleration_toolbar_frame_left, self.export_theoretical_non_g_magnitude_data)
         self.theoretical_non_g_acceleration_toolbar.update()
-        self.theoretical_non_g_components_toolbar = CustomToolbar(
-            self.theoretical_non_g_components_canvas,
-            self.theoretical_non_g_acceleration_toolbar_frame_right,
-            on_export_components=self.export_theoretical_non_g_components_data
-        )
+        self.theoretical_non_g_components_toolbar = CustomToolbar(self.theoretical_non_g_components_canvas, self.theoretical_non_g_acceleration_toolbar_frame_right, on_export_components=self.export_theoretical_non_g_components_data)
         self.theoretical_non_g_components_toolbar.update()
 
         self.theoretical_acceleration_distribution_frame_left = tk.Frame(self.theoretical_acceleration_distribution_frame, borderwidth=1, relief=tk.SOLID)
@@ -355,17 +446,9 @@ class GUI:
         self.theoretical_acceleration_distribution_analysis_canvas = FigureCanvasTkAgg(self.theoretical_acceleration_distribution_analysis_figure, self.theoretical_acceleration_distribution_frame_right)
         self.theoretical_acceleration_distribution_analysis_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        self.theoretical_acceleration_distribution_toolbar = CustomToolbar(
-            self.theoretical_acceleration_distribution_canvas,
-            self.theoretical_acceleration_distribution_toolbar_frame_left,
-            on_export_distribution=self.export_theoretical_distribution_data
-        )
+        self.theoretical_acceleration_distribution_toolbar = CustomToolbar(self.theoretical_acceleration_distribution_canvas, self.theoretical_acceleration_distribution_toolbar_frame_left, on_export_distribution=self.export_theoretical_distribution_data)
         self.theoretical_acceleration_distribution_toolbar.update()
-        self.theoretical_acceleration_distribution_analysis_toolbar = CustomToolbar(
-            self.theoretical_acceleration_distribution_analysis_canvas,
-            self.theoretical_acceleration_distribution_toolbar_frame_right,
-            on_export_animation=self.export_animation_data
-        )
+        self.theoretical_acceleration_distribution_analysis_toolbar = CustomToolbar(self.theoretical_acceleration_distribution_analysis_canvas, self.theoretical_acceleration_distribution_toolbar_frame_right, on_export_animation=self.export_animation_data)
         self.theoretical_acceleration_distribution_analysis_toolbar.update()
 
     def setup_experimental_plot_frames(self):
@@ -402,17 +485,9 @@ class GUI:
         self.experimental_g_acceleration_canvas_right = FigureCanvasTkAgg(self.experimental_g_acceleration_figure_right, self.experimental_g_acceleration_frame_right)
         self.experimental_g_acceleration_canvas_right.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        self.experimental_g_acceleration_toolbar_left = CustomToolbar(
-            self.experimental_g_acceleration_canvas_left,
-            self.experimental_g_acceleration_toolbar_frame_left,
-            on_export_magnitude=self.export_experimental_g_magnitude_data
-        )
+        self.experimental_g_acceleration_toolbar_left = CustomToolbar(self.experimental_g_acceleration_canvas_left, self.experimental_g_acceleration_toolbar_frame_left, self.export_experimental_g_magnitude_data)
         self.experimental_g_acceleration_toolbar_left.update()
-        self.experimental_g_acceleration_toolbar_right = CustomToolbar(
-            self.experimental_g_acceleration_canvas_right,
-            self.experimental_g_acceleration_toolbar_frame_right,
-            on_export_components=self.export_experimental_g_components_data
-        )
+        self.experimental_g_acceleration_toolbar_right = CustomToolbar(self.experimental_g_acceleration_canvas_right, self.experimental_g_acceleration_toolbar_frame_right, on_export_components=self.export_experimental_g_components_data)
         self.experimental_g_acceleration_toolbar_right.update()
 
         self.experimental_acceleration_distribution_frame_left = tk.Frame(self.experimental_acceleration_distribution_frame, borderwidth=1, relief=tk.SOLID)
@@ -441,17 +516,9 @@ class GUI:
         self.experimental_acceleration_distribution_analysis_canvas = FigureCanvasTkAgg(self.experimental_acceleration_distribution_analysis_figure, self.experimental_acceleration_distribution_frame_right)
         self.experimental_acceleration_distribution_analysis_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        self.experimental_acceleration_distribution_toolbar = CustomToolbar(
-            self.experimental_acceleration_distribution_canvas,
-            self.experimental_acceleration_distribution_toolbar_frame_left,
-            on_export_distribution=self.export_experimental_distribution_data
-        )
+        self.experimental_acceleration_distribution_toolbar = CustomToolbar(self.experimental_acceleration_distribution_canvas, self.experimental_acceleration_distribution_toolbar_frame_left, on_export_distribution=self.export_experimental_distribution_data)
         self.experimental_acceleration_distribution_toolbar.update()
-        self.experimental_acceleration_distribution_analysis_toolbar = CustomToolbar(
-            self.experimental_acceleration_distribution_analysis_canvas,
-            self.experimental_acceleration_distribution_toolbar_frame_right,
-            on_export_animation=self.export_animation_data
-        )
+        self.experimental_acceleration_distribution_analysis_toolbar = CustomToolbar(self.experimental_acceleration_distribution_analysis_canvas, self.experimental_acceleration_distribution_toolbar_frame_right, on_export_animation=self.export_animation_data)
         self.experimental_acceleration_distribution_analysis_toolbar.update()
 
     def configure_3d_axes(self, ax, title):
@@ -482,7 +549,7 @@ class GUI:
     def create_custom_theme(self):
         style = ttk.Style()
         style.theme_create("yummy", parent="alt", settings={
-            "TNotebook": {"configure": {"tabmargins": [1, 0, 0, 0], "background": "SystemButtonFace"}},
+            "TNotebook": {"configure": {"tabmargins": [1, 0, 0, 0], "background": "#f1f1f1"}},
             "TNotebook.Tab": {
                 "configure": {"padding": [5, 1], "background": "#aeb0b5", "font": ("Calibri", 11), "focuscolor": ""},
                 "map": {"background": [("selected", "#d6d7d9")], "expand": [("selected", [1, 1, 1, 0])]}
@@ -492,7 +559,7 @@ class GUI:
 
     def open_info_link(self):
         if self.current_mode == "Theoretical":
-            webbrowser.open("https://biomedical-engineering-online.biomedcentral.com/articles/10.1186/s12938-017-0337-8")
+            webbrowser.open("https://rdcu.be/eg58N")
 
     def switch_mode(self, mode):
         if self.current_mode == mode:
@@ -693,15 +760,15 @@ class GUI:
                 if self.last_mode == "Theoretical":
                     if not self.theoretical_acceleration_distribution_analysis_ax.lines:
                         raise ValueError("No data available to export.")
-                    inner_rpm = self.last_inner_velocity if self.last_inner_velocity is not None else 0.0
                     outer_rpm = self.last_outer_velocity if self.last_outer_velocity is not None else 0.0
-                    theta_1_init = self.last_inner_position if self.last_inner_position is not None else 0.0
-                    theta_2_init = self.last_outer_position if self.last_outer_position is not None else 0.0
+                    inner_rpm = self.last_inner_velocity if self.last_inner_velocity is not None else 0.0
+                    theta_1_init = self.last_outer_position if self.last_outer_position is not None else 0.0
+                    theta_2_init = self.last_inner_position if self.last_inner_position is not None else 0.0
                     delta_m = self.last_distance / 100 if self.last_distance is not None else 0.0
                     duration_hours = self.last_simulation_duration
-                    theoretical_model = MathModel(inner_rpm, outer_rpm, delta_m, delta_m, delta_m, duration_hours, theta_1_init, theta_2_init)
-                    time_array, g_array, _ = theoretical_model.calculate_acceleration()
-                    x_data, y_data, z_data = g_array[0], g_array[1], g_array[2]
+                    theoretical_model = MathModel(outer_rpm, inner_rpm, theta_1_init, theta_2_init, delta_m, delta_m, delta_m, duration_hours)
+                    time_array, _, _, a_tot_array = theoretical_model.calculate_acceleration()
+                    x_data, y_data, z_data = a_tot_array[0], a_tot_array[1], a_tot_array[2]
                     time_data = time_array / 3600
 
                 elif self.last_mode == "Experimental":
@@ -1018,17 +1085,18 @@ class GUI:
             simulation_duration = float(self.simulation_duration_entry.get())
             if end_analysis > simulation_duration:
                 raise ValueError("Upper bound for time period of analysis must be ≤ the simulation duration.")
-
-        duration_hours = float(self.simulation_duration_entry.get())
-        delta_cm = float(self.distance_entry.get()) if self.distance_entry.get() else 0.0  
-        inner_rpm = float(self.inner_velocity_entry.get()) if self.inner_velocity_entry.get() else 0.0
+  
         outer_rpm = float(self.outer_velocity_entry.get()) if self.outer_velocity_entry.get() else 0.0
-        theta_1_init = float(self.inner_position_entry.get()) if self.inner_position_entry.get() else 0.0
-        theta_2_init = float(self.outer_position_entry.get()) if self.outer_position_entry.get() else 0.0
-        delta_x, delta_y, delta_z = delta_cm, delta_cm, delta_cm
+        inner_rpm = float(self.inner_velocity_entry.get()) if self.inner_velocity_entry.get() else 0.0
+        theta_1_init = float(self.outer_position_entry.get()) if self.outer_position_entry.get() else 0.0
+        theta_2_init = float(self.inner_position_entry.get()) if self.inner_position_entry.get() else 0.0
+        delta_cm = float(self.distance_entry.get()) if self.distance_entry.get() else 0.0
+        delta_m = delta_cm / 100
+        delta_x, delta_y, delta_z = delta_m, delta_m, delta_m
+        duration_hours = float(self.simulation_duration_entry.get())
 
-        theoretical_model = MathModel(inner_rpm, outer_rpm, theta_1_init, theta_2_init, delta_x, delta_y, delta_z, duration_hours)
-        time_array, g_array, a_array, _ = theoretical_model.calculate_acceleration()
+        theoretical_model = MathModel(outer_rpm, inner_rpm, theta_1_init, theta_2_init, delta_x, delta_y, delta_z, duration_hours)
+        time_array, g_array, a_array, a_tot_array = theoretical_model.calculate_acceleration()
 
         g_x_avg = np.cumsum(g_array[0]) / np.arange(1, len(g_array[0]) + 1)
         g_y_avg = np.cumsum(g_array[1]) / np.arange(1, len(g_array[1]) + 1)
@@ -1046,7 +1114,7 @@ class GUI:
         self.update_theoretical_g_components_plot(time_array, g_x_avg, g_y_avg, g_z_avg)
         self.update_theoretical_non_g_acceleration_plot(time_array, a_magnitude, avg_a_magnitude)
         self.update_theoretical_non_g_components_plot(time_array, a_x_avg, a_y_avg, a_z_avg)
-        self.update_theoretical_acceleration_distribution_plot(g_array, time_array)
+        self.update_theoretical_acceleration_distribution_plot(a_tot_array, time_array)
 
     def update_theoretical_g_acceleration_plot(self, time_array, g_magnitude, avg_g_magnitude):
         time_in_hours = time_array / 3600
@@ -1120,11 +1188,11 @@ class GUI:
         self.theoretical_non_g_components_ax.set_ylabel('Acceleration (g)')
         self.theoretical_non_g_components_canvas.draw()
 
-    def update_theoretical_acceleration_distribution_plot(self, g_array, time_array):
+    def update_theoretical_acceleration_distribution_plot(self, a_tot_array, time_array):
         self.theoretical_acceleration_distribution_ax.clear()
-        self.theoretical_acceleration_distribution_ax.plot(g_array[0], g_array[1], g_array[2], color='#0066b2', linewidth=1)
+        self.theoretical_acceleration_distribution_ax.plot(a_tot_array[0], a_tot_array[1], a_tot_array[2], color='#0066b2', linewidth=1)
         self.configure_3d_axes(self.theoretical_acceleration_distribution_ax, "Orientation Distribution")
-        distribution_score = FibonacciLattice("theoretical", g_array[0], g_array[1], g_array[2]).getDistribution()
+        distribution_score = FibonacciLattice("theoretical", a_tot_array[0], a_tot_array[1], a_tot_array[2]).getDistribution()
         self.theoretical_acceleration_distribution_ax.legend([f"Distribution: {distribution_score}"])
         self.theoretical_acceleration_distribution_canvas.draw()
 
@@ -1138,7 +1206,7 @@ class GUI:
             time_in_hours = time_array / 3600
             start_index = next(i for i, t in enumerate(time_in_hours) if t >= start_analysis)
             end_index = next(i for i, t in enumerate(time_in_hours) if t >= end_analysis)
-            sliced_x, sliced_y, sliced_z = g_array[0][start_index:end_index], g_array[1][start_index:end_index], g_array[2][start_index:end_index]
+            sliced_x, sliced_y, sliced_z = a_tot_array[0][start_index:end_index], a_tot_array[1][start_index:end_index], a_tot_array[2][start_index:end_index]
             path_vis_analysis = FibonacciLattice("theoretical", sliced_x, sliced_y, sliced_z)
             distribution_score_analysis = path_vis_analysis.getDistribution()
             self.animate_distribution(
