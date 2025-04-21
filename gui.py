@@ -16,8 +16,8 @@ from PIL import Image, ImageTk
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox, filedialog
-from math_model import MathModel
 from fibonacci_lattice import FibonacciLattice
+from math_model import MathModel
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -135,7 +135,7 @@ class GUI:
     def __init__(self, master):
         self.master = master
         self.master.title("Microgravity Simulation Support Facility - NASA")
-        self.master.configure(bg="#f1f1f1")
+        self.master.configure()
         self.master.state('zoomed')
         self.master.wm_minsize(1280, 720)
         self.current_mode = "Theoretical"
@@ -165,12 +165,12 @@ class GUI:
         title_font_style = ("Calibri", 19, "bold")
         category_font_style = ("Calibri", 13, "bold")
 
-        input_frame = tk.Frame(self.master, padx=1, pady=1, bg="#f1f1f1")
+        input_frame = tk.Frame(self.master, padx=1, pady=1)
         input_frame.pack(side=tk.TOP, anchor=tk.CENTER)
 
         self.create_title_frame(input_frame, title_font_style)
 
-        center_frame = tk.Frame(input_frame, bg="#f1f1f1")
+        center_frame = tk.Frame(input_frame)
         center_frame.pack()
 
         self.create_mode_frame(center_frame, font_style, category_font_style)
@@ -243,28 +243,28 @@ class GUI:
         
         velocity_input_frame = tk.Frame(self.theoretical_angular_velocity_frame)
         velocity_input_frame.pack()
-        self.inner_velocity_label = tk.Label(velocity_input_frame, text="Inner", font=font_style)
-        self.inner_velocity_label.pack(side=tk.LEFT)
-        self.inner_velocity_entry = tk.Entry(velocity_input_frame, font=font_style, width=5, validate="key", validatecommand=(self.validate_float_cmd, "%P"))
-        self.inner_velocity_entry.pack(side=tk.LEFT)
         self.outer_velocity_label = tk.Label(velocity_input_frame, text="Outer", font=font_style)
-        self.outer_velocity_label.pack(side=tk.LEFT, padx=(10, 0))
+        self.outer_velocity_label.pack(side=tk.LEFT)
         self.outer_velocity_entry = tk.Entry(velocity_input_frame, font=font_style, width=5, validate="key", validatecommand=(self.validate_float_cmd, "%P"))
         self.outer_velocity_entry.pack(side=tk.LEFT)
+        self.inner_velocity_label = tk.Label(velocity_input_frame, text="Inner", font=font_style)
+        self.inner_velocity_label.pack(side=tk.LEFT, padx=(10, 0))
+        self.inner_velocity_entry = tk.Entry(velocity_input_frame, font=font_style, width=5, validate="key", validatecommand=(self.validate_float_cmd, "%P"))
+        self.inner_velocity_entry.pack(side=tk.LEFT)
 
         self.theoretical_angular_position_frame = tk.Frame(parent, padx=1, pady=1)
         self.theoretical_angular_position_frame.grid(row=0, column=2, padx=15)
         tk.Label(self.theoretical_angular_position_frame, text="Initial Angular Position (deg)", font=category_font_style).pack()
         position_input_frame = tk.Frame(self.theoretical_angular_position_frame)
         position_input_frame.pack()
-        self.inner_position_label = tk.Label(position_input_frame, text="Inner", font=font_style)
-        self.inner_position_label.pack(side=tk.LEFT)
-        self.inner_position_entry = tk.Entry(position_input_frame, font=font_style, width=5, validate="key", validatecommand=(self.validate_float_cmd, "%P"))
-        self.inner_position_entry.pack(side=tk.LEFT)
         self.outer_position_label = tk.Label(position_input_frame, text="Outer", font=font_style)
-        self.outer_position_label.pack(side=tk.LEFT, padx=(10, 0))
+        self.outer_position_label.pack(side=tk.LEFT)
         self.outer_position_entry = tk.Entry(position_input_frame, font=font_style, width=5, validate="key", validatecommand=(self.validate_float_cmd, "%P"))
         self.outer_position_entry.pack(side=tk.LEFT)
+        self.inner_position_label = tk.Label(position_input_frame, text="Inner", font=font_style)
+        self.inner_position_label.pack(side=tk.LEFT, padx=(10, 0))
+        self.inner_position_entry = tk.Entry(position_input_frame, font=font_style, width=5, validate="key", validatecommand=(self.validate_float_cmd, "%P"))
+        self.inner_position_entry.pack(side=tk.LEFT)
 
         self.theoretical_distance_frame = tk.Frame(parent, padx=1, pady=1)
         self.theoretical_distance_frame.grid(row=0, column=3, padx=15)
@@ -328,7 +328,7 @@ class GUI:
         self.start_button.grid(row=1, column=0, columnspan=6, pady=(10, 5))
 
     def setup_plot_frames(self):
-        plot_frame = tk.Frame(self.master, padx=5, pady=5, bg="#f1f1f1")
+        plot_frame = tk.Frame(self.master, padx=5, pady=5)
         plot_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True, padx=(5, 5), pady=(0, 5))
 
         self.notebook = ttk.Notebook(plot_frame)
@@ -549,7 +549,7 @@ class GUI:
     def create_custom_theme(self):
         style = ttk.Style()
         style.theme_create("yummy", parent="alt", settings={
-            "TNotebook": {"configure": {"tabmargins": [1, 0, 0, 0], "background": "#f1f1f1"}},
+            "TNotebook": {"configure": {"tabmargins": [1, 0, 0, 0], "background": "SystemButtonFace"}},
             "TNotebook.Tab": {
                 "configure": {"padding": [5, 1], "background": "#aeb0b5", "font": ("Calibri", 11), "focuscolor": ""},
                 "map": {"background": [("selected", "#d6d7d9")], "expand": [("selected", [1, 1, 1, 0])]}
@@ -559,7 +559,7 @@ class GUI:
 
     def open_info_link(self):
         if self.current_mode == "Theoretical":
-            webbrowser.open("https://rdcu.be/eg58N")
+            webbrowser.open("https://biomedical-engineering-online.biomedcentral.com/articles/10.1186/s12938-017-0337-8")
 
     def switch_mode(self, mode):
         if self.current_mode == mode:
