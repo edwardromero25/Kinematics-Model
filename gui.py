@@ -870,7 +870,7 @@ class GUI:
                 "Invalid CSV file format.\n\n"
                 "Supported CSV file formats:\n"
                 "(1) Timestamp (yyyy-mm-dd hh:mm:ss.sss), X (g), Y (g), Z (g)\n\n"
-                "(2) Timestamp (s), X (m/s²), Y (m/s²), Z (m/s²)\n"
+                "(2) Timestamp (s), X (m/s²), Y (m/s²), Z (m/s²)"
             )
             return
 
@@ -913,7 +913,7 @@ class GUI:
                     "Invalid CSV file format.\n\n"
                     "Supported CSV file formats:\n"
                     "(1) Timestamp (yyyy-mm-dd hh:mm:ss.sss), X (g), Y (g), Z (g)\n"
-                    "(2) Timestamp (s), X (m/s²), Y (m/s²), Z (m/s²)\n"
+                    "(2) Timestamp (s), X (m/s²), Y (m/s²), Z (m/s²)"
                 )
         except Exception as e:
             messagebox.showerror("Error", str(e))
@@ -1205,7 +1205,7 @@ def import_sci_spinner_format_data(file_path):
             "Invalid CSV file format.\n\n"
             "Supported CSV file formats:\n"
             "(1) Timestamp (yyyy-mm-dd hh:mm:ss.sss), X (g), Y (g), Z (g)\n"
-            "(2) Timestamp (s), X (m/s²), Y (m/s²), Z (m/s²)\n"
+            "(2) Timestamp (s), X (m/s²), Y (m/s²), Z (m/s²)"
         )
 
 if __name__ == "__main__":
