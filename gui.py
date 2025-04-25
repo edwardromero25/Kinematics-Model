@@ -869,11 +869,8 @@ class GUI:
                 "Error",
                 "Invalid CSV file format.\n\n"
                 "Supported CSV file formats:\n"
-                "(1) Date (yyyy-mm-dd), Time (hh:mm:ss), X (g), Y (g), Z (g)\n"
-                "     Example: 2001-11-21, 12:00:00, 0, 0, 1\n\n"
-                "OR\n\n"
-                "(2) Time (s), X (m/s²), Y (m/s²), Z (m/s²)\n"
-                "     Example: 0, 0, 0, 9.8"
+                "(1) Timestamp (yyyy-mm-dd hh:mm:ss.sss), X (g), Y (g), Z (g)\n\n"
+                "(2) Timestamp (s), X (m/s²), Y (m/s²), Z (m/s²)\n"
             )
             return
 
@@ -915,11 +912,8 @@ class GUI:
                     "Error",
                     "Invalid CSV file format.\n\n"
                     "Supported CSV file formats:\n"
-                    "(1) Date (yyyy-mm-dd), Time (hh:mm:ss), X (g), Y (g), Z (g)\n"
-                    "     Example: 2001-11-21, 12:00:00, 0, 0, 1\n\n"
-                    "OR\n\n"
-                    "(2) Time (s), X (m/s²), Y (m/s²), Z (m/s²)\n"
-                    "     Example: 0, 0, 0, 9.8"
+                    "(1) Timestamp (yyyy-mm-dd hh:mm:ss.sss), X (g), Y (g), Z (g)\n"
+                    "(2) Timestamp (s), X (m/s²), Y (m/s²), Z (m/s²)\n"
                 )
         except Exception as e:
             messagebox.showerror("Error", str(e))
@@ -1210,11 +1204,8 @@ def import_sci_spinner_format_data(file_path):
             "Error",
             "Invalid CSV file format.\n\n"
             "Supported CSV file formats:\n"
-            "(1) Date (yyyy-mm-dd), Time (hh:mm:ss), X (g), Y (g), Z (g)\n"
-            "     Example: 2001-11-21, 12:00:00, 0, 0, 1\n\n"
-            "OR\n\n"
-            "(2) Time (s), X (m/s²), Y (m/s²), Z (m/s²)\n"
-            "     Example: 0, 0, 0, 9.8"
+            "(1) Timestamp (yyyy-mm-dd hh:mm:ss.sss), X (g), Y (g), Z (g)\n"
+            "(2) Timestamp (s), X (m/s²), Y (m/s²), Z (m/s²)\n"
         )
 
 if __name__ == "__main__":
