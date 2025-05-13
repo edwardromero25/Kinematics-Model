@@ -10,7 +10,7 @@
   <img src="images/example.png" alt="example" style="max-width: 100%; height: auto;">
 </div>
 
-The Microgravity Simulation Support Facility (MSSF) at the National Aeronautics and Space Administration (NASA) John F. Kennedy Space Center (KSC) contains an array of devices that negate the directional influence of gravity to simulate microgravity. The MSSF has created a graphical user interface (GUI) application with Python for analyzing and visualizing the accelerations felt by a biospecimen when rotating in these devices to enable scientists to validate that these low-gravity environments are being achieved. The application has two modes: theoretical and experimental. The efficacy of a given operating condition in simulating microgravity is evaluated using a kinematics model for theoretical mode or data from an onboard accelerometer for experimental mode.
+The Microgravity Simulation Support Facility (MSSF) at the National Aeronautics and Space Administration (NASA) John F. Kennedy Space Center (KSC) contains an array of devices that negate the directional influence of gravity to simulate microgravity. The MSSF has created a graphical user interface (GUI) with Python for computing and visualizing the accelerations felt by a biospecimen when rotating in these devices to better enable scientists to interpret data and validate that a microgravity environment is being achieved. The application has two modes: theoretical and experimental. The efficacy of a given operating condition in simulating microgravity is evaluated using a kinematics model for theoretical mode or data from an onboard accelerometer for experimental mode.
 
 ## Built With
 
